@@ -1,0 +1,132 @@
+$sidebar-width: 260px;
+$bg-glass: rgba(255, 255, 255, 0.7);
+$text-light: #ffffff;
+
+.main-navigation {
+  width: $sidebar-width;
+  height: 100vh;
+  background: var(--primary-bg);
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  color: $text-light;
+  z-index: 1000;
+  font-family: var(--primary-font);
+
+  .nav-brand {
+    margin-bottom: 20px;
+    text-align: center;
+    position: relative;
+    
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin: 0;
+      color: $text-light;
+      
+      span {
+        color: var(--primary-color);
+        font-weight: 400;
+      }
+    }
+  }
+
+  .nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+    
+    /* Hide scrollbar for clean UI but keep functionality */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
+    }
+
+    li {
+      margin-bottom: 12px;
+
+      a {
+        display: block;
+        padding: 14px 20px;
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 500;
+        border-radius: 12px;
+        transition: var(--transition);
+        background: transparent;
+
+        &:hover {
+          color: white;
+          background: rgba(255, 255, 255, 0.1);
+          transform: translateX(4px);
+        }
+
+        &.active-link {
+          background: var(--primary-color);
+          color: white;
+          box-shadow: var(--primary-color-shadow);
+          font-weight: 600;
+          transform: scale(1.02);
+        }
+      }
+    }
+  }
+
+  .nav-footer {
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    font-size: 13px;
+    opacity: 0.8;
+    font-weight: 300;
+    font-family: var(--secondary-font);
+    background: var(--secondary-bg);
+    margin: 0 -20px -30px -20px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-navigation {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 20px 16px;
+    
+    .nav-brand {
+      margin-bottom: 20px;
+    }
+    
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      
+      li {
+        margin-bottom: 0;
+        flex: 1 1 calc(50% - 8px);
+        
+        a {
+          padding: 10px;
+          text-align: center;
+          font-size: 13px;
+        }
+      }
+    }
+    
+    .nav-footer {
+      margin: 20px -16px -20px -16px;
+      padding: 16px;
+    }
+  }
+}
+

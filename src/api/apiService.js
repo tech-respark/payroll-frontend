@@ -1,0 +1,55 @@
+export const BASE_URL = 'https://localhost:8092/payroll-management/v1';
+
+
+const handleResponse = async (response) => {
+  if (response.status === 401 || response.status === 403) {
+    // Token is expired or invalid
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+    throw new Error('Session expired. Please log in again.');
+  }
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return await response.json();
+};
+
+export const apiService = {
+  async get(endpoint, headers = {}) {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...headers
+        }
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('GET Error:', error);
+      throw error;
+    }
+  },
+
+  async post(endpoint, body, headers = {}) {
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...headers
+        },
+        body: JSON.stringify(body)
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error('POST Error:', error);
+      throw error;
+    }
+  }
+};
