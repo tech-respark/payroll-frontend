@@ -35,6 +35,7 @@ export const apiService = {
   },
 
   async post(endpoint, body, headers = {}) {
+    window.dispatchEvent(new Event('api_call_start'));
     try {
       const token = localStorage.getItem('jwtToken');
       const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -50,6 +51,8 @@ export const apiService = {
     } catch (error) {
       console.error('POST Error:', error);
       throw error;
+    } finally {
+      window.dispatchEvent(new Event('api_call_end'));
     }
   }
 };

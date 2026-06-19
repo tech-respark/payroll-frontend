@@ -1,83 +1,70 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import '../styles/Navigation.scss';
+import styles from './Navigation.module.scss';
 
 const Navigation = () => {
   const { logout, user, hasAccess } = useAuth();
 
   return (
-    <nav className="main-navigation">
-      <div className="nav-brand">
+    <nav className={styles.mainNavigation}>
+      <div className={styles.navBrand}>
         <h1>Relfor <span>Payroll</span></h1>
       </div>
-      <ul className="nav-links">
+      <ul className={styles.navLinks}>
         <li>
-          <NavLink to="/staff" activeClassName="active-link">
+          <NavLink to="/staff" activeClassName={styles.activeLink}>
             Staff Dashboard
           </NavLink>
         </li>
         {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SHIFTS', 'MANAGE_SHIFTS']) && (
           <li>
-            <NavLink to="/shifts" activeClassName="active-link">
+            <NavLink to="/shifts" activeClassName={styles.activeLink}>
               Shift and Roster Management
             </NavLink>
           </li>
         )}
         <li>
-          <NavLink to="/attendance" activeClassName="active-link">
+          <NavLink to="/attendance" activeClassName={styles.activeLink}>
             Attendance
           </NavLink>
         </li>
         {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_ATTENDANCE']) && (
           <li>
-            <NavLink to="/approvals" activeClassName="active-link">
+            <NavLink to="/approvals" activeClassName={styles.activeLink}>
               Regularization Approvals
             </NavLink>
           </li>
         )}
         {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SALARY', 'MANAGE_SALARY']) && (
           <li>
-            <NavLink to="/salary" activeClassName="active-link">
+            <NavLink to="/salary" activeClassName={styles.activeLink}>
               Salary Management
             </NavLink>
           </li>
         )}
         {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SALARY', 'MANAGE_SALARY']) && (
           <li>
-            <NavLink to="/payslips" activeClassName="active-link">
+            <NavLink to="/payslips" activeClassName={styles.activeLink}>
               Payslips
             </NavLink>
           </li>
         )}
         {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN']) && (
           <li>
-            <NavLink to="/roles" activeClassName="active-link">
+            <NavLink to="/roles" activeClassName={styles.activeLink}>
               Role Management
             </NavLink>
           </li>
         )}
       </ul>
-      <div className="nav-footer">
-        <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#f8fafc', fontWeight: '500' }}>
+      <div className={styles.navFooter}>
+        <p className={styles.storeName}>
           Store: Main Store
         </p>
         <button 
           onClick={logout} 
-          style={{
-            background: 'transparent',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: '#cbd5e1',
-            padding: '8px 16px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            marginTop: '16px',
-            width: '100%',
-            transition: 'all 0.2s ease',
-            fontSize: '14px'
-          }}
-          onMouseOver={(e) => { e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.color = '#fff'; }}
-          onMouseOut={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#cbd5e1'; }}
+          className={styles.signOutBtn}
         >
           Sign Out
         </button>

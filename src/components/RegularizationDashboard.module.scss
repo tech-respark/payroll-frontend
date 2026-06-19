@@ -1,0 +1,45 @@
+.punchesContainer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.headerControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.actionButtons {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.tableContainer {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.tableHead {
+  background-color: #f8fafc;
+}
+
+.tableHeadCell {
+  font-weight: bold;
+}
+
+.emptyStateCell {
+  padding-top: 24px;
+  padding-bottom: 24px;
+  color: rgba(0, 0, 0, 0.6);
+}

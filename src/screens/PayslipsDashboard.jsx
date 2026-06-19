@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import PayslipBill from '../components/PayslipBill';
+import styles from './PayslipsDashboard.module.scss';
 import '../styles/main.scss';
 
 const MONTHS = [
@@ -131,10 +132,10 @@ const PayslipsDashboard = () => {
       <h2>Payslip Generation</h2>
       
       <div className="payroll-card no-print">
-        <div className="filter-bar" style={{ marginBottom: '30px' }}>
-          <div className="form-group" style={{ flex: 1, minWidth: '150px' }}>
-            <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '6px', display: 'block' }}>Payroll Month</label>
-            <select value={selectedMonth} onChange={e => { setSelectedMonth(e.target.value); setPayslipData(null); }} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
+        <div className={`filter-bar ${styles.filterBar}`}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Payroll Month</label>
+            <select value={selectedMonth} onChange={e => { setSelectedMonth(e.target.value); setPayslipData(null); }} className={styles.formSelect}>
               {getFinancialYearMonths().map((m) => (
                 <option key={m} value={m} disabled={isMonthDisabled(m, selectedYear)}>
                   {m}
@@ -142,9 +143,9 @@ const PayslipsDashboard = () => {
               ))}
             </select>
           </div>
-          <div className="form-group" style={{ flex: 1, minWidth: '150px' }}>
-            <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '6px', display: 'block' }}>Payroll Year</label>
-            <select value={selectedYear} onChange={e => { setSelectedYear(Number(e.target.value)); setPayslipData(null); }} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>Payroll Year</label>
+            <select value={selectedYear} onChange={e => { setSelectedYear(Number(e.target.value)); setPayslipData(null); }} className={styles.formSelect}>
               {[currentYear - 1, currentYear, currentYear + 1].map(y => (
                 <option key={y} value={y} disabled={isYearDisabled(y)}>
                   {y}
@@ -152,21 +153,21 @@ const PayslipsDashboard = () => {
               ))}
             </select>
           </div>
-          <div className="form-group" style={{ flex: 2, minWidth: '200px' }}>
-            <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '6px', display: 'block' }}>Select Staff Member</label>
+          <div className={styles.formGroupLarge}>
+            <label className={styles.formLabel}>Select Staff Member</label>
             {staffList.length === 1 ? (
-              <div style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#f1f5f9', color: '#334155', fontWeight: '500' }}>
+              <div className={styles.staffReadOnly}>
                 {staffList[0].firstName} {staffList[0].lastName}
               </div>
             ) : (
-              <select value={selectedStaffId} onChange={e => { setSelectedStaffId(e.target.value); setPayslipData(null); }} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: 'white' }}>
+              <select value={selectedStaffId} onChange={e => { setSelectedStaffId(e.target.value); setPayslipData(null); }} className={styles.formSelect}>
                 <option value="">-- Select Staff member --</option>
                 {staffList.map(staff => <option key={staff.id} value={staff.id}>{staff.firstName} {staff.lastName}</option>)}
               </select>
             )}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', flex: 1 }}>
-            <button className="btn btn-primary" onClick={handleGenerate} disabled={generateDisabled} style={{ height: '40px', padding: '0 24px', width: '100%', opacity: generateDisabled ? 0.6 : 1, cursor: generateDisabled ? 'not-allowed' : 'pointer' }}>
+          <div className={styles.generateBtnContainer}>
+            <button className={`btn btn-primary ${styles.generateBtn} ${generateDisabled ? styles.generateBtnDisabled : ''}`} onClick={handleGenerate} disabled={generateDisabled}>
               {loading ? 'Generating...' : 'Generate Payslip'}
             </button>
           </div>
@@ -175,7 +176,7 @@ const PayslipsDashboard = () => {
 
 
         {payslipData && (
-          <div style={{ marginTop: '30px' }}>
+          <div className={styles.payslipWrapper}>
             <PayslipBill payslipData={payslipData} payslipMonth={selectedMonth} />
           </div>
         )}

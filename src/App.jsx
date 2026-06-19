@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import Toast from './components/Toast';
+import GlobalLoader from './components/GlobalLoader';
 import Navigation from './components/Navigation';
 import Login from './screens/Login';
 import StaffDashboard from './screens/StaffDashboard';
@@ -55,6 +56,7 @@ const App = () => {
         <Router>
           <AppContent />
           <Toast />
+          <GlobalLoader />
         </Router>
       </AuthProvider>
     </ToastProvider>

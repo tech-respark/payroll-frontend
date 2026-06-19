@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
+import styles from './RoleManagement.module.scss';
 import '../styles/main.scss';
 
 const RoleManagement = () => {
@@ -138,16 +139,10 @@ const RoleManagement = () => {
 
   return (
     <div className="dashboard">
-      <style>{`
-        .role-row:hover { background-color: #f1f5f9; }
-        .role-row.active { background-color: #eff6ff; border-left: 3px solid #3f97ef; }
-      `}</style>
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ margin: 0 }}>Role Management</h2>
+      <div className={styles.header}>
+        <h2 className={styles.headerTitle}>Role Management</h2>
         <button 
-          className="btn btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', width: 'max-content', padding: '10px 24px', flexShrink: 0 }}
+          className={`btn btn-primary ${styles.headerBtn}`}
           onClick={() => {
             setEditingRoleId(null);
             setNewRoleName('');
@@ -162,19 +157,19 @@ const RoleManagement = () => {
       </div>
 
       {/* SPLIT PANEL LAYOUT */}
-      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+      <div className={styles.mainContainer}>
 
         {/* LEFT: ROLES LIST */}
-        <div style={{ flex: '0 0 350px', minWidth: 0 }}>
-          <div className="payroll-card" style={{ padding: 0, overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
-              <h3 style={{ margin: 0, color: '#1e293b', fontSize: '15px' }}>Active Security Roles</h3>
+        <div className={styles.rolesListContainer}>
+          <div className={`payroll-card ${styles.rolesCard}`}>
+            <div className={styles.rolesCardHeader}>
+              <h3 className={styles.rolesCardTitle}>Active Security Roles</h3>
             </div>
 
             {loading ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Loading...</div>
+              <div className={styles.rolesListLoading}>Loading...</div>
             ) : roles.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>No roles configured.</div>
+              <div className={styles.rolesListEmpty}>No roles configured.</div>
             ) : (
               <div>
                 {roles.map(role => {
@@ -183,15 +178,7 @@ const RoleManagement = () => {
                   return (
                     <div
                       key={role.id}
-                      className={`role-row ${isActive ? 'active' : ''}`}
-                      style={{
-                        padding: '16px 20px',
-                        borderBottom: '1px solid #f1f5f9',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                        borderLeft: isActive ? '3px solid #3f97ef' : '3px solid transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-                      }}
+                      className={isActive ? styles.roleRowActive : styles.roleRow}
                       onClick={() => {
                         setEditingRoleId(role.id);
                         setNewRoleName(role.name || '');
@@ -201,9 +188,9 @@ const RoleManagement = () => {
                       }}
                     >
                       <div>
-                        <div style={{ fontWeight: '600', color: '#1e293b', fontSize: '14px' }}>{role.name}</div>
-                        {role.description && <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>{role.description}</div>}
-                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>{perms.length} permission{perms.length !== 1 ? 's' : ''}</div>
+                        <div className={styles.roleName}>{role.name}</div>
+                        {role.description && <div className={styles.roleDesc}>{role.description}</div>}
+                        <div className={styles.rolePermsCount}>{perms.length} permission{perms.length !== 1 ? 's' : ''}</div>
                       </div>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isActive ? '#3f97ef' : '#94a3b8'} strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </div>
@@ -215,87 +202,75 @@ const RoleManagement = () => {
         </div>
 
         {/* RIGHT: CREATE / EDIT FORM */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className={styles.formContainer}>
           {isModalOpen ? (
-            <div className="payroll-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className={`payroll-card ${styles.formCard}`}>
               
               {/* Form Header */}
-              <div style={{ 
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '16px 24px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' 
-              }}>
+              <div className={styles.formHeader}>
                 <div>
-                  <h3 style={{ margin: '0 0 2px 0', color: '#1e293b', fontSize: '16px' }}>
+                  <h3 className={styles.formTitle}>
                     {editingRoleId ? `Edit: ${newRoleName}` : 'Create New Role'}
                   </h3>
-                  <p style={{ margin: 0, color: '#64748b', fontSize: '13px' }}>Configure permissions below.</p>
+                  <p className={styles.formSubtitle}>Configure permissions below.</p>
                 </div>
                 <button 
                   onClick={closeModal}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}
+                  className={styles.closeBtn}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
               </div>
 
-              <form onSubmit={handleCreateRole} style={{ padding: '24px' }}>
+              <form onSubmit={handleCreateRole} className={styles.formContent}>
                 {/* Name & Description row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
+                <div className={styles.formRow}>
                   <div>
-                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px', display: 'block' }}>Role Name <span style={{color: '#ef4444'}}>*</span></label>
+                    <label className={styles.formLabel}>Role Name <span className={styles.requiredAsterisk}>*</span></label>
                     <input 
                       type="text" 
                       value={newRoleName} 
                       onChange={e => setNewRoleName(e.target.value)} 
-                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }} 
+                      className={styles.formInput} 
                       placeholder="e.g. Store Manager" 
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px', display: 'block' }}>Description <span style={{ color: '#94a3b8', fontWeight: 400 }}>(optional)</span></label>
+                    <label className={styles.formLabel}>Description <span className={styles.optionalText}>(optional)</span></label>
                     <input 
                       type="text" 
                       value={newRoleDesc} 
                       onChange={e => setNewRoleDesc(e.target.value)} 
-                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }} 
+                      className={styles.formInput} 
                       placeholder="What is this role for?"
                     />
                   </div>
                 </div>
 
-                <h4 style={{ margin: '0 0 16px 0', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b' }}>Access Modules</h4>
+                <h4 className={styles.modulesTitle}>Access Modules</h4>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+                <div className={styles.modulesGrid}>
                   {PERMISSION_GROUPS.map((group, idx) => (
-                    <div key={idx} style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#f8fafc', padding: '12px 14px', borderBottom: '1px solid #e2e8f0' }}>
-                        <div style={{ color: '#3f97ef', display: 'flex' }}>{group.icon}</div>
-                        <div style={{ fontWeight: '600', color: '#1e293b', fontSize: '13px' }}>{group.category}</div>
+                    <div key={idx} className={styles.moduleCard}>
+                      <div className={styles.moduleHeader}>
+                        <div className={styles.moduleIcon}>{group.icon}</div>
+                        <div className={styles.moduleTitle}>{group.category}</div>
                       </div>
-                      <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div className={styles.moduleBody}>
                         {group.permissions.map(perm => {
                           const isSelected = selectedPermissions.includes(perm.id);
                           return (
-                            <div key={perm.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <span style={{ fontSize: '13px', color: '#475569' }}>{perm.label}</span>
-                              <label style={{ position: 'relative', display: 'inline-block', width: '38px', height: '21px', flexShrink: 0 }}>
+                            <div key={perm.id} className={styles.permissionRow}>
+                              <span className={styles.permissionLabel}>{perm.label}</span>
+                              <label className={styles.toggleSwitch}>
                                 <input 
                                   type="checkbox" 
                                   checked={isSelected}
                                   onChange={() => handleTogglePermission(perm.id)}
-                                  style={{ opacity: 0, width: 0, height: 0 }}
+                                  className={styles.toggleInput}
                                 />
-                                <span style={{
-                                  position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
-                                  backgroundColor: isSelected ? '#10b981' : '#e2e8f0',
-                                  transition: '.3s', borderRadius: '34px'
-                                }}>
-                                  <span style={{
-                                    position: 'absolute', height: '15px', width: '15px',
-                                    left: isSelected ? '20px' : '3px', bottom: '3px',
-                                    backgroundColor: 'white', transition: '.3s', borderRadius: '50%',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
-                                  }}></span>
+                                <span className={isSelected ? styles.toggleSliderSelected : styles.toggleSlider}>
+                                  <span className={isSelected ? styles.toggleThumbSelected : styles.toggleThumb}></span>
                                 </span>
                               </label>
                             </div>
@@ -306,18 +281,18 @@ const RoleManagement = () => {
                   ))}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '28px', paddingTop: '20px', borderTop: '1px solid #e2e8f0' }}>
+                <div className={styles.formFooter}>
                   <button 
                     type="button" 
                     onClick={closeModal}
-                    style={{ background: 'white', color: '#475569', border: '1px solid #cbd5e1', padding: '9px 20px', borderRadius: '6px', fontWeight: '500', cursor: 'pointer', fontSize: '14px' }}
+                    className={styles.cancelBtn}
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
                     disabled={loading}
-                    style={{ background: '#3f97ef', color: 'white', border: 'none', padding: '9px 28px', borderRadius: '6px', fontWeight: '500', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, fontSize: '14px' }}
+                    className={`${styles.submitBtn} ${loading ? styles.submitBtnDisabled : ''}`}
                   >
                     {loading ? 'Saving...' : (editingRoleId ? 'Save Changes' : 'Create Role')}
                   </button>
@@ -325,10 +300,10 @@ const RoleManagement = () => {
               </form>
             </div>
           ) : (
-            <div className="payroll-card" style={{ padding: '80px 40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '400px' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" style={{ marginBottom: '16px' }}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
-              <h3 style={{ margin: '0 0 8px 0', color: '#475569', fontSize: '18px' }}>Select a Role to Manage</h3>
-              <p style={{ margin: 0, color: '#94a3b8', fontSize: '14px', maxWidth: '300px' }}>Choose a role from the left list to view and edit permissions, or create a brand new role.</p>
+            <div className={`payroll-card ${styles.emptySelection}`}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" className={styles.emptyIcon}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+              <h3 className={styles.emptyTitle}>Select a Role to Manage</h3>
+              <p className={styles.emptyDesc}>Choose a role from the left list to view and edit permissions, or create a brand new role.</p>
             </div>
           )}
         </div>

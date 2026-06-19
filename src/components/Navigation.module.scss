@@ -2,7 +2,7 @@ $sidebar-width: 260px;
 $bg-glass: rgba(255, 255, 255, 0.7);
 $text-light: #ffffff;
 
-.main-navigation {
+.mainNavigation {
   width: $sidebar-width;
   height: 100vh;
   background: var(--primary-bg);
@@ -17,7 +17,7 @@ $text-light: #ffffff;
   z-index: 1000;
   font-family: var(--primary-font);
 
-  .nav-brand {
+  .navBrand {
     margin-bottom: 20px;
     text-align: center;
     position: relative;
@@ -36,7 +36,7 @@ $text-light: #ffffff;
     }
   }
 
-  .nav-links {
+  .navLinks {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -70,7 +70,7 @@ $text-light: #ffffff;
           transform: translateX(4px);
         }
 
-        &.active-link {
+        &.activeLink {
           background: var(--primary-color);
           color: white;
           box-shadow: var(--primary-color-shadow);
@@ -81,7 +81,7 @@ $text-light: #ffffff;
     }
   }
 
-  .nav-footer {
+  .navFooter {
     padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
@@ -92,21 +92,46 @@ $text-light: #ffffff;
     background: var(--secondary-bg);
     margin: 0 -20px -30px -20px;
     padding: 20px;
+
+    .storeName {
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      color: #f8fafc;
+      font-weight: 500;
+    }
+
+    .signOutBtn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #cbd5e1;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 16px;
+      width: 100%;
+      transition: all 0.2s ease;
+      font-size: 14px;
+
+      &:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+      }
+    }
   }
 }
 
 @media (max-width: 768px) {
-  .main-navigation {
+  .mainNavigation {
     position: relative;
     width: 100%;
     height: auto;
     padding: 20px 16px;
     
-    .nav-brand {
+    .navBrand {
       margin-bottom: 20px;
     }
     
-    .nav-links {
+    .navLinks {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -123,10 +148,9 @@ $text-light: #ffffff;
       }
     }
     
-    .nav-footer {
+    .navFooter {
       margin: 20px -16px -20px -16px;
       padding: 16px;
     }
   }
 }
-

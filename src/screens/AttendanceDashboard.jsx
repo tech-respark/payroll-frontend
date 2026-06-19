@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import AttendanceRegularizeModal from '../components/AttendanceRegularizeModal';
+import styles from './AttendanceDashboard.module.scss';
 import '../styles/main.scss';
 
 const MONTHS = [
@@ -134,7 +135,6 @@ const AttendanceDashboard = () => {
         let duration = "--:--";
         
         if (dayRecord) {
-            // Map simple metrics directly from backend pre-calculated fields
             if (dayRecord.lateInMinutes != null && dayRecord.lateInMinutes > 0) {
                lateIn = `${String(Math.floor(dayRecord.lateInMinutes / 60)).padStart(2, '0')}:${String(dayRecord.lateInMinutes % 60).padStart(2, '0')}`;
             }
@@ -145,7 +145,6 @@ const AttendanceDashboard = () => {
                duration = `${String(Math.floor(dayRecord.totalDurationMinutes / 60)).padStart(2, '0')}:${String(dayRecord.totalDurationMinutes % 60).padStart(2, '0')}`;
             }
             
-            // Map backend status strings to frontend shorthand
             if (status) {
                 const s = status.toLowerCase();
                 if (s.includes('present')) status = 'P';
@@ -194,7 +193,6 @@ const AttendanceDashboard = () => {
   const handleRegularizeClick = () => {
     if (!selectedDateObj) return;
     
-    // We need to pass data to the modal. The modal expects a row with staffCode, attendanceDate, etc.
     const selectedStaffObj = staffList.find(s => String(s.id) === String(selectedStaff));
     if (!selectedStaffObj) return;
     
@@ -225,16 +223,16 @@ const AttendanceDashboard = () => {
     const gridCells = [...blankDays, ...attendanceData];
     
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', backgroundColor: '#e2e8f0', border: '1px solid #e2e8f0', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
+      <div className={styles.calendarGrid}>
         {WEEKDAYS.map(day => (
-          <div key={day} style={{ backgroundColor: '#f8fafc', padding: '10px 0', textAlign: 'center', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>
+          <div key={day} className={styles.calendarWeekday}>
             {day}
           </div>
         ))}
         
         {gridCells.map((cell, idx) => {
           if (!cell) {
-             return <div key={`blank-${idx}`} style={{ backgroundColor: '#ffffff', minHeight: '80px' }} />;
+             return <div key={`blank-${idx}`} className={styles.calendarBlankCell} />;
           }
           
           const isSelected = selectedDateObj && selectedDateObj.dateStr === cell.dateStr;
@@ -243,29 +241,13 @@ const AttendanceDashboard = () => {
             <div 
               key={cell.dateStr} 
               onClick={() => setSelectedDateObj(cell)}
-              style={{ 
-                backgroundColor: isSelected ? '#eff6ff' : '#ffffff', 
-                minHeight: '80px', 
-                padding: '8px', 
-                cursor: 'pointer',
-                position: 'relative',
-                boxShadow: isSelected ? 'inset 0 0 0 2px #3f97ef' : 'none',
-                transition: 'all 0.1s'
-              }}
-              onMouseOver={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = '#f8fafc' }}
-              onMouseOut={(e) => { if(!isSelected) e.currentTarget.style.backgroundColor = '#ffffff' }}
+              className={isSelected ? styles.calendarCellSelected : styles.calendarCell}
             >
-              <div style={{ fontSize: '14px', color: isSelected ? '#3f97ef' : '#334155', fontWeight: isSelected ? 'bold' : 'normal' }}>
+              <div className={isSelected ? styles.calendarDayNumSelected : styles.calendarDayNum}>
                 {cell.dayNum}
               </div>
               {cell.status && (
-                <div style={{ 
-                  marginTop: '8px', 
-                  textAlign: 'center', 
-                  fontWeight: 'bold', 
-                  fontSize: '14px', 
-                  color: getStatusColor(cell.status)
-                }}>
+                <div className={styles.calendarStatus} style={{ color: getStatusColor(cell.status) }}>
                   {cell.status}
                 </div>
               )}
@@ -278,7 +260,7 @@ const AttendanceDashboard = () => {
 
   const renderDailyDetails = () => {
     if (!selectedDateObj) return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
+      <div className={styles.emptyDetails}>
         Select a date from the calendar
       </div>
     );
@@ -287,63 +269,61 @@ const AttendanceDashboard = () => {
     const dateFormatted = dObj.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
     
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <div style={{ backgroundColor: '#334155', color: 'white', padding: '16px', borderRadius: '8px 8px 0 0', textAlign: 'center', fontWeight: '500', fontSize: '16px' }}>
+      <div className={styles.detailsContainer}>
+        <div className={styles.detailsHeader}>
           {dateFormatted}
         </div>
         
-        <div style={{ padding: '24px', backgroundColor: 'white', border: '1px solid #e2e8f0', borderTop: 'none', borderRadius: '0 0 8px 8px', flex: 1 }}>
+        <div className={styles.detailsBody}>
           
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', backgroundColor: '#e2e8f0', borderRadius: '8px', overflow: 'hidden', marginBottom: '24px' }}>
-            <div style={{ flex: 1, backgroundColor: '#f1f5f9', padding: '16px', textAlign: 'center', minWidth: '150px' }}>
-              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase', fontWeight: '600' }}>Shift Timing</div>
-              <div style={{ fontSize: '15px', color: '#334155', fontWeight: '500' }}>{selectedDateObj.shiftStart} - {selectedDateObj.shiftEnd}</div>
+          <div className={styles.metricsGrid}>
+            <div className={styles.metricCard}>
+              <div className={styles.metricLabel}>Shift Timing</div>
+              <div className={styles.metricValue}>{selectedDateObj.shiftStart} - {selectedDateObj.shiftEnd}</div>
             </div>
             
-            <div style={{ flex: 1, backgroundColor: '#f1f5f9', padding: '16px', textAlign: 'center', minWidth: '150px' }}>
-              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase', fontWeight: '600' }}>Punch Records</div>
-              <div style={{ fontSize: '15px', color: '#334155', fontWeight: '500' }}>
-                <span style={{ color: '#10b981' }}>In: {selectedDateObj.inTime}</span>
-                <span style={{ margin: '0 8px', color: '#cbd5e1' }}>|</span>
-                <span style={{ color: '#ef4444' }}>Out: {selectedDateObj.outTime}</span>
+            <div className={styles.metricCard}>
+              <div className={styles.metricLabel}>Punch Records</div>
+              <div className={styles.metricValue}>
+                <span className={styles.punchIn}>In: {selectedDateObj.inTime}</span>
+                <span className={styles.punchDivider}>|</span>
+                <span className={styles.punchOut}>Out: {selectedDateObj.outTime}</span>
               </div>
             </div>
             
-            <div style={{ flex: 1, backgroundColor: '#f1f5f9', padding: '16px', textAlign: 'center', minWidth: '150px' }}>
-              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase', fontWeight: '600' }}>Total Duration</div>
-              <div style={{ fontSize: '15px', color: '#334155', fontWeight: 'bold' }}>{selectedDateObj.duration} Hrs</div>
+            <div className={styles.metricCard}>
+              <div className={styles.metricLabel}>Total Duration</div>
+              <div className={styles.metricValueBold}>{selectedDateObj.duration} Hrs</div>
             </div>
             
-            <div style={{ flex: 1, backgroundColor: '#fef2f2', padding: '16px', textAlign: 'center', minWidth: '150px' }}>
-              <div style={{ fontSize: '12px', color: '#991b1b', marginBottom: '4px', textTransform: 'uppercase', fontWeight: '600' }}>Late In</div>
-              <div style={{ fontSize: '15px', color: '#ef4444', fontWeight: '500' }}>{selectedDateObj.lateIn}</div>
+            <div className={styles.metricCardDanger}>
+              <div className={styles.metricLabelDanger}>Late In</div>
+              <div className={styles.metricValueDanger}>{selectedDateObj.lateIn}</div>
             </div>
             
-            <div style={{ flex: 1, backgroundColor: '#fef2f2', padding: '16px', textAlign: 'center', minWidth: '150px' }}>
-              <div style={{ fontSize: '12px', color: '#991b1b', marginBottom: '4px', textTransform: 'uppercase', fontWeight: '600' }}>Early Out</div>
-              <div style={{ fontSize: '15px', color: '#ef4444', fontWeight: '500' }}>{selectedDateObj.earlyOut}</div>
+            <div className={styles.metricCardDanger}>
+              <div className={styles.metricLabelDanger}>Early Out</div>
+              <div className={styles.metricValueDanger}>{selectedDateObj.earlyOut}</div>
             </div>
             
-            <div style={{ flex: 1, backgroundColor: '#eff6ff', padding: '16px', textAlign: 'center', minWidth: '150px' }}>
-              <div style={{ fontSize: '12px', color: '#1e3a8a', marginBottom: '4px', textTransform: 'uppercase', fontWeight: '600' }}>Day Status</div>
-              <div style={{ fontSize: '15px', color: getStatusColor(selectedDateObj.status), fontWeight: 'bold' }}>
+            <div className={styles.metricCardPrimary}>
+              <div className={styles.metricLabelPrimary}>Day Status</div>
+              <div className={styles.metricValueBold} style={{ color: getStatusColor(selectedDateObj.status) }}>
                 {getStatusLabel(selectedDateObj.status)}
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
+          <div className={styles.actionButtons}>
             <button 
-              className="btn btn-primary" 
+              className={`btn btn-primary ${styles.btnPrimaryIcon}`} 
               onClick={handleRegularizeClick}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px' }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
               Attendance Regularization
             </button>
             <button 
-              className="btn" 
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', backgroundColor: 'white', border: '1px solid #cbd5e1', color: '#334155' }}
+              className={`btn ${styles.btnSecondaryIcon}`} 
               onClick={() => alert("Leave application module is currently in development.")}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -351,33 +331,33 @@ const AttendanceDashboard = () => {
             </button>
           </div>
 
-          <div style={{ borderBottom: '1px solid #e2e8f0', marginBottom: '20px' }}>
-            <div style={{ display: 'inline-block', padding: '10px 20px', borderBottom: '2px solid #3f97ef', color: '#3f97ef', fontWeight: '600', fontSize: '14px' }}>
+          <div className={styles.balanceTabs}>
+            <div className={styles.balanceTabActive}>
               Current Balance
             </div>
-            <div style={{ display: 'inline-block', padding: '10px 20px', color: '#64748b', fontWeight: '500', fontSize: '14px', cursor: 'pointer' }}>
+            <div className={styles.balanceTabInactive}>
               Pending Apps
             </div>
           </div>
           
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+          <table className={styles.leaveTable}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
-                <th style={{ textAlign: 'left', padding: '12px 0' }}>Leave Type</th>
-                <th style={{ textAlign: 'left', padding: '12px 0' }}>Opening</th>
-                <th style={{ textAlign: 'left', padding: '12px 0' }}>Closing</th>
+              <tr className={styles.leaveTableHeaderRow}>
+                <th className={styles.leaveTableHeader}>Leave Type</th>
+                <th className={styles.leaveTableHeader}>Opening</th>
+                <th className={styles.leaveTableHeader}>Closing</th>
               </tr>
             </thead>
             <tbody>
-              <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '12px 0', color: '#3f97ef', fontWeight: '500' }}>Annual Leave (AL)</td>
-                <td style={{ padding: '12px 0', color: '#334155' }}>12.0</td>
-                <td style={{ padding: '12px 0', color: '#334155' }}>8.0</td>
+              <tr className={styles.leaveTableRow}>
+                <td className={styles.leaveType}>Annual Leave (AL)</td>
+                <td className={styles.leaveValue}>12.0</td>
+                <td className={styles.leaveValue}>8.0</td>
               </tr>
-              <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '12px 0', color: '#3f97ef', fontWeight: '500' }}>Sick Leave (SL)</td>
-                <td style={{ padding: '12px 0', color: '#334155' }}>7.0</td>
-                <td style={{ padding: '12px 0', color: '#334155' }}>7.0</td>
+              <tr className={styles.leaveTableRow}>
+                <td className={styles.leaveType}>Sick Leave (SL)</td>
+                <td className={styles.leaveValue}>7.0</td>
+                <td className={styles.leaveValue}>7.0</td>
               </tr>
             </tbody>
           </table>
@@ -389,67 +369,65 @@ const AttendanceDashboard = () => {
 
   return (
     <div className="dashboard">
-      <h2 style={{ marginBottom: '24px' }}>Attendance Regularization</h2>
+      <h2 className={styles.dashboardHeader}>Attendance Regularization</h2>
       
-      <div className="payroll-card" style={{ marginBottom: '24px', padding: '20px', display: 'flex', gap: '20px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        <div className="form-group" style={{ flex: 1, minWidth: '150px', margin: 0 }}>
-          <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '6px', display: 'block' }}>Month</label>
-          <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+      <div className={`payroll-card ${styles.filterCard}`}>
+        <div className={styles.formGroup}>
+          <label className={styles.formLabel}>Month</label>
+          <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={styles.formSelect}>
             {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
-        <div className="form-group" style={{ flex: 1, minWidth: '150px', margin: 0 }}>
-          <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '6px', display: 'block' }}>Year</label>
-          <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+        <div className={styles.formGroup}>
+          <label className={styles.formLabel}>Year</label>
+          <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className={styles.formSelect}>
             {[currentYear - 1, currentYear, currentYear + 1].map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
         {hasAccess(['VIEW_OTHER_STAFF']) && (
-          <div className="form-group" style={{ flex: 2, minWidth: '200px', margin: 0 }}>
-            <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '6px', display: 'block' }}>Staff Member</label>
-            <select value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+          <div className={styles.formGroupLarge}>
+            <label className={styles.formLabel}>Staff Member</label>
+            <select value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)} className={styles.formSelect}>
               {staffList.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
             </select>
           </div>
         )}
       </div>
 
-
-
-      <div style={{ display: 'flex', gap: '24px', minHeight: '600px' }}>
+      <div className={styles.calendarContainer}>
         
         {/* Left Pane: Calendar */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderBottom: 'none', borderRadius: '8px 8px 0 0', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className={styles.calendarLeftPane}>
+          <div className={styles.calendarHeader}>
+            <h3 className={styles.calendarTitle}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               My Datebook
             </h3>
-            <div style={{ fontWeight: 'bold', color: '#334155' }}>
+            <div className={styles.calendarMonthYear}>
               {selectedMonth} {selectedYear}
             </div>
           </div>
           
           {loading ? (
-             <div style={{ flex: 1, backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '0 0 8px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+             <div className={styles.loadingState}>
                Loading calendar data...
              </div>
           ) : (
             generateCalendarGrid()
           )}
           
-          <div style={{ marginTop: '16px', fontSize: '12px', color: '#64748b', display: 'flex', gap: '16px', flexWrap: 'wrap', backgroundColor: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <span style={{ color: getStatusColor('P'), fontWeight: 'bold' }}>P - Present</span>
-            <span style={{ color: getStatusColor('HD'), fontWeight: 'bold' }}>HD - Half Day</span>
-            <span style={{ color: getStatusColor('A'), fontWeight: 'bold' }}>A - Absent</span>
-            <span style={{ color: getStatusColor('L'), fontWeight: 'bold' }}>L - Leave</span>
-            <span style={{ color: getStatusColor('WO'), fontWeight: 'bold' }}>WO - Weekly Off</span>
-            <span style={{ color: getStatusColor('PH'), fontWeight: 'bold' }}>PH - Public Holiday</span>
+          <div className={styles.legendContainer}>
+            <span className={styles.legendItem} style={{ color: getStatusColor('P') }}>P - Present</span>
+            <span className={styles.legendItem} style={{ color: getStatusColor('HD') }}>HD - Half Day</span>
+            <span className={styles.legendItem} style={{ color: getStatusColor('A') }}>A - Absent</span>
+            <span className={styles.legendItem} style={{ color: getStatusColor('L') }}>L - Leave</span>
+            <span className={styles.legendItem} style={{ color: getStatusColor('WO') }}>WO - Weekly Off</span>
+            <span className={styles.legendItem} style={{ color: getStatusColor('PH') }}>PH - Public Holiday</span>
           </div>
         </div>
         
         {/* Right Pane: Details */}
-        <div style={{ width: '45%', minWidth: '400px' }}>
+        <div className={styles.detailsRightPane}>
           {renderDailyDetails()}
         </div>
         

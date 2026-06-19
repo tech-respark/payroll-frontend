@@ -1,0 +1,60 @@
+.filterBar {
+  margin-bottom: 30px;
+}
+
+.formGroup {
+  flex: 1;
+  min-width: 150px;
+}
+
+.formGroupLarge {
+  flex: 2;
+  min-width: 200px;
+}
+
+.formLabel {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.formSelect {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+}
+
+.staffReadOnly {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-weight: 500;
+}
+
+.generateBtnContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex: 1;
+}
+
+.generateBtn {
+  height: 40px;
+  padding: 0 24px;
+  width: 100%;
+}
+
+.generateBtnDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.payslipWrapper {
+  margin-top: 30px;
+}

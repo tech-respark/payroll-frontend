@@ -1,0 +1,355 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.headerTitle {
+  margin: 0;
+}
+
+.headerBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  padding: 10px 24px;
+  flex-shrink: 0;
+}
+
+.mainContainer {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.rolesListContainer {
+  flex: 0 0 350px;
+  min-width: 0;
+}
+
+.rolesCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.rolesCardHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.rolesCardTitle {
+  margin: 0;
+  color: #1e293b;
+  font-size: 15px;
+}
+
+.rolesListLoading,
+.rolesListEmpty {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+}
+
+.roleRow {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &:hover {
+    background-color: #f1f5f9;
+  }
+}
+
+.roleRowActive {
+  background-color: #eff6ff;
+  border-left: 3px solid #3f97ef;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.roleName {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.roleDesc {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 3px;
+}
+
+.rolePermsCount {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.formContainer {
+  flex: 1;
+  min-width: 0;
+}
+
+.formCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.formHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.formTitle {
+  margin: 0 0 2px 0;
+  color: #1e293b;
+  font-size: 16px;
+}
+
+.formSubtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 4px;
+}
+
+.formContent {
+  padding: 24px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.formLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.requiredAsterisk {
+  color: #ef4444;
+}
+
+.optionalText {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.formInput {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.modulesTitle {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+
+.modulesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.moduleCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.moduleHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f8fafc;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.moduleIcon {
+  color: #3f97ef;
+  display: flex;
+}
+
+.moduleTitle {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 13px;
+}
+
+.moduleBody {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.permissionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.permissionLabel {
+  font-size: 13px;
+  color: #475569;
+}
+
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 21px;
+  flex-shrink: 0;
+}
+
+.toggleInput {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggleSlider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e2e8f0;
+  transition: 0.3s;
+  border-radius: 34px;
+}
+
+.toggleSliderSelected {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #10b981;
+  transition: 0.3s;
+  border-radius: 34px;
+}
+
+.toggleThumb {
+  position: absolute;
+  height: 15px;
+  width: 15px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.toggleThumbSelected {
+  position: absolute;
+  height: 15px;
+  width: 15px;
+  left: 20px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.formFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cancelBtn {
+  background: white;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 9px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.submitBtn {
+  background: #3f97ef;
+  color: white;
+  border: none;
+  padding: 9px 28px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.submitBtnDisabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.emptySelection {
+  padding: 80px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+}
+
+.emptyIcon {
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  margin: 0 0 8px 0;
+  color: #475569;
+  font-size: 18px;
+}
+
+.emptyDesc {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 14px;
+  max-width: 300px;
+}

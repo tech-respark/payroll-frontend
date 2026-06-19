@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
+import styles from './AttendanceRegularizeModal.module.scss';
 
 const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId }) => {
   if (!show || !staffData) return null;
 
   const { hasAccess } = useAuth();
+  const { showToast } = useToast();
   // An admin has MANAGE_ATTENDANCE
   const canManage = hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_ATTENDANCE']);
 
@@ -25,7 +27,6 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
     };
     fetchStoreConfig();
   }, [tenantId, storeId]);
-
 
   const statusColor = {
     PENDING_BORDER: '#f59e0b',
@@ -135,75 +136,64 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
   const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-      <div className="payroll-card animate-fade-in" style={{ width: '100%', maxWidth: '500px', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
+    <div className={styles.modalOverlay}>
+      <div className={`payroll-card animate-fade-in ${styles.modalContainer}`}>
         
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+        <div className={styles.header}>
           <div>
-            <h3 style={{ margin: 0, color: '#1e293b', fontSize: '18px' }}>Regularize Attendance</h3>
-            <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>{staffData.staffName} • {staffData.attendanceDate}</p>
+            <h3 className={styles.headerTitle}>Regularize Attendance</h3>
+            <p className={styles.headerSubtitle}>{staffData.staffName} • {staffData.attendanceDate}</p>
           </div>
           <button 
             onClick={() => onClose(false)}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}
-            onMouseOver={e => e.currentTarget.style.backgroundColor = '#e2e8f0'}
-            onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
+            className={styles.closeButton}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
 
         {/* Body */}
-        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+        <div className={styles.body}>
 
 
           {punches.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px', opacity: 0.5 }}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <p style={{ margin: 0, fontSize: '15px' }}>No punches recorded for this date yet.</p>
+            <div className={styles.emptyState}>
+              <svg className={styles.emptyIcon} width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <p className={styles.emptyText}>No punches recorded for this date yet.</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+            <div className={styles.punchList}>
               {punches.map((punch, idx) => {
                 const borderCol = punch.uploadSource === 'TERMINAL' ? statusColor.TERMINAL_BORDER : statusColor[`${punch.currentStatus}_BORDER`] || statusColor.APPROVED_BORDER;
                 const bgCol = punch.uploadSource === 'TERMINAL' ? statusColor.TERMINAL : statusColor[punch.currentStatus] || statusColor.APPROVED;
                 const isCheckIn = idx % 2 === 0;
 
                 return (
-                  <div key={idx} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    padding: '16px', 
-                    borderRadius: '12px',
-                    borderLeft: `6px solid ${borderCol}`,
-                    backgroundColor: bgCol,
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
-                  }}>
+                  <div key={idx} className={styles.punchItem} style={{ borderLeftColor: borderCol, backgroundColor: bgCol }}>
                     <div>
-                      <div style={{ fontSize: '12px', fontWeight: 'bold', color: isCheckIn ? '#059669' : '#d97706', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                      <div className={isCheckIn ? styles.punchTypeCheckIn : styles.punchTypeCheckOut}>
                         {isCheckIn ? 'CHECK-IN' : 'CHECK-OUT'}
-                        <span style={{ marginLeft: '8px', color: '#64748b', fontWeight: '500', fontSize: '11px', textTransform: 'uppercase' }}>
+                        <span className={styles.punchStatus}>
                           ({punch.currentStatus || 'APPROVED'})
                         </span>
                       </div>
                       
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div className={styles.timeSelectContainer}>
                         <select
                           value={punch.punchTime.substring(0, 2) || '09'}
                           onChange={(e) => handleTimeChange(idx, `${e.target.value}:${punch.punchTime.substring(3, 5) || '00'}`)}
                           disabled={!punch.isNew && !canManage}
-                          style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: (!punch.isNew && !canManage) ? '#f8fafc' : 'white', fontSize: '14px', fontWeight: '600', color: '#1e293b', outline: 'none' }}
+                          className={`${styles.timeSelect} ${(!punch.isNew && !canManage) ? styles.timeSelectDisabled : styles.timeSelectEnabled}`}
                         >
                           {hours.map(h => <option key={`h-${h}`} value={h}>{h}</option>)}
                         </select>
-                        <span style={{ fontWeight: 'bold', color: '#94a3b8' }}>:</span>
+                        <span className={styles.timeColon}>:</span>
                         <select
                           value={punch.punchTime.substring(3, 5) || '00'}
                           onChange={(e) => handleTimeChange(idx, `${punch.punchTime.substring(0, 2) || '09'}:${e.target.value}`)}
                           disabled={!punch.isNew && !canManage}
-                          style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: (!punch.isNew && !canManage) ? '#f8fafc' : 'white', fontSize: '14px', fontWeight: '600', color: '#1e293b', outline: 'none' }}
+                          className={`${styles.timeSelect} ${(!punch.isNew && !canManage) ? styles.timeSelectDisabled : styles.timeSelectEnabled}`}
                         >
                           {minutes.map(m => <option key={`m-${m}`} value={m}>{m}</option>)}
                         </select>
@@ -213,19 +203,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
                     <button 
                       onClick={() => handleRemovePunch(idx)} 
                       disabled={!punch.isNew && !canManage}
-                      style={{ 
-                        background: 'white', 
-                        border: '1px solid #fecaca', 
-                        color: '#ef4444', 
-                        width: '32px', 
-                        height: '32px', 
-                        borderRadius: '8px', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        cursor: (!punch.isNew && !canManage) ? 'not-allowed' : 'pointer',
-                        opacity: (!punch.isNew && !canManage) ? 0.5 : 1
-                      }}
+                      className={`${styles.removeButton} ${(!punch.isNew && !canManage) ? styles.removeButtonDisabled : ''}`}
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
@@ -238,9 +216,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
           <button 
             type="button"
             onClick={handleAddPunch}
-            style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '2px dashed #cbd5e1', backgroundColor: 'transparent', color: '#3f97ef', fontWeight: '600', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-            onMouseOver={e => { e.currentTarget.style.borderColor = '#3f97ef'; e.currentTarget.style.backgroundColor = '#eff6ff'; }}
-            onMouseOut={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+            className={styles.addButton}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Add Missing Punch
@@ -248,18 +224,18 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '20px 24px', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+        <div className={styles.footer}>
           <button 
             onClick={() => onClose(false)} 
             disabled={loading}
-            style={{ padding: '10px 20px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: 'white', color: '#475569', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}
+            className={styles.cancelBtn}
           >
             Cancel
           </button>
           <button 
             onClick={handleSave} 
             disabled={loading}
-            style={{ padding: '10px 24px', borderRadius: '6px', border: 'none', backgroundColor: '#3f97ef', color: 'white', fontWeight: '600', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, boxShadow: '0 2px 4px rgba(63, 151, 239, 0.2)' }}
+            className={`${styles.submitBtn} ${loading ? styles.submitBtnDisabled : ''}`}
           >
             {loading ? 'Submitting...' : (canManage ? 'Save & Approve' : 'Submit Request')}
           </button>

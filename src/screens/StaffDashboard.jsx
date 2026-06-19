@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
+import { useToast } from '../context/ToastContext';
+import styles from './StaffDashboard.module.scss';
+import '../styles/main.scss';
 
 const StaffDashboard = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
+  const { showToast } = useToast();
   const [staffList, setStaffList] = useState([]);
   const [rolesList, setRolesList] = useState([]);
   const [selectedStaff, setSelectedStaff] = useState(null);
@@ -166,13 +170,13 @@ const StaffDashboard = () => {
     e.preventDefault();
     try {
       if (!formData.roleId) {
-        alert("Please select a Role for the staff member.");
+        showToast("Please select a Role for the staff member.", "error");
         return;
       }
       setIsLoading(true);
       const payload = { ...formData, applicationName: 'RESPARK' };
       if (!payload.id && !payload.pwd) {
-         alert("Password is required for new staff");
+         showToast("Password is required for new staff", "error");
          setIsLoading(false);
          return;
       }
@@ -193,18 +197,18 @@ const StaffDashboard = () => {
           storeId: storeId,
           tenantId: tenantId
         });
-        alert('Staff and Role saved successfully!');
+        showToast('Staff and Role saved successfully!', 'success');
         fetchStaff();
         setIsNew(false);
         if(savedStaffRes.data) {
            setSelectedStaff(savedStaffRes.data);
         }
       } else {
-        alert('Staff saved, but could not verify ID to assign role.');
+        showToast('Staff saved, but could not verify ID to assign role.', 'warning');
       }
     } catch (err) {
       console.error('Failed to save staff', err);
-      alert('Error saving staff');
+      showToast('Error saving staff', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -215,7 +219,7 @@ const StaffDashboard = () => {
   };
 
   const renderTabs = () => (
-    <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', overflowX: 'auto', paddingBottom: '2px' }}>
+    <div className={styles.tabList}>
       {[
         { id: 'personal', label: 'Personal & Access' },
         { id: 'employment', label: 'Joining & Employment' },
@@ -226,18 +230,7 @@ const StaffDashboard = () => {
           key={tab.id}
           type="button"
           onClick={() => setActiveTab(tab.id)}
-          style={{
-            padding: '12px 20px',
-            background: 'none',
-            border: 'none',
-            borderBottom: activeTab === tab.id ? '2px solid #3f97ef' : '2px solid transparent',
-            color: activeTab === tab.id ? '#3f97ef' : '#64748b',
-            fontWeight: activeTab === tab.id ? '600' : '500',
-            cursor: 'pointer',
-            fontSize: '14px',
-            whiteSpace: 'nowrap',
-            transition: 'all 0.2s'
-          }}
+          className={activeTab === tab.id ? styles.tabItemActive : styles.tabItem}
         >
           {tab.label}
         </button>
@@ -248,12 +241,12 @@ const StaffDashboard = () => {
   return (
     <div className="dashboard">
       <h2>Employee Directory</h2>
-      <div className="staff-container" style={{ backgroundColor: '#f1f5f9' }}>
+      <div className={`staff-container ${styles.staffContainer}`}>
         
         {/* Left Sidebar: Staff List */}
-        <div className="staff-sidebar" style={{ backgroundColor: '#ffffff', boxShadow: '2px 0 5px rgba(0,0,0,0.02)', zIndex: 1 }}>
-          <button onClick={handleCreateNew} className="btn btn-primary" style={{ marginBottom: '10px' }}>+ New Employee</button>
-          {isLoading && staffList.length === 0 ? <p style={{ color: '#94a3b8', marginTop: '20px' }}>Loading directory...</p> : (
+        <div className={`staff-sidebar ${styles.staffSidebar}`}>
+          <button onClick={handleCreateNew} className={`btn btn-primary ${styles.createBtn}`}>+ New Employee</button>
+          {isLoading && staffList.length === 0 ? <p className={styles.loadingText}>Loading directory...</p> : (
             <ul className="staff-list">
               {staffList.map((staff) => (
                 <li 
@@ -276,10 +269,10 @@ const StaffDashboard = () => {
         {/* Right Content: 360-Degree Employee Card */}
         <div className="staff-content">
           {(selectedStaff || isNew) ? (
-            <form onSubmit={handleSave} className="staff-form payroll-card" style={{ padding: '30px', margin: 0 }}>
+            <form onSubmit={handleSave} className={`staff-form payroll-card ${styles.staffForm}`}>
               
               {/* Profile Header Card */}
-              <div className="profile-header" style={{ marginBottom: '20px' }}>
+              <div className={`profile-header ${styles.profileHeader}`}>
                 <div className="profile-info-group">
                   <div className="profile-avatar">
                     {isNew ? 'NEW' : getInitials(formData.firstName, formData.lastName)}
@@ -288,11 +281,11 @@ const StaffDashboard = () => {
                     <h2 className="profile-name">
                       {isNew ? 'New Employee Profile' : `${formData.firstName} ${formData.lastName}`}
                     </h2>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className={styles.statusGroup}>
                       <span className={`status-pill ${formData.active === 1 ? 'active' : 'inactive'}`}>
                         {formData.active === 1 ? 'Active Employee' : 'Inactive'}
                       </span>
-                      {!isNew && <span style={{ color: '#64748b', fontSize: '14px' }}>ID: {formData.id}</span>}
+                      {!isNew && <span className={styles.staffId}>ID: {formData.id}</span>}
                     </div>
                   </div>
                 </div>
@@ -302,17 +295,17 @@ const StaffDashboard = () => {
 
               {/* Tab 1: Personal & Access */}
               {activeTab === 'personal' && (
-                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <h3 style={{ margin: 0, color: '#1e293b' }}>Personal Details</h3>
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                    <div className="form-group"><label>First Name *</label><input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required /></div>
-                    <div className="form-group"><label>Last Name *</label><input type="text" name="lastName" value={formData.lastName} onChange={handleChange} required /></div>
-                    <div className="form-group"><label>Email Address</label><input type="email" name="email" value={formData.email} onChange={handleChange} /></div>
-                    <div className="form-group"><label>Mobile Number *</label><input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} required /></div>
-                    <div className="form-group"><label>Date of Birth</label><input type="date" name="birthDate" value={formData.birthDate ? formData.birthDate.substring(0, 10) : ''} onChange={handleChange} /></div>
-                    <div className="form-group">
-                      <label>Gender</label>
-                      <select name="gender" value={formData.gender} onChange={handleChange}>
+                <div className={styles.tabPanel}>
+                  <h3 className={styles.sectionTitle}>Personal Details</h3>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>First Name *</label><input type="text" className={styles.formInput} name="firstName" value={formData.firstName} onChange={handleChange} required /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Last Name *</label><input type="text" className={styles.formInput} name="lastName" value={formData.lastName} onChange={handleChange} required /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Email Address</label><input type="email" className={styles.formInput} name="email" value={formData.email} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Mobile Number *</label><input type="tel" className={styles.formInput} name="mobile" value={formData.mobile} onChange={handleChange} required /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Date of Birth</label><input type="date" className={styles.formInput} name="birthDate" value={formData.birthDate ? formData.birthDate.substring(0, 10) : ''} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Gender</label>
+                      <select className={styles.formSelect} name="gender" value={formData.gender} onChange={handleChange}>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>
@@ -320,30 +313,30 @@ const StaffDashboard = () => {
                     </div>
                   </div>
 
-                  <h3 style={{ margin: 0, color: '#1e293b', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>System Access</h3>
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                    <div className="form-group">
-                      <label>Assigned Role *</label>
-                      <select name="roleId" value={formData.roleId} onChange={handleChange} required style={{ backgroundColor: '#f8fafc', fontWeight: '500' }}>
+                  <h3 className={styles.sectionTitleBorder}>System Access</h3>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Assigned Role *</label>
+                      <select name="roleId" value={formData.roleId} onChange={handleChange} required className={styles.formSelect}>
                         <option value="" disabled>Select a Role</option>
                         {rolesList.map(role => (
                           <option key={role.id} value={role.id}>{role.name}</option>
                         ))}
                       </select>
                     </div>
-                    <div className="form-group"><label>Username *</label><input type="text" name="username" value={formData.username} onChange={handleChange} required /></div>
-                    <div className="form-group">
-                      <label>{isNew ? 'Initial Password *' : 'Update Password (Leave blank to keep current)'}</label>
-                      <input type="password" name="pwd" value={formData.pwd} onChange={handleChange} required={isNew} placeholder={isNew ? '' : '••••••••'} />
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Username *</label><input type="text" className={styles.formInput} name="username" value={formData.username} onChange={handleChange} required /></div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>{isNew ? 'Initial Password *' : 'Update Password (Leave blank to keep current)'}</label>
+                      <input type="password" className={styles.formInput} name="pwd" value={formData.pwd} onChange={handleChange} required={isNew} placeholder={isNew ? '' : '••••••••'} />
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <div className={styles.checkboxGroup}>
+                    <label className={styles.checkboxLabel}>
                       <input type="checkbox" name="active" checked={formData.active === 1} onChange={handleChange} />
                       Account Active
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <label className={styles.checkboxLabel}>
                       <input type="checkbox" name="isBiometricIntegration" checked={formData.isBiometricIntegration === 1} onChange={handleChange} />
                       Biometric Integration
                     </label>
@@ -353,35 +346,49 @@ const StaffDashboard = () => {
 
               {/* Tab 2: Joining & Employment */}
               {activeTab === 'employment' && (
-                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <h3 style={{ margin: 0, color: '#1e293b' }}>Employment Details</h3>
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                    <div className="form-group"><label>Employee Code</label><input type="text" name="personnelJoiningDetails.employeeCode" value={formData.personnelJoiningDetails.employeeCode} onChange={handleChange} /></div>
-                    <div className="form-group"><label>Personnel Code</label><input type="text" name="personnelJoiningDetails.personnelCode" value={formData.personnelJoiningDetails.personnelCode} onChange={handleChange} /></div>
-                    <div className="form-group"><label>Reporting Manager ID</label><input type="text" name="personnelJoiningDetails.reportingTo" value={formData.personnelJoiningDetails.reportingTo} onChange={handleChange} /></div>
-                    <div className="form-group"><label>UAN Number</label><input type="text" name="personnelJoiningDetails.uanNumber" value={formData.personnelJoiningDetails.uanNumber} onChange={handleChange} /></div>
-                    <div className="form-group"><label>Standard Working Hours</label><input type="number" name="personnelJoiningDetails.workingHours" value={formData.personnelJoiningDetails.workingHours} onChange={handleChange} /></div>
+                <div className={styles.tabPanel}>
+                  <h3 className={styles.sectionTitle}>Employment Details</h3>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Employee Code</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.employeeCode" value={formData.personnelJoiningDetails.employeeCode} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Reporting Manager</label>
+                      <select 
+                        className={styles.formSelect} 
+                        name="personnelJoiningDetails.reportingTo" 
+                        value={formData.personnelJoiningDetails.reportingTo || ''} 
+                        onChange={handleChange}
+                      >
+                        <option value="">-- Select Manager --</option>
+                        {staffList.filter(s => s.id !== formData.id).map(staff => (
+                          <option key={staff.id} value={staff.id}>
+                            {staff.firstName} {staff.lastName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>UAN Number</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.uanNumber" value={formData.personnelJoiningDetails.uanNumber} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Standard Working Hours</label><input type="number" className={styles.formInput} name="personnelJoiningDetails.workingHours" value={formData.personnelJoiningDetails.workingHours} onChange={handleChange} /></div>
                   </div>
 
-                  <h3 style={{ margin: 0, color: '#1e293b', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>Roster Settings</h3>
-                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <h3 className={styles.sectionTitleBorder}>Roster Settings</h3>
+                  <div className={styles.checkboxGroup}>
+                    <label className={styles.checkboxLabel}>
                       <input type="checkbox" name="enableAppointments" checked={formData.enableAppointments === 1} onChange={handleChange} />
                       Enable Appointments
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <label className={styles.checkboxLabel}>
                       <input type="checkbox" name="allStaffAppointmentDashboard" checked={formData.allStaffAppointmentDashboard === 1} onChange={handleChange} />
                       Show in All-Staff Dashboard
                     </label>
                   </div>
 
-                  <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '-8px' }}>Weekly Off Days</label>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <label className={styles.weeklyOffLabel}>Weekly Off Days</label>
+                  <div className={styles.weeklyOffGroup}>
                     {['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].map(day => (
                       <button 
                         key={day} type="button" 
                         onClick={() => handleWeeklyOffToggle(day)}
-                        style={{ padding: '8px 16px', borderRadius: '20px', border: formData.weeklyOff.includes(day) ? '1px solid #3f97ef' : '1px solid #cbd5e1', backgroundColor: formData.weeklyOff.includes(day) ? '#eff6ff' : 'white', color: formData.weeklyOff.includes(day) ? '#3f97ef' : '#64748b', cursor: 'pointer', textTransform: 'capitalize', fontWeight: '500', fontSize: '13px' }}
+                        className={formData.weeklyOff.includes(day) ? styles.weeklyOffBtnActive : styles.weeklyOffBtn}
                       >
                         {day}
                       </button>
@@ -392,29 +399,29 @@ const StaffDashboard = () => {
 
               {/* Tab 3: Banking & Documents */}
               {activeTab === 'banking' && (
-                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <h3 style={{ margin: 0, color: '#1e293b' }}>Bank Account Details</h3>
-                  <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                    <div className="form-group"><label>Bank Name</label><input type="text" name="personnelBankAccountDetails.bankName" value={formData.personnelBankAccountDetails.bankName} onChange={handleChange} /></div>
-                    <div className="form-group"><label>Bank Branch</label><input type="text" name="personnelBankAccountDetails.bankBranch" value={formData.personnelBankAccountDetails.bankBranch} onChange={handleChange} /></div>
-                    <div className="form-group"><label>Account Number</label><input type="text" name="personnelBankAccountDetails.accountNumber" value={formData.personnelBankAccountDetails.accountNumber} onChange={handleChange} /></div>
-                    <div className="form-group"><label>IFSC Code</label><input type="text" name="personnelBankAccountDetails.ifscCode" value={formData.personnelBankAccountDetails.ifscCode} onChange={handleChange} /></div>
+                <div className={styles.tabPanel}>
+                  <h3 className={styles.sectionTitle}>Bank Account Details</h3>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Bank Name</label><input type="text" className={styles.formInput} name="personnelBankAccountDetails.bankName" value={formData.personnelBankAccountDetails.bankName} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Bank Branch</label><input type="text" className={styles.formInput} name="personnelBankAccountDetails.bankBranch" value={formData.personnelBankAccountDetails.bankBranch} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Account Number</label><input type="text" className={styles.formInput} name="personnelBankAccountDetails.accountNumber" value={formData.personnelBankAccountDetails.accountNumber} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>IFSC Code</label><input type="text" className={styles.formInput} name="personnelBankAccountDetails.ifscCode" value={formData.personnelBankAccountDetails.ifscCode} onChange={handleChange} /></div>
                   </div>
 
-                  <h3 style={{ margin: 0, color: '#1e293b', borderTop: '1px solid #e2e8f0', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 className={styles.sectionTitleBorderFlex}>
                     Documents
-                    <button type="button" onClick={() => handleAddArrayItem('personnelDocumentDetailsList', { documentName: '', documentNumber: '' })} style={{ background: 'none', border: 'none', color: '#3f97ef', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>+ Add Document</button>
+                    <button type="button" onClick={() => handleAddArrayItem('personnelDocumentDetailsList', { documentName: '', documentNumber: '' })} className={styles.addBtn}>+ Add Document</button>
                   </h3>
                   
                   {formData.personnelDocumentDetailsList.length === 0 ? (
-                    <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: 0 }}>No documents added.</p>
+                    <p className={styles.emptyStateText}>No documents added.</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div className={styles.docsContainer}>
                       {formData.personnelDocumentDetailsList.map((doc, idx) => (
-                        <div key={idx} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                          <div className="form-group" style={{ flex: 1, margin: 0 }}><label>Document Name</label><input type="text" value={doc.documentName} onChange={e => handleArrayChange('personnelDocumentDetailsList', idx, 'documentName', e.target.value)} placeholder="e.g. Aadhar Card" /></div>
-                          <div className="form-group" style={{ flex: 1, margin: 0 }}><label>Document Number</label><input type="text" value={doc.documentNumber} onChange={e => handleArrayChange('personnelDocumentDetailsList', idx, 'documentNumber', e.target.value)} /></div>
-                          <button type="button" onClick={() => handleRemoveArrayItem('personnelDocumentDetailsList', idx)} style={{ marginTop: '26px', background: 'white', border: '1px solid #fecaca', color: '#ef4444', width: '40px', height: '40px', borderRadius: '8px', cursor: 'pointer' }}>✕</button>
+                        <div key={idx} className={styles.docRow}>
+                          <div className={styles.docFormGroup}><label className={styles.formLabel}>Document Name</label><input type="text" className={styles.formInput} value={doc.documentName} onChange={e => handleArrayChange('personnelDocumentDetailsList', idx, 'documentName', e.target.value)} placeholder="e.g. Aadhar Card" /></div>
+                          <div className={styles.docFormGroup}><label className={styles.formLabel}>Document Number</label><input type="text" className={styles.formInput} value={doc.documentNumber} onChange={e => handleArrayChange('personnelDocumentDetailsList', idx, 'documentNumber', e.target.value)} /></div>
+                          <button type="button" onClick={() => handleRemoveArrayItem('personnelDocumentDetailsList', idx)} className={styles.removeBtn}>✕</button>
                         </div>
                       ))}
                     </div>
@@ -424,27 +431,27 @@ const StaffDashboard = () => {
 
               {/* Tab 4: Work Experience */}
               {activeTab === 'experience' && (
-                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <h3 style={{ margin: 0, color: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className={styles.tabPanel}>
+                  <h3 className={styles.sectionTitleBorderFlex} style={{ borderTop: 'none', paddingTop: 0 }}>
                     Previous Experience
-                    <button type="button" onClick={() => handleAddArrayItem('personnelWorkExperienceDetailsList', { companyName: '', designation: '', fromDate: '', toDate: '' })} style={{ background: 'none', border: 'none', color: '#3f97ef', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>+ Add Experience</button>
+                    <button type="button" onClick={() => handleAddArrayItem('personnelWorkExperienceDetailsList', { companyName: '', designation: '', fromDate: '', toDate: '' })} className={styles.addBtn}>+ Add Experience</button>
                   </h3>
                   
                   {formData.personnelWorkExperienceDetailsList.length === 0 ? (
-                    <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: 0 }}>No past experience added.</p>
+                    <p className={styles.emptyStateText}>No past experience added.</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div className={styles.expContainer}>
                       {formData.personnelWorkExperienceDetailsList.map((exp, idx) => (
-                        <div key={idx} style={{ padding: '20px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <h4 style={{ margin: 0, color: '#334155' }}>Experience #{idx + 1}</h4>
-                            <button type="button" onClick={() => handleRemoveArrayItem('personnelWorkExperienceDetailsList', idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: '500', fontSize: '13px' }}>Remove</button>
+                        <div key={idx} className={styles.expRow}>
+                          <div className={styles.expHeader}>
+                            <h4 className={styles.expTitle}>Experience #{idx + 1}</h4>
+                            <button type="button" onClick={() => handleRemoveArrayItem('personnelWorkExperienceDetailsList', idx)} className={styles.removeTextBtn}>Remove</button>
                           </div>
-                          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                            <div className="form-group" style={{ margin: 0 }}><label>Company Name</label><input type="text" value={exp.companyName} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'companyName', e.target.value)} /></div>
-                            <div className="form-group" style={{ margin: 0 }}><label>Designation</label><input type="text" value={exp.designation} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'designation', e.target.value)} /></div>
-                            <div className="form-group" style={{ margin: 0 }}><label>From Date</label><input type="date" value={exp.fromDate ? exp.fromDate.substring(0, 10) : ''} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'fromDate', e.target.value)} /></div>
-                            <div className="form-group" style={{ margin: 0 }}><label>To Date</label><input type="date" value={exp.toDate ? exp.toDate.substring(0, 10) : ''} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'toDate', e.target.value)} /></div>
+                          <div className={styles.formGrid}>
+                            <div className={styles.formGroup}><label className={styles.formLabel}>Company Name</label><input type="text" className={styles.formInput} value={exp.companyName} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'companyName', e.target.value)} /></div>
+                            <div className={styles.formGroup}><label className={styles.formLabel}>Designation</label><input type="text" className={styles.formInput} value={exp.designation} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'designation', e.target.value)} /></div>
+                            <div className={styles.formGroup}><label className={styles.formLabel}>From Date</label><input type="date" className={styles.formInput} value={exp.fromDate ? exp.fromDate.substring(0, 10) : ''} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'fromDate', e.target.value)} /></div>
+                            <div className={styles.formGroup}><label className={styles.formLabel}>To Date</label><input type="date" className={styles.formInput} value={exp.toDate ? exp.toDate.substring(0, 10) : ''} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'toDate', e.target.value)} /></div>
                           </div>
                         </div>
                       ))}
@@ -454,18 +461,18 @@ const StaffDashboard = () => {
               )}
 
               {/* Form Actions Footer */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px', padding: '20px 0 0 0', borderTop: '1px solid #e2e8f0' }}>
-                <button type="submit" className="btn btn-primary" disabled={isLoading} style={{ width: 'auto', padding: '12px 30px' }}>
+              <div className={styles.footerActions}>
+                <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={isLoading}>
                   {isLoading ? 'Saving...' : 'Save Profile'}
                 </button>
               </div>
             </form>
           ) : (
-            <div className="placeholder" style={{ flexDirection: 'column', gap: '15px' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className={`placeholder ${styles.placeholderContainer}`}>
+              <div className={styles.placeholderIconBox}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
-              <p>Select a staff member from the directory to view their profile.</p>
+              <p className={styles.placeholderText}>Select a staff member from the directory to view their profile.</p>
             </div>
           )}
         </div>
@@ -475,3 +482,4 @@ const StaffDashboard = () => {
 };
 
 export default StaffDashboard;
+

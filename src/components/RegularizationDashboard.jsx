@@ -22,6 +22,7 @@ import {
   ButtonGroup,
   Chip
 } from '@mui/material';
+import styles from './RegularizationDashboard.module.scss';
 
 const statusColor = {
   PENDING_BORDER: 'rgb(239, 197, 111)',
@@ -138,7 +139,7 @@ const RegularizationDashboard = ({ staffList }) => {
   const renderPunches = (punches) => {
     if (!punches || punches.length === 0) return null;
     return (
-      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+      <Box className={styles.punchesContainer}>
         {punches.map((punch, index) => {
           const borderCol = punch.uploadSource === 'TERMINAL' ? statusColor.TERMINAL_BORDER : statusColor[`${punch.currentStatus}_BORDER`] || statusColor.APPROVED_BORDER;
           const bgCol = punch.uploadSource === 'TERMINAL' ? statusColor.TERMINAL : statusColor[punch.currentStatus] || statusColor.APPROVED;
@@ -163,9 +164,9 @@ const RegularizationDashboard = ({ staffList }) => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+      <Box className={styles.headerControls}>
         
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Box className={styles.filterGroup}>
           <TextField
             label="From Date"
             type="date"
@@ -223,7 +224,7 @@ const RegularizationDashboard = ({ staffList }) => {
       </Box>
 
       {activeTab === 'PENDING' && selectedRequests.length > 0 && (
-        <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+        <Box className={styles.actionButtons}>
           <Button variant="contained" color="success" size="small" onClick={() => handleAction('APPROVED', selectedRequests)}>
             Approve Selected ({selectedRequests.length})
           </Button>
@@ -233,9 +234,9 @@ const RegularizationDashboard = ({ staffList }) => {
         </Box>
       )}
 
-      <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 2 }}>
+      <TableContainer component={Paper} elevation={0} className={styles.tableContainer}>
         <Table size="small">
-          <TableHead sx={{ backgroundColor: '#f8fafc' }}>
+          <TableHead className={styles.tableHead}>
             <TableRow>
               {activeTab === 'PENDING' && (
                 <TableCell padding="checkbox">
@@ -246,24 +247,24 @@ const RegularizationDashboard = ({ staffList }) => {
                   />
                 </TableCell>
               )}
-              <TableCell sx={{ fontWeight: 'bold' }}>Staff Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Attendance Date</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Punch Time</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Attendance Data</TableCell>
-              {activeTab === 'PENDING' && <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>}
+              <TableCell className={styles.tableHeadCell}>Staff Name</TableCell>
+              <TableCell className={styles.tableHeadCell}>Attendance Date</TableCell>
+              <TableCell className={styles.tableHeadCell}>Punch Time</TableCell>
+              <TableCell className={styles.tableHeadCell}>Status</TableCell>
+              <TableCell className={styles.tableHeadCell}>Attendance Data</TableCell>
+              {activeTab === 'PENDING' && <TableCell align="right" className={styles.tableHeadCell}>Actions</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
             {loading && requests.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={activeTab === 'PENDING' ? 7 : 6} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                <TableCell colSpan={activeTab === 'PENDING' ? 7 : 6} align="center" className={styles.emptyStateCell}>
                   Loading requests...
                 </TableCell>
               </TableRow>
             ) : requests.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={activeTab === 'PENDING' ? 7 : 6} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                <TableCell colSpan={activeTab === 'PENDING' ? 7 : 6} align="center" className={styles.emptyStateCell}>
                   No {activeTab.toLowerCase()} requests available.
                 </TableCell>
               </TableRow>
