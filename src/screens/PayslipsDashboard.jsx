@@ -37,10 +37,17 @@ const PayslipsDashboard = () => {
 
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaffId) {
-      const me = staffList.find(s => String(s.id) === String(user?.personnelCode || user?.personnelId || user?.id));
+      const me = staffList.find(s => {
+        if (user?.personnelCode && String(s.id) === String(user.personnelCode)) return true;
+        if (user?.personnelId && String(s.id) === String(user.personnelId)) return true;
+        if (user?.id && String(s.id) === String(user.id)) return true;
+        if (user?.username && s.username && String(s.username).toLowerCase() === String(user.username).toLowerCase()) return true;
+        if (user?.email && s.email && String(s.email).toLowerCase() === String(user.email).toLowerCase()) return true;
+        return false;
+      });
       setSelectedStaffId(me ? String(me.id) : String(staffList[0].id));
     }
-  }, [staffList, selectedStaffId, user.personnelCode]);
+  }, [staffList, selectedStaffId, user]);
 
   const handleGenerate = async () => {
     if (!selectedStaffId) return;

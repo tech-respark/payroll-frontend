@@ -22,7 +22,14 @@ export const useStaffList = () => {
 
   const staffList = hasAccess(['VIEW_OTHER_STAFF'])
     ? rawStaffList
-    : rawStaffList.filter(s => String(s.id) === String(user?.personnelCode || user?.personnelId || user?.id));
+    : rawStaffList.filter(s => {
+        if (user?.personnelCode && String(s.id) === String(user.personnelCode)) return true;
+        if (user?.personnelId && String(s.id) === String(user.personnelId)) return true;
+        if (user?.id && String(s.id) === String(user.id)) return true;
+        if (user?.username && s.username && String(s.username).toLowerCase() === String(user.username).toLowerCase()) return true;
+        if (user?.email && s.email && String(s.email).toLowerCase() === String(user.email).toLowerCase()) return true;
+        return false;
+      });
 
   return { staffList, rawStaffList, isLoading, error };
 };
