@@ -31,7 +31,7 @@ const PayslipBill = ({ payslipData, payslipMonth, storeConfig }) => {
       setDownloading(true);
       const token = localStorage.getItem('jwtToken');
       // Constructing URL using the payroll service API
-      const url = `${BASE_URL}/downloadBillPdf?personnelId=${data.personnelId || data.employeeCode}&month=${payslipMonth}&year=${data.salaryYear}`;
+      const url = `${BASE_URL}/downloadBillPdf?staffId=${data.staffId || data.employeeCode}&month=${payslipMonth}&year=${data.salaryYear}`;
       
       const response = await fetch(url, {
         method: 'POST',
@@ -99,7 +99,7 @@ const PayslipBill = ({ payslipData, payslipMonth, storeConfig }) => {
           <div className={styles.detailsGrid}>
             <div className={styles.detailBlock}>
               <div className={styles.detailRow}><span className={styles.detailLabel}>Employee Name</span> <span className={styles.detailValue}>{data.personnelName || '-'}</span></div>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Employee ID</span> <span className={styles.detailValue}>{data.employeeCode || data.personnelId || '-'}</span></div>
+              <div className={styles.detailRow}><span className={styles.detailLabel}>Employee ID</span> <span className={styles.detailValue}>{data.employeeCode || data.staffId || '-'}</span></div>
               <div className={styles.detailRow}><span className={styles.detailLabel}>Designation</span> <span className={styles.detailValue}>{data.designation || '-'}</span></div>
               <div className={styles.detailRow}><span className={styles.detailLabel}>Department</span> <span className={styles.detailValue}>{data.storeName || '-'}</span></div>
               <div className={styles.detailRow}><span className={styles.detailLabel}>Bank Name</span> <span className={styles.detailValue}>{data.bankName || '-'}</span></div>

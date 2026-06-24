@@ -64,7 +64,7 @@ const RegularizationDashboard = ({ staffList }) => {
         fromDate,
         toDate,
         currentStatus: activeTab,
-        personnelCode: selectedStaffId === 'All' ? null : Number(selectedStaffId),
+        staffId: selectedStaffId === 'All' ? null : Number(selectedStaffId),
         pageModel: {
           recordsPerPage: rowsPerPage,
           pageNumber: page + 1

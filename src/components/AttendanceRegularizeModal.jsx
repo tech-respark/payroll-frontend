@@ -101,7 +101,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
     const payload = {
       tenantId,
       storeId,
-      personnelCode: staffData.staffCode,
+      staffId: staffData.staffCode,
       fromDate: staffData.attendanceDate,
       toDate: staffData.attendanceDate,
       individualPunchesList: formattedPunches

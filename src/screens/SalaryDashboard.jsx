@@ -68,8 +68,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaffId) {
       const me = staffList.find(s => {
-        if (user?.personnelCode && String(s.id) === String(user.personnelCode)) return true;
-        if (user?.personnelId && String(s.id) === String(user.personnelId)) return true;
+        if (user?.staffId && String(s.id) === String(user.staffId)) return true;
         if (user?.id && String(s.id) === String(user.id)) return true;
         if (user?.username && s.username && String(s.username).toLowerCase() === String(user.username).toLowerCase()) return true;
         if (user?.email && s.email && String(s.email).toLowerCase() === String(user.email).toLowerCase()) return true;
@@ -79,13 +78,13 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
     }
   }, [staffList, selectedStaffId, user]);
 
-  const fetchFixedComponents = async (personnelId) => {
+  const fetchFixedComponents = async (staffId) => {
     setLoading(true);
     try {
       const compRes = await apiService.get(`/salaryComponentDefinitions?tenantId=${tenantId}&storeId=${storeId}`);
       const availableComponents = compRes.data || [];
       
-      const savedRes = await apiService.get(`/personnelSalaryComponents?personnelId=${personnelId}`);
+      const savedRes = await apiService.get(`/personnelSalaryComponents?staffId=${staffId}`);
       const savedStructure = savedRes.data || { earningsList: [], deductionsList: [] };
 
       // We need FIXED and FORMULA that are not calculated monthly
@@ -146,7 +145,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
     const payload = {
       tenantId,
       storeId,
-      personnelCode: selectedStaffId,
+      staffId: selectedStaffId,
       earningsList,
       deductionsList
     };
@@ -302,8 +301,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaffId) {
       const me = staffList.find(s => {
-        if (user?.personnelCode && String(s.id) === String(user.personnelCode)) return true;
-        if (user?.personnelId && String(s.id) === String(user.personnelId)) return true;
+        if (user?.staffId && String(s.id) === String(user.staffId)) return true;
         if (user?.id && String(s.id) === String(user.id)) return true;
         if (user?.username && s.username && String(s.username).toLowerCase() === String(user.username).toLowerCase()) return true;
         if (user?.email && s.email && String(s.email).toLowerCase() === String(user.email).toLowerCase()) return true;
@@ -313,13 +311,13 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
     }
   }, [staffList, selectedStaffId, user]);
 
-  const fetchVariableComponents = async (personnelId) => {
+  const fetchVariableComponents = async (staffId) => {
     setLoading(true);
     try {
       const compRes = await apiService.get(`/salaryComponentDefinitions?tenantId=${tenantId}&storeId=${storeId}`);
       const availableComponents = compRes.data || [];
       
-      const savedRes = await apiService.get(`/personnelSalaryComponents?personnelId=${personnelId}`);
+      const savedRes = await apiService.get(`/personnelSalaryComponents?staffId=${staffId}`);
       const savedStructure = savedRes.data || { earningsList: [], deductionsList: [] };
 
       // Filter to only variables (isCalculatedMonthly = true)
@@ -371,7 +369,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
     let fixedEarnings = [];
     let fixedDeductions = [];
     try {
-      const savedRes = await apiService.get(`/personnelSalaryComponents?personnelId=${selectedStaffId}`);
+      const savedRes = await apiService.get(`/personnelSalaryComponents?staffId=${selectedStaffId}`);
       if (savedRes.data) {
         const compRes = await apiService.get(`/salaryComponentDefinitions?tenantId=${tenantId}&storeId=${storeId}`);
         const availableComponents = compRes.data || [];
@@ -408,7 +406,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
     const payload = {
       tenantId,
       storeId,
-      personnelCode: selectedStaffId,
+      staffId: selectedStaffId,
       earningsList: newEarningsList,
       deductionsList: newDeductionsList
     };

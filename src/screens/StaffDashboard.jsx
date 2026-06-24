@@ -17,7 +17,7 @@ const StaffDashboard = () => {
   const [isNew, setIsNew] = useState(false);
   const [activeTab, setActiveTab] = useState('personal'); 
   
-  const emptyJoiningDetailsObj = { personnelCode: "", employeeCode: "", reportingTo: "", uanNumber: "", workingHours: 0, storeId: storeId };
+  const emptyJoiningDetailsObj = { staffId: "", employeeCode: "", reportingTo: "", uanNumber: "", workingHours: 0, storeId: storeId };
   const emptyBankAccountDetailsObj = { bankName: '', bankBranch: '', ifscCode: '', accountNumber: '' };
   
   const emptyStaff = {

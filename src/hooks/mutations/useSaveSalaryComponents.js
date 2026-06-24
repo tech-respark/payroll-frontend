@@ -9,7 +9,7 @@ import { useToast } from '../../context/ToastContext';
  *
  * Usage:
  *   const { saveSalaryComponents, isSaving } = useSaveSalaryComponents();
- *   saveSalaryComponents({ tenantId, storeId, personnelId, earningsList, deductionsList });
+ *   saveSalaryComponents({ tenantId, storeId, staffId, earningsList, deductionsList });
  *
  * @param {{ onSuccess?: () => void }} options
  */
@@ -27,7 +27,7 @@ export const useSaveSalaryComponents = ({ onSuccess } = {}) => {
       });
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['personnelSalaryComponents', variables.personnelId] });
+      queryClient.invalidateQueries({ queryKey: ['personnelSalaryComponents', variables.staffId] });
       showToast('Salary components saved successfully!', 'success');
       onSuccess?.();
     },

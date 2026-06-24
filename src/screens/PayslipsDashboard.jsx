@@ -38,8 +38,7 @@ const PayslipsDashboard = () => {
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaffId) {
       const me = staffList.find(s => {
-        if (user?.personnelCode && String(s.id) === String(user.personnelCode)) return true;
-        if (user?.personnelId && String(s.id) === String(user.personnelId)) return true;
+        if (user?.staffId && String(s.id) === String(user.staffId)) return true;
         if (user?.id && String(s.id) === String(user.id)) return true;
         if (user?.username && s.username && String(s.username).toLowerCase() === String(user.username).toLowerCase()) return true;
         if (user?.email && s.email && String(s.email).toLowerCase() === String(user.email).toLowerCase()) return true;
@@ -54,7 +53,7 @@ const PayslipsDashboard = () => {
     setLoading(true);
     setPayslipData(null);
     try {
-      const res = await apiService.get(`/getPayslipData?personnelId=${selectedStaffId}&month=${selectedMonth}&year=${selectedYear}&tenantId=${tenantId}&storeId=${storeId}`);
+      const res = await apiService.get(`/getPayslipData?staffId=${selectedStaffId}&month=${selectedMonth}&year=${selectedYear}&tenantId=${tenantId}&storeId=${storeId}`);
       if (res.data) {
         setPayslipData(res.data);
       } else {

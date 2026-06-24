@@ -56,8 +56,7 @@ const AttendanceDashboard = () => {
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaff) {
       const me = staffList.find(s => {
-        if (user?.personnelCode && String(s.id) === String(user.personnelCode)) return true;
-        if (user?.personnelId && String(s.id) === String(user.personnelId)) return true;
+        if (user?.staffId && String(s.id) === String(user.staffId)) return true;
         if (user?.id && String(s.id) === String(user.id)) return true;
         if (user?.username && s.username && String(s.username).toLowerCase() === String(user.username).toLowerCase()) return true;
         if (user?.email && s.email && String(s.email).toLowerCase() === String(user.email).toLowerCase()) return true;
@@ -81,7 +80,7 @@ const AttendanceDashboard = () => {
         applicationName: 'RESPARK',
         fromDate,
         toDate,
-        personnelCodes: [parseInt(selectedStaff)]
+        staffIds: [parseInt(selectedStaff)]
       };
 
       const response = await apiService.post('/advancedInOutHistoryInformation', payload, {
@@ -91,7 +90,7 @@ const AttendanceDashboard = () => {
       });
       
       const resData = response.data || [];
-      const staffRec = resData.find(r => String(r.personnelId || r.personnelCode) === String(selectedStaff));
+      const staffRec = resData.find(r => String(r.staffId || r.id) === String(selectedStaff));
       const dailyList = staffRec ? (staffRec.dayWiseAttendanceList || []) : [];
       
       const monthData = [];

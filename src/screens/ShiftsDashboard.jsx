@@ -255,11 +255,11 @@ const ShiftsDashboard = () => {
     const staffShiftsList = selectedStaffIds.map(staffId => {
       const assignment = bulkAssignments[staffId];
       return {
-        createdBy: user.userId || user.personnelCode || 1,
+        createdBy: user.userId || user.staffId || user.id || 1,
         createdOn: currentIsoTime,
         day: new Date(assignStartDate).toLocaleDateString('en-US', { weekday: 'long' }),
         earlyOutTime: '',
-        modifiedBy: user.userId || user.personnelCode || 1,
+        modifiedBy: user.userId || user.staffId || user.id || 1,
         modifiedOn: currentIsoTime,
         onLeave: assignment.isWorking ? 0 : 1,
         shiftDate: new Date(assignStartDate).toISOString(),
@@ -278,8 +278,8 @@ const ShiftsDashboard = () => {
     });
 
     generateRosterMutation.mutate({
-      createdBy: user.userId || user.personnelCode || 1,
-      modifiedBy: user.userId || user.personnelCode || 1,
+      createdBy: user.userId || user.staffId || user.id || 1,
+      modifiedBy: user.userId || user.staffId || user.id || 1,
       noOfDays: parseInt(assignNoOfDays),
       staffShiftsList: staffShiftsList,
       tenantId: tenantId,
