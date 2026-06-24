@@ -5,7 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { BASE_URL } from '../api/apiService';
 import styles from './PayslipBill.module.scss';
 
-const PayslipBill = ({ payslipData, payslipMonth }) => {
+const PayslipBill = ({ payslipData, payslipMonth, storeConfig }) => {
   if (!payslipData) return null;
   const data = payslipData.data || payslipData;
 
@@ -22,8 +22,9 @@ const PayslipBill = ({ payslipData, payslipMonth }) => {
   const { showToast } = useToast();
   const [downloading, setDownloading] = useState(false);
 
-  const companyName = "RESPARK SOLUTIONS";
-  const address = "123 Business Park, Tech City, India";
+  // Fallbacks if storeConfig isn't fully set up on the backend yet
+  const companyName = storeConfig?.companyName || "RESPARK SOLUTIONS";
+  const address = storeConfig?.address || "123 Business Park, Tech City, India";
   
   const handleDownloadPdf = async () => {
     try {
@@ -163,7 +164,7 @@ const PayslipBill = ({ payslipData, payslipMonth }) => {
               <div className={styles.netAmount}>₹{Number(data.salaryAmount || 0).toLocaleString()}</div>
             </div>
             <div className={styles.wordsText}>
-              {toWords.convert(data.salaryAmount || 0)} Only
+              {toWords.convert(data.salaryAmount || 0)}
             </div>
           </div>
 

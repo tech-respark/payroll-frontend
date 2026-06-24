@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
+import { useRoles, usePermissionModules } from '../hooks/queries';
 import styles from './RoleManagement.module.scss';
 import '../styles/main.scss';
 
@@ -9,7 +11,6 @@ const RoleManagement = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
   const { showToast } = useToast();
   
-  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Modal & Form State
@@ -18,52 +19,11 @@ const RoleManagement = () => {
   const [newRoleName, setNewRoleName] = useState('');
   const [newRoleDesc, setNewRoleDesc] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+  
+  const queryClient = useQueryClient();
 
-  // Categorized Permissions
-  const [PERMISSION_GROUPS, setPermissionGroups] = useState([]);
-
-  useEffect(() => {
-    fetchRoles();
-    fetchPermissionModules();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, storeId]);
-
-  const fetchPermissionModules = async () => {
-    try {
-      // tenantId/storeId passed to fetch tenant-specific modules, falls back to 0,0 in backend
-      const res = await apiService.get(`/roles/permissions/modules?tenantId=${tenantId}&storeId=${storeId}`);
-      if (res.data) {
-        // map backend response to frontend expected structure
-        const mapped = res.data.map(m => ({
-          id: m.id,
-          category: m.category,
-          icon: <div dangerouslySetInnerHTML={{ __html: m.icon }} />,
-          permissions: m.permissions.map(p => ({
-            id: p.permissionId,
-            label: p.label
-          }))
-        }));
-        setPermissionGroups(mapped);
-      }
-    } catch (err) {
-      console.error('Failed to load permission modules', err);
-    }
-  };
-
-  const fetchRoles = async () => {
-    try {
-      setLoading(true);
-      const res = await apiService.get(`/roles?tenantId=${tenantId}`);
-      if (res && res.success) {
-        setRoles(res.data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch roles:', err);
-      showToast('Failed to fetch roles', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { permissionGroups: PERMISSION_GROUPS } = usePermissionModules();
+  const { roles, isLoading: loadingRoles } = useRoles();
 
   const handleCreateRole = async (e) => {
     e.preventDefault();
@@ -101,7 +61,7 @@ const RoleManagement = () => {
       if (res && res.success) {
         showToast(`Role ${editingRoleId ? 'updated' : 'created'} successfully!`, 'success');
         closeModal();
-        fetchRoles();
+        queryClient.invalidateQueries({ queryKey: ['roles'] });
       } else {
         showToast(res?.message || `Failed to ${editingRoleId ? 'update' : 'create'} role`, 'error');
       }
@@ -166,7 +126,7 @@ const RoleManagement = () => {
               <h3 className={styles.rolesCardTitle}>Active Security Roles</h3>
             </div>
 
-            {loading ? (
+            {loadingRoles ? (
               <div className={styles.rolesListLoading}>Loading...</div>
             ) : roles.length === 0 ? (
               <div className={styles.rolesListEmpty}>No roles configured.</div>
@@ -253,7 +213,7 @@ const RoleManagement = () => {
                   {PERMISSION_GROUPS.map((group, idx) => (
                     <div key={idx} className={styles.moduleCard}>
                       <div className={styles.moduleHeader}>
-                        <div className={styles.moduleIcon}>{group.icon}</div>
+                        <div className={styles.moduleIcon} dangerouslySetInnerHTML={{ __html: group.iconHtml }} />
                         <div className={styles.moduleTitle}>{group.category}</div>
                       </div>
                       <div className={styles.moduleBody}>

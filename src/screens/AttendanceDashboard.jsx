@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
+import { useStaffList } from '../hooks/queries';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import AttendanceRegularizeModal from '../components/AttendanceRegularizeModal';
@@ -47,55 +49,25 @@ const AttendanceDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[currentMonthIndex]);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedStaff, setSelectedStaff] = useState('');
-  const [staffList, setStaffList] = useState([]);
-  
-  const [attendanceData, setAttendanceData] = useState([]); 
-  const [selectedDateObj, setSelectedDateObj] = useState(null); 
-  
-  const [loading, setLoading] = useState(false);
-
-  
+  const [selectedDateObj, setSelectedDateObj] = useState(null);
   const [modalState, setModalState] = useState({ show: false, staffData: null });
+  const { staffList } = useStaffList();
 
   useEffect(() => {
-    fetchStaffList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, storeId]);
-
-  const fetchStaffList = async () => {
-    try {
-      const res = await apiService.get(`/personnel/all?tenantId=${tenantId}&storeId=${storeId}`);
-      let list = res.data || res || [];
-      if (!hasAccess(['VIEW_OTHER_STAFF'])) {
-        list = list.filter(s => s.id === user.personnelCode);
-      }
-      setStaffList(list);
-      if (list.length > 0) {
-        const me = list.find(s => s.id === user.personnelCode);
-        setSelectedStaff(me ? String(me.id) : String(list[0].id));
-      }
-    } catch (err) {
-      console.error('Failed to fetch staff', err);
+    if (staffList.length > 0 && !selectedStaff) {
+      const me = staffList.find(s => s.id === user.personnelCode);
+      setSelectedStaff(me ? String(me.id) : String(staffList[0].id));
     }
-  };
+  }, [staffList, selectedStaff, user.personnelCode]);
 
-  useEffect(() => {
-    if (selectedStaff && selectedMonth && selectedYear) {
-      fetchAttendance();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStaff, selectedMonth, selectedYear]);
+  const monthIdx = MONTHS.indexOf(selectedMonth) + 1;
+  const daysInMonth = new Date(selectedYear, monthIdx, 0).getDate();
+  const fromDate = `${selectedYear}-${String(monthIdx).padStart(2, '0')}-01`;
+  const toDate = `${selectedYear}-${String(monthIdx).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
 
-  const fetchAttendance = async () => {
-    setLoading(true);
-    
-    try {
-      const monthIdx = MONTHS.indexOf(selectedMonth) + 1;
-      const daysInMonth = new Date(selectedYear, monthIdx, 0).getDate();
-      
-      const fromDate = `${selectedYear}-${String(monthIdx).padStart(2, '0')}-01`;
-      const toDate = `${selectedYear}-${String(monthIdx).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
-
+  const { data: attendanceData = [], isLoading: loading, refetch: fetchAttendance } = useQuery({
+    queryKey: ['attendanceData', selectedStaff, selectedMonth, selectedYear, tenantId, storeId],
+    queryFn: async () => {
       const payload = {
         tenantId,
         storeId,
@@ -112,7 +84,7 @@ const AttendanceDashboard = () => {
       });
       
       const resData = response.data || [];
-      const staffRec = resData.find(r => String(r.personnelCode) === String(selectedStaff));
+      const staffRec = resData.find(r => String(r.personnelId || r.personnelCode) === String(selectedStaff));
       const dailyList = staffRec ? (staffRec.dayWiseAttendanceList || []) : [];
       
       const monthData = [];
@@ -120,7 +92,19 @@ const AttendanceDashboard = () => {
         const dateStr = `${selectedYear}-${String(monthIdx).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const dayRecord = dailyList.find(day => day.dateOfAttendance && day.dateOfAttendance.startsWith(dateStr));
         
-        let status = dayRecord ? dayRecord.currentStatus : 'Absent';
+        const mapStatus = (s) => {
+          if (!s) return 'A';
+          const lower = s.toLowerCase();
+          if (lower.includes('present')) return 'P';
+          if (lower.includes('absent')) return 'A';
+          if (lower.includes('half')) return 'HD';
+          if (lower.includes('leave')) return 'L';
+          if (lower.includes('weekly')) return 'WO';
+          if (lower.includes('holiday')) return 'PH';
+          return s;
+        };
+        
+        let status = dayRecord ? (dayRecord.currentStatus) : 'absent';
         let isFuture = new Date(dateStr) > new Date();
         if (isFuture) status = '';
         
@@ -174,21 +158,31 @@ const AttendanceDashboard = () => {
            punches
         });
       }
-      
-      setAttendanceData(monthData);
-      
-      const todayStr = new Date().toISOString().split('T')[0];
-      const todayObj = monthData.find(d => d.dateStr === todayStr);
-      if (todayObj) setSelectedDateObj(todayObj);
-      else setSelectedDateObj(monthData[0]);
+      return monthData;
+    },
+    enabled: !!(selectedStaff && selectedMonth && selectedYear)
+  });
 
-    } catch (err) {
-      console.error('Failed to fetch attendance', err);
-      showToast('Could not fetch attendance history.', 'error');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    setSelectedDateObj(null);
+  }, [selectedMonth, selectedYear, selectedStaff]);
+
+  useEffect(() => {
+    if (attendanceData.length > 0) {
+      if (!selectedDateObj) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayObj = attendanceData.find(d => d.dateStr === todayStr);
+        if (todayObj) setSelectedDateObj(todayObj);
+        else setSelectedDateObj(attendanceData[0]);
+      } else {
+        const updatedObj = attendanceData.find(d => d.dateStr === selectedDateObj.dateStr);
+        // Only update if we found it and it's a different reference
+        if (updatedObj && updatedObj !== selectedDateObj) {
+          setSelectedDateObj(updatedObj);
+        }
+      }
     }
-  };
+  }, [attendanceData, selectedDateObj]);
 
   const handleRegularizeClick = () => {
     if (!selectedDateObj) return;

@@ -1,15 +1,15 @@
-export const BASE_URL = 'https://localhost:8092/payroll-management/v1';
+export const BASE_URL = '/payroll-management/v1';
 
 
-const handleResponse = async (response) => {
-  if (response.status === 401 || response.status === 403) {
+const handleResponse = async (response, endpoint) => {
+  if ((response.status === 401 || response.status === 403) && !endpoint.includes('/login')) {
     // Token is expired or invalid
     localStorage.removeItem('jwtToken');
     localStorage.removeItem('user');
     window.location.href = '/login';
     throw new Error('Session expired. Please log in again.');
   }
-  if (!response.ok) {
+  if (!response.ok && response.status !== 401) {
     throw new Error('Network response was not ok');
   }
   return await response.json();
@@ -27,7 +27,7 @@ export const apiService = {
           ...headers
         }
       });
-      return await handleResponse(response);
+      return await handleResponse(response, endpoint);
     } catch (error) {
       console.error('GET Error:', error);
       throw error;
@@ -47,7 +47,7 @@ export const apiService = {
         },
         body: JSON.stringify(body)
       });
-      return await handleResponse(response);
+      return await handleResponse(response, endpoint);
     } catch (error) {
       console.error('POST Error:', error);
       throw error;

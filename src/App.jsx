@@ -1,21 +1,57 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from './components/Toast';
 import GlobalLoader from './components/GlobalLoader';
 import Navigation from './components/Navigation';
+
+// ─── Eagerly loaded (always needed) ──────────────────────────────────────────
 import Login from './screens/Login';
-import StaffDashboard from './screens/StaffDashboard';
-import ShiftsDashboard from './screens/ShiftsDashboard';
-import AttendanceDashboard from './screens/AttendanceDashboard';
-import SalaryDashboard from './screens/SalaryDashboard';
-import RoleManagement from './screens/RoleManagement';
-import RegularizationApprovals from './screens/RegularizationApprovals';
-import PayslipsDashboard from './screens/PayslipsDashboard';
+
+// ─── Lazy loaded (downloaded only when first visited) ────────────────────────
+const StaffDashboard       = lazy(() => import('./screens/StaffDashboard'));
+const ShiftsDashboard      = lazy(() => import('./screens/ShiftsDashboard'));
+const AttendanceDashboard  = lazy(() => import('./screens/AttendanceDashboard'));
+const SalaryDashboard      = lazy(() => import('./screens/SalaryDashboard'));
+const RoleManagement       = lazy(() => import('./screens/RoleManagement'));
+const RegularizationApprovals = lazy(() => import('./screens/RegularizationApprovals'));
+const PayslipsDashboard    = lazy(() => import('./screens/PayslipsDashboard'));
+
+// ─── Route-level loading fallback ────────────────────────────────────────────
+const PageLoader = () => (
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    minHeight: '60vh',
+    gap: '16px',
+  }}>
+    <div style={{
+      width: '44px',
+      height: '44px',
+      border: '4px solid #e2e8f0',
+      borderTop: '4px solid #3f97ef',
+      borderRadius: '50%',
+      animation: 'spin 0.75s linear infinite',
+    }} />
+    <span style={{
+      fontSize: '13px',
+      color: '#7b809a',
+      fontFamily: 'Poppins, sans-serif',
+      letterSpacing: '0.02em',
+    }}>
+      Loading module...
+    </span>
+    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+);
 
 const AppContent = () => {
-  const { isAuthenticated, user, hasAccess } = useAuth();
+  const { isAuthenticated, hasAccess } = useAuth();
 
   if (!isAuthenticated) {
     return (
@@ -30,36 +66,55 @@ const AppContent = () => {
     <div className="app-layout">
       <Navigation />
       <main className="main-content">
-        <Switch>
-          <Route path="/staff" component={StaffDashboard} />
-          <Route path="/attendance" component={AttendanceDashboard} />
-          
-          {/* Protected Routes */}
-          {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SHIFTS', 'MANAGE_SHIFTS']) && <Route path="/shifts" component={ShiftsDashboard} />}
-          {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_ATTENDANCE']) && <Route path="/approvals" component={RegularizationApprovals} />}
-          {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SALARY', 'MANAGE_SALARY']) && <Route path="/salary" component={SalaryDashboard} />}
-          {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SALARY', 'MANAGE_SALARY']) && <Route path="/payslips" component={PayslipsDashboard} />}
-          {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN']) && <Route path="/roles" component={RoleManagement} />}
-          
-          <Redirect from="/login" to="/staff" />
-          <Redirect from="/" to="/staff" />
-        </Switch>
+        <Suspense fallback={<PageLoader />}>
+          <Switch>
+            <Route path="/staff"      component={StaffDashboard} />
+            <Route path="/attendance" component={AttendanceDashboard} />
+
+            {/* Protected Routes */}
+            {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SHIFTS', 'MANAGE_SHIFTS'])      && <Route path="/shifts"    component={ShiftsDashboard} />}
+            {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_ATTENDANCE'])                 && <Route path="/approvals" component={RegularizationApprovals} />}
+            {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SALARY', 'MANAGE_SALARY'])      && <Route path="/salary"    component={SalaryDashboard} />}
+            {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SALARY', 'MANAGE_SALARY'])      && <Route path="/payslips"  component={PayslipsDashboard} />}
+            {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN'])                                      && <Route path="/roles"     component={RoleManagement} />}
+
+            <Redirect from="/login" to="/staff" />
+            <Redirect from="/"      to="/staff" />
+          </Switch>
+        </Suspense>
       </main>
     </div>
   );
 };
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: true,
+      staleTime: 60 * 1000, // 1 minute
+      retry: 1
+    },
+  },
+});
+
+// Connect TanStack Query DevTools extension
+if (typeof window !== 'undefined') {
+  window.__TANSTACK_QUERY_CLIENT__ = queryClient;
+}
+
 const App = () => {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <Router>
-          <AppContent />
-          <Toast />
-          <GlobalLoader />
-        </Router>
-      </AuthProvider>
-    </ToastProvider>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
+            <AppContent />
+            <Toast />
+            <GlobalLoader />
+          </Router>
+        </AuthProvider>
+      </ToastProvider>
+    </QueryClientProvider>
   );
 };
 

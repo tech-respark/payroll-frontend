@@ -4,6 +4,8 @@ import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import styles from './AttendanceRegularizeModal.module.scss';
 
+import { useStoreConfig } from '../hooks/queries';
+
 const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId }) => {
   if (!show || !staffData) return null;
 
@@ -14,19 +16,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
 
   const [punches, setPunches] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [storeConfig, setStoreConfig] = useState(null);
-
-  useEffect(() => {
-    const fetchStoreConfig = async () => {
-      try {
-        const res = await apiService.get(`/tenantStoreConfig?tenantId=${tenantId}&storeId=${storeId}`);
-        if (res.data) setStoreConfig(res.data);
-      } catch (err) {
-        console.error('Failed to fetch store config', err);
-      }
-    };
-    fetchStoreConfig();
-  }, [tenantId, storeId]);
+  const { storeConfig } = useStoreConfig();
 
   const statusColor = {
     PENDING_BORDER: '#f59e0b',

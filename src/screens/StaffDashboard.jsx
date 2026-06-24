@@ -1,21 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { useStaffList, useRoles } from '../hooks/queries';
+import { useSaveStaff } from '../hooks/mutations';
 import styles from './StaffDashboard.module.scss';
 import '../styles/main.scss';
 
 const StaffDashboard = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
   const { showToast } = useToast();
-  const [staffList, setStaffList] = useState([]);
-  const [rolesList, setRolesList] = useState([]);
+  const queryClient = useQueryClient();
+  
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [isNew, setIsNew] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('personal'); 
   
-  const emptyJoiningDetailsObj = { personnelCode: "", employeeCode: "", reportingTo: "", uanNumber: "", workingHours: 0 };
+  const emptyJoiningDetailsObj = { personnelCode: "", employeeCode: "", reportingTo: "", uanNumber: "", workingHours: 0, storeId: storeId };
   const emptyBankAccountDetailsObj = { bankName: '', bankBranch: '', ifscCode: '', accountNumber: '' };
   
   const emptyStaff = {
@@ -45,38 +47,8 @@ const StaffDashboard = () => {
 
   const [formData, setFormData] = useState({ ...emptyStaff });
 
-  useEffect(() => {
-    fetchStaff();
-    fetchRoles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, storeId]);
-
-  const fetchStaff = async () => {
-    try {
-      setIsLoading(true);
-      const data = await apiService.get(`/personnel/all?tenantId=${tenantId}&storeId=${storeId}`);
-      let list = data.data || data || [];
-      if (!hasAccess(['VIEW_OTHER_STAFF'])) {
-        list = list.filter(s => s.id === user.personnelCode);
-      }
-      setStaffList(list);
-    } catch (err) {
-      console.error('Failed to fetch staff', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchRoles = async () => {
-    try {
-      const res = await apiService.get(`/roles?tenantId=${tenantId}`);
-      if (res && res.data) {
-        setRolesList(res.data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch roles', err);
-    }
-  };
+  const { staffList, rawStaffList, isLoading: isStaffLoading } = useStaffList();
+  const { roles: rolesList } = useRoles();
 
   const fetchStaffRole = async (staffId) => {
     try {
@@ -91,7 +63,6 @@ const StaffDashboard = () => {
   };
 
   const handleSelectStaff = async (staff) => {
-    setIsLoading(true);
     setSelectedStaff(staff);
     const assignedRoleId = await fetchStaffRole(staff.id);
     setFormData({ 
@@ -106,7 +77,6 @@ const StaffDashboard = () => {
     });
     setIsNew(false);
     setActiveTab('personal');
-    setIsLoading(false);
   };
 
   const handleCreateNew = () => {
@@ -166,52 +136,27 @@ const StaffDashboard = () => {
     });
   };
 
+  const { saveStaff, isSaving } = useSaveStaff({
+    onSuccess: (savedData) => {
+      setIsNew(false);
+      if (savedData) setSelectedStaff(savedData);
+    }
+  });
+
   const handleSave = async (e) => {
     e.preventDefault();
-    try {
-      if (!formData.roleId) {
-        showToast("Please select a Role for the staff member.", "error");
-        return;
-      }
-      setIsLoading(true);
-      const payload = { ...formData, applicationName: 'RESPARK' };
-      if (!payload.id && !payload.pwd) {
-         showToast("Password is required for new staff", "error");
-         setIsLoading(false);
-         return;
-      }
-      if (payload.id) delete payload.pwd;
-      
-      const savedStaffRes = await apiService.post('/personnelForAttendanceManagement', payload, {
-        'Tenantid': String(tenantId),
-        'Storeid': String(storeId),
-        'x-allowed-store-ids': String(storeId)
-      });
-      
-      const staffId = savedStaffRes.data?.id || formData.id;
-      
-      if (staffId) {
-        await apiService.post('/roles/assign', {
-          staffId: parseInt(staffId),
-          roleId: parseInt(formData.roleId),
-          storeId: storeId,
-          tenantId: tenantId
-        });
-        showToast('Staff and Role saved successfully!', 'success');
-        fetchStaff();
-        setIsNew(false);
-        if(savedStaffRes.data) {
-           setSelectedStaff(savedStaffRes.data);
-        }
-      } else {
-        showToast('Staff saved, but could not verify ID to assign role.', 'warning');
-      }
-    } catch (err) {
-      console.error('Failed to save staff', err);
-      showToast('Error saving staff', 'error');
-    } finally {
-      setIsLoading(false);
+    if (!formData.roleId) {
+      showToast("Please select a Role for the staff member.", "error");
+      return;
     }
+    const payload = { ...formData, applicationName: 'RESPARK' };
+    if (!payload.id && !payload.pwd) {
+        showToast("Password is required for new staff", "error");
+        return;
+    }
+    if (payload.id) delete payload.pwd;
+    
+    saveStaff(payload);
   };
 
   const getInitials = (first, last) => {
@@ -246,7 +191,7 @@ const StaffDashboard = () => {
         {/* Left Sidebar: Staff List */}
         <div className={`staff-sidebar ${styles.staffSidebar}`}>
           <button onClick={handleCreateNew} className={`btn btn-primary ${styles.createBtn}`}>+ New Employee</button>
-          {isLoading && staffList.length === 0 ? <p className={styles.loadingText}>Loading directory...</p> : (
+          {isStaffLoading ? <p className={styles.loadingText}>Loading directory...</p> : (
             <ul className="staff-list">
               {staffList.map((staff) => (
                 <li 
@@ -462,8 +407,8 @@ const StaffDashboard = () => {
 
               {/* Form Actions Footer */}
               <div className={styles.footerActions}>
-                <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={isLoading}>
-                  {isLoading ? 'Saving...' : 'Save Profile'}
+                <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={isSaving}>
+                  {isSaving ? 'Saving...' : 'Save Profile'}
                 </button>
               </div>
             </form>

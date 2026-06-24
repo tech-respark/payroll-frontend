@@ -49,7 +49,7 @@ const Login = () => {
     <div style={styles.container}>
       <div style={styles.loginCard}>
         <div style={styles.header}>
-          <h1 style={styles.brand}>Respark <span style={styles.brandAccent}>V2</span></h1>
+          <h1 style={styles.brand}>Relfor <span style={styles.brandAccent}>Payroll</span></h1>
           <p style={styles.subtitle}>Welcome back! Please login to your account.</p>
         </div>
 

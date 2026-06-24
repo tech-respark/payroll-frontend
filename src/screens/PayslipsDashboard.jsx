@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
+import { useStaffList, useStoreConfig } from '../hooks/queries';
 import PayslipBill from '../components/PayslipBill';
 import styles from './PayslipsDashboard.module.scss';
 import '../styles/main.scss';
@@ -14,7 +16,7 @@ const MONTHS = [
 const PayslipsDashboard = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
   const { showToast } = useToast();
-  const [staffList, setStaffList] = useState([]);
+
 
   const currentMonthIndex = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -30,35 +32,8 @@ const PayslipsDashboard = () => {
   const [loading, setLoading] = useState(false);
 
   const [payslipData, setPayslipData] = useState(null);
-  const [storeConfig, setStoreConfig] = useState(null);
-
-  useEffect(() => {
-    fetchStaffList();
-    fetchStoreConfig();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, storeId]);
-
-  const fetchStoreConfig = async () => {
-    try {
-      const res = await apiService.get(`/tenantStoreConfig?tenantId=${tenantId}&storeId=${storeId}`);
-      if (res.data) setStoreConfig(res.data);
-    } catch (err) {
-      console.error('Failed to fetch store config', err);
-    }
-  };
-
-  const fetchStaffList = async () => {
-    try {
-      const res = await apiService.get(`/personnel/all?tenantId=${tenantId}&storeId=${storeId}`);
-      let list = res.data || res || [];
-      if (!hasAccess(['VIEW_OTHER_STAFF'])) {
-        list = list.filter(s => s.id === user.personnelCode);
-      }
-      setStaffList(list);
-    } catch (err) {
-      console.error('Failed to fetch staff', err);
-    }
-  };
+  const { storeConfig } = useStoreConfig();
+  const { staffList } = useStaffList();
 
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaffId) {
@@ -72,7 +47,7 @@ const PayslipsDashboard = () => {
     setLoading(true);
     setPayslipData(null);
     try {
-      const res = await apiService.get(`/getPayslipData?personnelCode=${selectedStaffId}&month=${selectedMonth}&year=${selectedYear}&tenantId=${tenantId}&storeId=${storeId}`);
+      const res = await apiService.get(`/getPayslipData?personnelId=${selectedStaffId}&month=${selectedMonth}&year=${selectedYear}&tenantId=${tenantId}&storeId=${storeId}`);
       if (res.data) {
         setPayslipData(res.data);
       } else {
@@ -177,7 +152,7 @@ const PayslipsDashboard = () => {
 
         {payslipData && (
           <div className={styles.payslipWrapper}>
-            <PayslipBill payslipData={payslipData} payslipMonth={selectedMonth} />
+            <PayslipBill payslipData={payslipData} payslipMonth={selectedMonth} storeConfig={storeConfig} />
           </div>
         )}
       </div>

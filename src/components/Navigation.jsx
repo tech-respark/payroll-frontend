@@ -1,10 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useStoreConfig } from '../hooks/queries';
 import styles from './Navigation.module.scss';
 
 const Navigation = () => {
   const { logout, user, hasAccess } = useAuth();
+  const { storeConfig } = useStoreConfig();
 
   return (
     <nav className={styles.mainNavigation}>
@@ -60,7 +62,7 @@ const Navigation = () => {
       </ul>
       <div className={styles.navFooter}>
         <p className={styles.storeName}>
-          Store: Main Store
+          Store: {storeConfig?.storeName || 'Main Store'}
         </p>
         <button 
           onClick={logout} 

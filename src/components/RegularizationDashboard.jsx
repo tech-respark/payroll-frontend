@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import {
@@ -47,21 +48,15 @@ const RegularizationDashboard = ({ staffList }) => {
   const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedStaffId, setSelectedStaffId] = useState('All');
   
-  const [requests, setRequests] = useState([]);
   const [selectedRequests, setSelectedRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
+  const [isMutating, setIsMutating] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchRequests();
-    // eslint-disable-next-line
-  }, [activeTab, fromDate, toDate, selectedStaffId, page, rowsPerPage]);
-
-  const fetchRequests = async () => {
-    setLoading(true);
-    try {
+  const { data: requestData, isLoading: loading } = useQuery({
+    queryKey: ['regularizationRequests', tenantId, storeId, activeTab, fromDate, toDate, selectedStaffId, page, rowsPerPage],
+    queryFn: async () => {
       const payload = {
         tenantId,
         storeId,
@@ -81,24 +76,17 @@ const RegularizationDashboard = ({ staffList }) => {
         'Storeid': String(storeId),
         'x-allowed-store-ids': String(storeId)
       });
-
-      if (res.data) {
-        setRequests(res.data.regularizationRequests || []);
-        if (res.data.pageModel) {
-          setTotalCount(res.data.pageModel.totalNumberOfRecords || 0);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch requests', err);
-    } finally {
-      setLoading(false);
+      return res.data || { regularizationRequests: [], pageModel: { totalNumberOfRecords: 0 } };
     }
-  };
+  });
+
+  const requests = requestData?.regularizationRequests || [];
+  const totalCount = requestData?.pageModel?.totalNumberOfRecords || 0;
 
   const handleAction = async (action, reqIds) => {
     if (!reqIds || reqIds.length === 0) return;
+    setIsMutating(true);
     try {
-      setLoading(true);
       const payload = reqIds.map(id => ({
         personnelAttendanceId: id,
         modifiedBy: user?.id || 1,
@@ -113,10 +101,11 @@ const RegularizationDashboard = ({ staffList }) => {
       });
       
       setSelectedRequests([]);
-      fetchRequests();
+      queryClient.invalidateQueries({ queryKey: ['regularizationRequests'] });
     } catch (err) {
       console.error(`Failed to ${action} requests`, err);
-      setLoading(false);
+    } finally {
+      setIsMutating(false);
     }
   };
 

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
+import { useStaffList } from '../hooks/queries';
 import styles from './SalaryDashboard.module.scss';
 import '../styles/main.scss';
 
@@ -10,25 +12,7 @@ const SalaryDashboard = () => {
   const { showToast } = useToast();
   const canManage = hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_SALARY']);
   const [activeTab, setActiveTab] = useState('fixed');
-  const [staffList, setStaffList] = useState([]);
-
-  useEffect(() => {
-    fetchStaffList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, storeId]);
-
-  const fetchStaffList = async () => {
-    try {
-      const res = await apiService.get(`/personnel/all?tenantId=${tenantId}&storeId=${storeId}`);
-      let list = res.data || res || [];
-      if (!hasAccess(['VIEW_OTHER_STAFF'])) {
-        list = list.filter(s => s.id === user.personnelCode);
-      }
-      setStaffList(list);
-    } catch (err) {
-      console.error('Failed to fetch staff', err);
-    }
-  };
+  const { staffList } = useStaffList();
 
   return (
     <div className="dashboard">
@@ -94,7 +78,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
       const compRes = await apiService.get(`/salaryComponentDefinitions?tenantId=${tenantId}&storeId=${storeId}`);
       const availableComponents = compRes.data || [];
       
-      const savedRes = await apiService.get(`/personnelSalaryComponents?personnelCode=${personnelId}`);
+      const savedRes = await apiService.get(`/personnelSalaryComponents?personnelId=${personnelId}`);
       const savedStructure = savedRes.data || { earningsList: [], deductionsList: [] };
 
       // We need FIXED and FORMULA that are not calculated monthly
@@ -321,7 +305,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
       const compRes = await apiService.get(`/salaryComponentDefinitions?tenantId=${tenantId}&storeId=${storeId}`);
       const availableComponents = compRes.data || [];
       
-      const savedRes = await apiService.get(`/personnelSalaryComponents?personnelCode=${personnelId}`);
+      const savedRes = await apiService.get(`/personnelSalaryComponents?personnelId=${personnelId}`);
       const savedStructure = savedRes.data || { earningsList: [], deductionsList: [] };
 
       // Filter to only variables (isCalculatedMonthly = true)
@@ -373,7 +357,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
     let fixedEarnings = [];
     let fixedDeductions = [];
     try {
-      const savedRes = await apiService.get(`/personnelSalaryComponents?personnelCode=${selectedStaffId}`);
+      const savedRes = await apiService.get(`/personnelSalaryComponents?personnelId=${selectedStaffId}`);
       if (savedRes.data) {
         const compRes = await apiService.get(`/salaryComponentDefinitions?tenantId=${tenantId}&storeId=${storeId}`);
         const availableComponents = compRes.data || [];

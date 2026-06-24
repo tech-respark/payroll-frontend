@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useStaffList, useShiftSlots, useStoreSettings } from '../hooks/queries';
 import styles from './ShiftsDashboard.module.scss';
 import '../styles/main.scss';
 
 const ShiftsDashboard = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   
   const canManage = hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_SHIFTS']);
   
@@ -20,14 +23,12 @@ const ShiftsDashboard = () => {
   const [storeCloseTime, setStoreCloseTime] = useState('22:00');
 
   // Templates Data
-  const [shiftSlots, setShiftSlots] = useState([]);
   const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [slotName, setSlotName] = useState('');
   const [slotStartTime, setSlotStartTime] = useState('09:00');
   const [slotEndTime, setSlotEndTime] = useState('18:00');
 
   // Roster Data
-  const [staffList, setStaffList] = useState([]);
   const [assignStartDate, setAssignStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [assignNoOfDays, setAssignNoOfDays] = useState('1');
   const [globalShiftId, setGlobalShiftId] = useState('');
@@ -40,12 +41,17 @@ const ShiftsDashboard = () => {
   const [breakEndTime, setBreakEndTime] = useState('14:00');
   const [breakType, setBreakType] = useState('Lunch');
 
+  const { staffList } = useStaffList();
+  const { storeSettings: storeSettingsData } = useStoreSettings();
+  const { shiftSlots } = useShiftSlots();
+
   useEffect(() => {
-    fetchStoreSettings();
-    fetchShiftSlots();
-    fetchStaffList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, storeId]);
+    if (storeSettingsData && storeSettingsData.length > 0) {
+      const s = storeSettingsData[0];
+      setStoreOpenTime(s.storeOpenTime || '08:00');
+      setStoreCloseTime(s.storeCloseTime || '22:00');
+    }
+  }, [storeSettingsData]);
 
   useEffect(() => {
     if (staffList.length > 0) {
@@ -62,41 +68,6 @@ const ShiftsDashboard = () => {
       setBulkAssignments(initialAssignments);
     }
   }, [staffList]);
-
-
-  const fetchStoreSettings = async () => {
-    try {
-      const data = await apiService.get(`/storeSettings?tenantId=${tenantId}&storeId=${storeId}`);
-      if (data.data) {
-        setStoreOpenTime(data.data.storeOpenTime || '08:00');
-        setStoreCloseTime(data.data.storeCloseTime || '22:00');
-      }
-    } catch (err) {
-      console.warn('Could not fetch store settings, using defaults.', err);
-    }
-  };
-
-  const fetchShiftSlots = async () => {
-    try {
-      const data = await apiService.get(`/shiftslots?tenantId=${tenantId}&storeId=${storeId}`);
-      setShiftSlots(data || []);
-    } catch (err) {
-      console.error('Failed to fetch shift slots', err);
-    }
-  };
-
-  const fetchStaffList = async () => {
-    try {
-      const data = await apiService.get(`/personnel/all?tenantId=${tenantId}&storeId=${storeId}`);
-      let list = data.data || data || [];
-      if (!hasAccess(['VIEW_OTHER_STAFF'])) {
-        list = list.filter(s => s.id === user.personnelCode);
-      }
-      setStaffList(list);
-    } catch (err) {
-      console.error('Failed to fetch staff', err);
-    }
-  };
 
   const generateTimeOptions = () => {
     const times = [];
@@ -119,24 +90,26 @@ const ShiftsDashboard = () => {
 
   const timeOptions = generateTimeOptions();
 
-  const handleSaveStoreSettings = async (e) => {
-    e.preventDefault();
-    
-    setLoading(true);
-    try {
-      await apiService.post('/storeSettings', {
-        storeOpenTime,
-        storeCloseTime
-      }, {
+  const saveSettingsMutation = useMutation({
+    mutationFn: async (payload) => {
+      return await apiService.post('/storeSettings', payload, {
         'Tenantid': String(tenantId),
         'Storeid': String(storeId)
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['storeSettings'] });
       showToast('Store timings saved successfully!', 'success');
-    } catch (err) {
+    },
+    onError: () => {
       showToast('Failed to save store settings.', 'error');
-    } finally {
-      setLoading(false);
     }
+  });
+
+  const handleSaveStoreSettings = (e) => {
+    e.preventDefault();
+    if (!canManage) return;
+    saveSettingsMutation.mutate({ storeOpenTime, storeCloseTime });
   };
 
   const handleSelectSlot = (slot) => {
@@ -154,37 +127,42 @@ const ShiftsDashboard = () => {
     
   };
 
-  const handleAddShiftSlot = async (e) => {
-    e.preventDefault();
-    
-    setLoading(true);
-    try {
-      const payload = {
-        shiftName: slotName,
-        startTime: slotStartTime,
-        endTime: slotEndTime,
-        tenantId,
-        storeId,
-        active: true
-      };
-      if (selectedSlotId) {
-        payload.id = selectedSlotId;
-      }
-      await apiService.post('/shiftslots', payload, {
+  const saveSlotMutation = useMutation({
+    mutationFn: async (payload) => {
+      return await apiService.post('/shiftslots', payload, {
         'Tenantid': String(tenantId),
         'Storeid': String(storeId),
         'x-allowed-store-ids': String(storeId)
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shiftSlots'] });
       showToast(selectedSlotId ? 'Shift updated successfully!' : 'Shift created successfully!', 'success');
       if (!selectedSlotId) {
         setSlotName('');
       }
-      fetchShiftSlots();
-    } catch (err) {
+    },
+    onError: () => {
       showToast('Failed to create shift slot.', 'error');
-    } finally {
-      setLoading(false);
     }
+  });
+
+  const handleAddShiftSlot = (e) => {
+    e.preventDefault();
+    if (!canManage) return;
+    
+    const payload = {
+      shiftName: slotName,
+      startTime: slotStartTime,
+      endTime: slotEndTime,
+      tenantId,
+      storeId,
+      active: true
+    };
+    if (selectedSlotId) {
+      payload.id = selectedSlotId;
+    }
+    saveSlotMutation.mutate(payload);
   };
 
   const handleGlobalShiftChange = (e) => {
@@ -236,9 +214,31 @@ const ShiftsDashboard = () => {
     setAssignStartDate(current.toISOString().split('T')[0]);
   };
 
-  const handleBulkAssignShift = async () => {
-    
-    
+  const generateRosterMutation = useMutation({
+    mutationFn: async (payload) => {
+      return await apiService.post('/staffshifts', payload, {
+        'Tenantid': String(tenantId),
+        'Storeid': String(storeId),
+        'x-allowed-store-ids': String(storeId)
+      });
+    },
+    onSuccess: () => {
+      showToast('Successfully assigned bulk shifts!', 'success');
+      setBulkAssignments(prev => {
+        const reset = { ...prev };
+        Object.keys(reset).forEach(id => {
+          reset[id].selected = false;
+        });
+        return reset;
+      });
+      setGlobalShiftId('');
+    },
+    onError: () => {
+      showToast('Failed to assign bulk shifts.', 'error');
+    }
+  });
+
+  const handleBulkAssignShift = () => {
     if (!assignStartDate) {
       showToast('Please provide a Start Date.', 'error');
       return;
@@ -251,66 +251,42 @@ const ShiftsDashboard = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const currentIsoTime = new Date().toISOString();
-      const staffShiftsList = selectedStaffIds.map(staffId => {
-        const assignment = bulkAssignments[staffId];
-        return {
-          createdBy: user.userId || user.personnelCode || 1,
-          createdOn: currentIsoTime,
-          day: new Date(assignStartDate).toLocaleDateString('en-US', { weekday: 'long' }),
-          earlyOutTime: '',
-          modifiedBy: user.userId || user.personnelCode || 1,
-          modifiedOn: currentIsoTime,
-          onLeave: assignment.isWorking ? 0 : 1,
-          shiftDate: new Date(assignStartDate).toISOString(),
-          slot: `${assignment.startTime}-${assignment.endTime}`,
-          staffBreakTime: assignment.breaks && assignment.breaks.length > 0 ? assignment.breaks.map(b => ({
-            slot: `${b.startTime}-${b.endTime}`,
-            type: b.type,
-            remark: '',
-            staffId: parseInt(staffId)
-          })) : [],
-          staffId: parseInt(staffId),
-          storeId: storeId,
-          tenantId: tenantId,
-          weeklyOff: 0
-        };
-      });
-
-      await apiService.post('/staffshifts', {
+    const currentIsoTime = new Date().toISOString();
+    const staffShiftsList = selectedStaffIds.map(staffId => {
+      const assignment = bulkAssignments[staffId];
+      return {
         createdBy: user.userId || user.personnelCode || 1,
+        createdOn: currentIsoTime,
+        day: new Date(assignStartDate).toLocaleDateString('en-US', { weekday: 'long' }),
+        earlyOutTime: '',
         modifiedBy: user.userId || user.personnelCode || 1,
-        noOfDays: parseInt(assignNoOfDays),
-        staffShiftsList: staffShiftsList,
-        tenantId: tenantId,
+        modifiedOn: currentIsoTime,
+        onLeave: assignment.isWorking ? 0 : 1,
+        shiftDate: new Date(assignStartDate).toISOString(),
+        slot: `${assignment.startTime}-${assignment.endTime}`,
+        staffBreakTime: assignment.breaks && assignment.breaks.length > 0 ? assignment.breaks.map(b => ({
+          slot: `${b.startTime}-${b.endTime}`,
+          type: b.type,
+          remark: '',
+          staffId: parseInt(staffId)
+        })) : [],
+        staffId: parseInt(staffId),
         storeId: storeId,
-        startDate: assignStartDate,
-        shiftSlotId: ""
-      }, {
-        'Tenantid': String(tenantId),
-        'Storeid': String(storeId),
-        'x-allowed-store-ids': String(storeId)
-      });
-      
-      showToast(`Successfully assigned shifts to ${selectedStaffIds.length} staff members!`, 'success');
-      
-      setBulkAssignments(prev => {
-        const reset = { ...prev };
-        Object.keys(reset).forEach(id => {
-          reset[id].selected = false;
-        });
-        return reset;
-      });
-      setGlobalShiftId('');
-      
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to assign bulk shifts.', 'error');
-    } finally {
-      setLoading(false);
-    }
+        tenantId: tenantId,
+        weeklyOff: 0
+      };
+    });
+
+    generateRosterMutation.mutate({
+      createdBy: user.userId || user.personnelCode || 1,
+      modifiedBy: user.userId || user.personnelCode || 1,
+      noOfDays: parseInt(assignNoOfDays),
+      staffShiftsList: staffShiftsList,
+      tenantId: tenantId,
+      storeId: storeId,
+      startDate: assignStartDate,
+      shiftSlotId: ""
+    });
   };
 
   const allSelected = staffList.length > 0 && staffList.every(s => bulkAssignments[s.id]?.selected);
@@ -423,8 +399,8 @@ const ShiftsDashboard = () => {
                 </div>
                 <div className={styles.saveContainer}>
                   {canManage && (
-                    <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={loading}>
-                      {loading ? 'Saving...' : 'Save Settings'}
+                    <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={saveSettingsMutation.isPending}>
+                      {saveSettingsMutation.isPending ? 'Saving...' : 'Save Settings'}
                     </button>
                   )}
                 </div>
@@ -506,8 +482,8 @@ const ShiftsDashboard = () => {
 
                 <div className={styles.saveContainer}>
                   {canManage && (
-                    <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={loading}>
-                      {loading ? 'Saving...' : 'Save Shift'}
+                    <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={saveSlotMutation.isPending}>
+                      {saveSlotMutation.isPending ? 'Saving...' : 'Save Shift'}
                     </button>
                   )}
                 </div>
@@ -650,13 +626,13 @@ const ShiftsDashboard = () => {
               >
                 Cancel
               </button>
-              <button 
+                <button 
                 type="button" 
                 className={`btn btn-primary ${styles.rosterSaveBtn}`}
-                disabled={loading}
+                disabled={generateRosterMutation.isPending}
                 onClick={handleBulkAssignShift}
               >
-                {loading ? 'Saving...' : 'Save'}
+                {generateRosterMutation.isPending ? 'Saving...' : 'Save'}
               </button>
             </div>
             
