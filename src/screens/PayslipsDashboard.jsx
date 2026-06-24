@@ -37,8 +37,8 @@ const PayslipsDashboard = () => {
 
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaffId) {
-      const me = staffList.find(s => s.id === user.personnelCode);
-      setSelectedStaffId(me ? me.id : staffList[0].id);
+      const me = staffList.find(s => String(s.id) === String(user?.personnelCode || user?.personnelId || user?.id));
+      setSelectedStaffId(me ? String(me.id) : String(staffList[0].id));
     }
   }, [staffList, selectedStaffId, user.personnelCode]);
 

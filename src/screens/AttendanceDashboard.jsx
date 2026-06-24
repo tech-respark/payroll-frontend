@@ -55,7 +55,7 @@ const AttendanceDashboard = () => {
 
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaff) {
-      const me = staffList.find(s => s.id === user.personnelCode);
+      const me = staffList.find(s => String(s.id) === String(user?.personnelCode || user?.personnelId || user?.id));
       setSelectedStaff(me ? String(me.id) : String(staffList[0].id));
     }
   }, [staffList, selectedStaff, user.personnelCode]);

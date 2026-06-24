@@ -317,10 +317,10 @@ const StaffDashboard = () => {
 
                   <h3 className={styles.sectionTitleBorder}>Roster Settings</h3>
                   <div className={styles.checkboxGroup}>
-                    <label className={styles.checkboxLabel}>
+                    {/* <label className={styles.checkboxLabel}>
                       <input type="checkbox" name="enableAppointments" checked={formData.enableAppointments === 1} onChange={handleChange} />
                       Enable Appointments
-                    </label>
+                    </label> */}
                     <label className={styles.checkboxLabel}>
                       <input type="checkbox" name="allStaffAppointmentDashboard" checked={formData.allStaffAppointmentDashboard === 1} onChange={handleChange} />
                       Show in All-Staff Dashboard

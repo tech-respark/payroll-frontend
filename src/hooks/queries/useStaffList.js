@@ -22,7 +22,7 @@ export const useStaffList = () => {
 
   const staffList = hasAccess(['VIEW_OTHER_STAFF'])
     ? rawStaffList
-    : rawStaffList.filter(s => s.id === user?.personnelCode);
+    : rawStaffList.filter(s => String(s.id) === String(user?.personnelCode || user?.personnelId || user?.id));
 
   return { staffList, rawStaffList, isLoading, error };
 };
