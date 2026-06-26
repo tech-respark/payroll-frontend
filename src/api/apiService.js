@@ -10,7 +10,14 @@ const handleResponse = async (response, endpoint) => {
     throw new Error('Session expired. Please log in again.');
   }
   if (!response.ok && response.status !== 401) {
-    throw new Error('Network response was not ok');
+    let errorMessage = 'Network response was not ok';
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.error || errorData.message || errorMessage;
+    } catch (e) {
+      // Ignored
+    }
+    throw new Error(errorMessage);
   }
   return await response.json();
 };

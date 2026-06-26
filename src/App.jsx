@@ -19,6 +19,12 @@ const RoleManagement       = lazy(() => import('./screens/RoleManagement'));
 const RegularizationApprovals = lazy(() => import('./screens/RegularizationApprovals'));
 const PayslipsDashboard    = lazy(() => import('./screens/PayslipsDashboard'));
 
+// Leave Management Screens
+const EmployeeDashboard       = lazy(() => import('./screens/EmployeeDashboard'));
+const SubmitLeaveRequest      = lazy(() => import('./screens/SubmitLeaveRequest'));
+const ManagerApprovalPortal   = lazy(() => import('./screens/ManagerApprovalPortal'));
+const LeaveConfiguration      = lazy(() => import('./screens/LeaveConfiguration'));
+
 // ─── Route-level loading fallback ────────────────────────────────────────────
 const PageLoader = () => (
   <div style={{
@@ -70,6 +76,12 @@ const AppContent = () => {
           <Switch>
             <Route path="/staff"      component={StaffDashboard} />
             <Route path="/attendance" component={AttendanceDashboard} />
+
+            {/* Leave Management Routes */}
+            {hasAccess(['VIEW_LEAVES', 'MANAGE_LEAVES']) && <Route path="/leave-dashboard" component={EmployeeDashboard} />}
+            {hasAccess(['VIEW_LEAVES', 'MANAGE_LEAVES']) && <Route path="/submit-leave"    component={SubmitLeaveRequest} />}
+            {hasAccess(['MANAGE_LEAVES']) && <Route path="/leave-approvals" component={ManagerApprovalPortal} />}
+            {hasAccess(['MANAGE_LEAVES']) && <Route path="/leave-configuration" component={LeaveConfiguration} />}
 
             {/* Protected Routes */}
             {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SHIFTS', 'MANAGE_SHIFTS'])      && <Route path="/shifts"    component={ShiftsDashboard} />}

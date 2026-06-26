@@ -1,0 +1,302 @@
+.container {
+  padding: 32px;
+  background-color: #f7f9fc;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+
+  .titleSection {
+    h1 {
+      font-size: 1.75rem;
+      color: #1a202c;
+      margin: 0 0 8px 0;
+      font-weight: 600;
+    }
+
+    p {
+      color: #718096;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+
+  .pendingBadge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff8e6;
+    color: #b7791f;
+    border: 1px solid #fce8b2;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: #d69e2e;
+      border-radius: 50%;
+    }
+  }
+}
+
+.tableCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.approvalsTable {
+  width: 100%;
+  border-collapse: collapse;
+
+  th, td {
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #edf2f7;
+  }
+
+  th {
+    color: #718096;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .clickableRow {
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #f7fafc;
+    }
+  }
+
+  .empCell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    background: #2b6cb0;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .empInfo {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empName {
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .empDept {
+    font-size: 0.75rem;
+    color: #a0aec0;
+  }
+}
+
+/* Side Panel Content */
+.detailsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.txId {
+  font-size: 0.85rem;
+  color: #718096;
+  margin-top: -16px;
+}
+
+.profileSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  .profileAvatar {
+    width: 48px;
+    height: 48px;
+    background: #2b6cb0;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .profileName {
+    margin: 0 0 4px 0;
+    font-size: 1.1rem;
+    color: #1a202c;
+  }
+
+  .profileRole {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #718096;
+  }
+}
+
+.warningAlert {
+  background: #fffaf0;
+  border: 1px solid #feebc8;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+
+  .alertIcon {
+    font-size: 1.25rem;
+  }
+
+  .alertText {
+    h4 { margin: 0 0 4px 0; color: #975a16; font-size: 0.95rem; }
+    p { margin: 0; color: #b7791f; font-size: 0.85rem; }
+  }
+}
+
+.summaryGrid {
+  display: flex;
+  gap: 32px;
+  
+  .summaryItem {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label { font-size: 0.75rem; font-weight: 600; color: #718096; text-transform: uppercase; }
+    span { font-weight: 500; color: #1a202c; }
+    .highlight { color: #2b6cb0; font-weight: 700; }
+  }
+}
+
+.reasonSection {
+  label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #718096;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #4a5568;
+    line-height: 1.5;
+  }
+}
+
+.balanceImpact {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+
+  .impactRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    color: #4a5568;
+
+    &:last-child { margin-bottom: 0; }
+  }
+
+  .valNormal { font-family: monospace; font-weight: 600; color: #1a202c; }
+  .valDeduct { font-family: monospace; font-weight: 600; color: #e53e3e; }
+  .valProjected { font-family: monospace; font-weight: 700; color: #2b6cb0; font-size: 1.1rem; }
+
+  .impactDivider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 16px 0;
+  }
+  
+  .projLabel { font-weight: 600; color: #1a202c; }
+}
+
+.remarksSection {
+  label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #718096;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+
+    &:focus {
+      border-color: #3182ce;
+      box-shadow: 0 0 0 1px #3182ce;
+    }
+  }
+}
+
+.actionButtons {
+  display: flex;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 16px;
+
+  button {
+    flex: 1;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .rejectBtn {
+    background: white;
+    border: 1px solid #cbd5e0;
+    color: #4a5568;
+
+    &:hover { background: #f7fafc; color: #e53e3e; border-color: #fc8181; }
+  }
+
+  .approveBtn {
+    background: #1a365d;
+    border: 1px solid #1a365d;
+    color: white;
+
+    &:hover { background: #2a4365; }
+  }
+}

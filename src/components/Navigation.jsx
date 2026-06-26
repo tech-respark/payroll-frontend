@@ -38,6 +38,34 @@ const Navigation = () => {
             </NavLink>
           </li>
         )}
+        {hasAccess(['VIEW_LEAVES', 'MANAGE_LEAVES']) && (
+          <li>
+            <NavLink to="/leave-dashboard" activeClassName={styles.activeLink}>
+              Leave Dashboard
+            </NavLink>
+          </li>
+        )}
+        {hasAccess(['VIEW_LEAVES', 'MANAGE_LEAVES']) && (
+          <li>
+            <NavLink to="/submit-leave" activeClassName={styles.activeLink}>
+              Request Leave
+            </NavLink>
+          </li>
+        )}
+        {hasAccess(['MANAGE_LEAVES']) && (
+          <li>
+            <NavLink to="/leave-approvals" activeClassName={styles.activeLink}>
+              Leave Approvals
+            </NavLink>
+          </li>
+        )}
+        {hasAccess(['MANAGE_LEAVES']) && (
+          <li>
+            <NavLink to="/leave-configuration" activeClassName={styles.activeLink}>
+              Leave Config
+            </NavLink>
+          </li>
+        )}
         {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SALARY', 'MANAGE_SALARY']) && (
           <li>
             <NavLink to="/salary" activeClassName={styles.activeLink}>

@@ -1,0 +1,56 @@
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  gap: 6px;
+  border: 1px solid transparent;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.badgeApproved {
+  background-color: #e6f6eb;
+  color: #1f8a4c;
+  border-color: #c3e8d1;
+}
+
+.dotApproved {
+  background-color: #1f8a4c;
+}
+
+.badgePending {
+  background-color: #fff8e6;
+  color: #b7791f;
+  border-color: #fce8b2;
+}
+
+.dotPending {
+  background-color: #d69e2e;
+}
+
+.badgeRejected {
+  background-color: #fde8e8;
+  color: #c53030;
+  border-color: #f8b4b4;
+}
+
+.dotRejected {
+  background-color: #e53e3e;
+}
+
+.badgeDefault {
+  background-color: #edf2f7;
+  color: #4a5568;
+  border-color: #e2e8f0;
+}
+
+.dotDefault {
+  background-color: #718096;
+}
