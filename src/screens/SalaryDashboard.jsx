@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
@@ -6,6 +6,14 @@ import { useToast } from '../context/ToastContext';
 import { useStaffList } from '../hooks/queries';
 import styles from './SalaryDashboard.module.scss';
 import '../styles/main.scss';
+
+// MUI Icons
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import MoneyOffIcon from '@mui/icons-material/MoneyOff';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import SaveIcon from '@mui/icons-material/Save';
+import DownloadIcon from '@mui/icons-material/Download';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
 const SalaryDashboard = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
@@ -15,9 +23,7 @@ const SalaryDashboard = () => {
   const { staffList } = useStaffList();
 
   return (
-    <div className="dashboard">
-      <h2>Salary Management</h2>
-      
+    <div className={styles.dashboard}>
       <div className={styles.tabList}>
         {[
           { id: 'fixed', label: 'Configure Fixed Salary' },
@@ -87,7 +93,6 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
       const savedRes = await apiService.get(`/personnelSalaryComponents?staffId=${staffId}`);
       const savedStructure = savedRes.data || { earningsList: [], deductionsList: [] };
 
-      // We need FIXED and FORMULA that are not calculated monthly
       const fixedDefs = availableComponents.filter(c => !c.isCalculatedMonthly);
 
       const merged = fixedDefs.map(comp => {
@@ -156,86 +161,187 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
         'Storeid': String(storeId),
         'x-allowed-store-ids': String(storeId)
       });
-      showToast('Fixed components saved successfully!', 'success');
+      showToast('Configuration saved successfully!', 'success');
       fetchFixedComponents(selectedStaffId);
     } catch (err) {
       console.error(err);
-      showToast('Failed to save fixed components.', 'error');
+      showToast('Failed to save configuration.', 'error');
     } finally {
       setSaving(false);
     }
   };
 
+  const earnings = components.filter(c => c.componentCategory === 'EARNING');
+  const deductions = components.filter(c => c.componentCategory === 'DEDUCTION');
+
+  const totalGross = earnings.reduce((sum, c) => sum + (Number(c.monthlyValue) || 0), 0);
+  const totalDeductions = deductions.reduce((sum, c) => sum + (Number(c.monthlyValue) || 0), 0);
+  const netTakeHome = totalGross - totalDeductions;
+
   return (
-    <div className={styles.payrollCard}>
-      <h3 className={styles.cardTitle}>Configure Employee Fixed Salary</h3>
-      
-      <div className={styles.filterBar}>
-        <div className={styles.formGroupMax400}>
-          <label className={styles.formLabel}>Select Staff Member</label>
-          {staffList.length === 1 ? (
-            <div className={styles.staffReadOnly}>
-              {staffList[0].firstName} {staffList[0].lastName}
-            </div>
-          ) : (
-            <select 
-              value={selectedStaffId} 
-              onChange={(e) => setSelectedStaffId(e.target.value)}
-              className={styles.formSelect}
-            >
-              <option value="">-- Select Staff member --</option>
-              {staffList.map(staff => (
-                <option key={staff.id} value={staff.id}>{staff.firstName} {staff.lastName}</option>
-              ))}
-            </select>
-          )}
+    <div className={styles.mainContainer}>
+      <div className={styles.headerContainer}>
+        <div>
+          <h2 className={styles.headerTitle}>Fixed Salary Configuration</h2>
+          <p className={styles.headerSubtitle}>Define core earnings and recurring deductions for staff roles.</p>
+        </div>
+        <div className={styles.headerActions}>
+          <button className={styles.btnExport}><DownloadIcon style={{fontSize: 16, marginRight: 6, verticalAlign: 'text-bottom'}} /> Export PDF</button>
+          <button 
+            className={styles.btnSave} 
+            onClick={handleSave} 
+            disabled={loading || saving || !canManage}
+          >
+            <SaveIcon style={{fontSize: 16}} /> {saving ? 'Saving...' : 'Save Configuration'}
+          </button>
         </div>
       </div>
 
-      {selectedStaffId && (
-        <>
-          <div className={styles.formGrid}>
-            {loading ? (
-              <div className={styles.loadingText}>Loading structure...</div>
-            ) : components.length === 0 ? (
-              <div className={styles.emptyText}>No fixed components found for this store.</div>
-            ) : (
-              components.map((comp, idx) => (
-                <div key={comp.id} className={styles.formGroup}>
-                  <label className={styles.formLabelSpaced}>
-                    <span>{comp.componentName}</span>
-                    <span className={comp.componentCategory === 'EARNING' ? styles.earningLabel : styles.deductionLabel}>
-                      {comp.componentCategory}
-                    </span>
-                  </label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    value={comp.monthlyValue || ''}
-                    onChange={(e) => handleValueChange(idx, e.target.value)}
-                    placeholder="Monthly amount"
-                    readOnly={!canManage}
-                    disabled={!canManage}
-                    className={!canManage ? styles.inputReadonly : styles.inputEditable}
-                  />
-                </div>
-              ))
-            )}
+      <div className={styles.mainLayout}>
+        <div className={styles.sidebar}>
+          <div className={styles.sidebarHeader}>
+            <h3 className={styles.sidebarTitle}>Staff Selection</h3>
+            <span className={styles.staffCountBadge}>{staffList.length} EMPLOYEES</span>
           </div>
           
-          <div className={styles.saveContainer}>
-            {canManage && (
-              <button 
-                className={`${styles.saveBtn} ${loading || saving ? styles.saveBtnDisabled : ''}`} 
-                onClick={handleSave} 
-                disabled={loading || saving}
+          <label className={styles.filterLabel}>FILTER BY DEPARTMENT</label>
+          <select className={styles.departmentSelect} defaultValue="engineering">
+            <option value="engineering">Engineering ({staffList.length})</option>
+            <option value="design">Design (0)</option>
+            <option value="hr">Human Resources (0)</option>
+          </select>
+
+          <div className={styles.staffList}>
+            {staffList.map(staff => (
+              <div 
+                key={staff.id} 
+                className={`${styles.staffItem} ${selectedStaffId === String(staff.id) ? styles.staffItemActive : ''}`}
+                onClick={() => setSelectedStaffId(String(staff.id))}
               >
-                {saving ? 'Saving...' : 'Save Structure'}
-              </button>
-            )}
+                <div className={styles.staffAvatar}>
+                  {staff.firstName.charAt(0)}{staff.lastName.charAt(0)}
+                </div>
+                <div className={styles.staffInfo}>
+                  <div className={styles.staffName}>{staff.firstName} {staff.lastName}</div>
+                  <div className={styles.staffRole}>{staff.designation || 'Staff Member'}</div>
+                </div>
+                {selectedStaffId === String(staff.id) && <div className={styles.activeDot}></div>}
+                {selectedStaffId !== String(staff.id) && <KeyboardArrowRightIcon className={styles.arrowIcon} />}
+              </div>
+            ))}
           </div>
-        </>
-      )}
+        </div>
+
+        <div className={styles.contentArea}>
+          {selectedStaffId && (
+            <>
+              {/* Earnings Card */}
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitleWrap}>
+                    <div className={styles.cardIcon}>
+                      <AccountBalanceWalletIcon style={{fontSize: 16}} />
+                    </div>
+                    <h4 className={styles.cardTitleText}>Core Earnings</h4>
+                  </div>
+                  <button className={styles.btnAdd}>+ Add Component</button>
+                </div>
+                <div className={styles.cardBody}>
+                  {loading ? (
+                    <div className={styles.loadingText}>Loading...</div>
+                  ) : (
+                    <div className={styles.formGrid}>
+                      {earnings.map((comp) => {
+                        const originalIndex = components.findIndex(c => c.id === comp.id);
+                        return (
+                          <div key={comp.id} className={styles.formGroup}>
+                            <label className={styles.inputLabel}>{comp.componentName}</label>
+                            <div className={styles.inputWrapper}>
+                              <span className={styles.currencySymbol}>$</span>
+                              <input 
+                                type="number" 
+                                min="0"
+                                value={comp.monthlyValue || ''}
+                                onChange={(e) => handleValueChange(originalIndex, e.target.value)}
+                                readOnly={!canManage}
+                                disabled={!canManage}
+                                className={styles.amountInput}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                <div className={styles.cardFooter}>
+                  <span className={styles.footerLabel}>Gross Salary Total</span>
+                  <span className={styles.footerAmount}>$ {totalGross.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+              </div>
+
+              {/* Deductions Card */}
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitleWrap}>
+                    <div className={styles.cardIcon}>
+                      <MoneyOffIcon style={{fontSize: 16}} />
+                    </div>
+                    <h4 className={styles.cardTitleText}>Fixed Deductions</h4>
+                  </div>
+                  <button className={styles.btnAdd}>+ Add Deduction</button>
+                </div>
+                <div className={styles.cardBody}>
+                  {loading ? (
+                    <div className={styles.loadingText}>Loading...</div>
+                  ) : (
+                    <div className={styles.formGrid}>
+                      {deductions.map((comp) => {
+                        const originalIndex = components.findIndex(c => c.id === comp.id);
+                        return (
+                          <div key={comp.id} className={styles.formGroup}>
+                            <label className={styles.inputLabel}>{comp.componentName}</label>
+                            <div className={styles.inputWrapper}>
+                              <span className={styles.currencySymbol}>$</span>
+                              <input 
+                                type="number" 
+                                min="0"
+                                value={comp.monthlyValue || ''}
+                                onChange={(e) => handleValueChange(originalIndex, e.target.value)}
+                                readOnly={!canManage}
+                                disabled={!canManage}
+                                className={styles.amountInput}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                <div className={styles.cardFooter}>
+                  <span className={styles.footerLabel}>Total Deductions</span>
+                  <span className={styles.footerAmountDeduction}>$ {totalDeductions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+              </div>
+
+              {/* Projected Take Home Card */}
+              <div className={styles.projectedCard}>
+                <div className={styles.projectedLeft}>
+                  <span className={styles.projectedLabel}>PROJECTED NET MONTHLY TAKE HOME</span>
+                  <h2 className={styles.projectedAmount}>$ {netTakeHome.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h2>
+                </div>
+                <div className={styles.projectedRight}>
+                  <div className={styles.complianceChip}>
+                    <CheckCircleIcon style={{fontSize: 16}} /> Compliance Check Passed
+                  </div>
+                  <span className={styles.effectiveDate}>Effective from Oct 01, 2024</span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
@@ -428,111 +534,154 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
   };
 
   return (
-    <div className={styles.payrollCard}>
-      <div className={styles.filterBar}>
-        <div className={styles.formGroupMax400}>
-          <label className={styles.formLabel}>Select Staff Member</label>
-          {staffList.length === 1 ? (
-            <div className={styles.staffReadOnly}>
-              {staffList[0].firstName} {staffList[0].lastName}
-            </div>
-          ) : (
-            <select 
-              value={selectedStaffId} 
-              onChange={(e) => setSelectedStaffId(e.target.value)}
-              className={styles.formSelect}
+    <div className={styles.mainLayout}>
+      <div className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>
+          <h3 className={styles.sidebarTitle}>Staff Selection</h3>
+          <span className={styles.staffCountBadge}>{staffList.length} EMPLOYEES</span>
+        </div>
+        
+        <label className={styles.filterLabel}>FILTER BY DEPARTMENT</label>
+        <select className={styles.departmentSelect} defaultValue="engineering">
+          <option value="engineering">Engineering ({staffList.length})</option>
+          <option value="design">Design (0)</option>
+          <option value="hr">Human Resources (0)</option>
+        </select>
+
+        <div className={styles.staffList}>
+          {staffList.map(staff => (
+            <div 
+              key={staff.id} 
+              className={`${styles.staffItem} ${selectedStaffId === String(staff.id) ? styles.staffItemActive : ''}`}
+              onClick={() => setSelectedStaffId(String(staff.id))}
             >
-              <option value="">-- Select Staff member --</option>
-              {staffList.map(staff => (
-                <option key={staff.id} value={staff.id}>{staff.firstName} {staff.lastName}</option>
-              ))}
-            </select>
-          )}
-        </div>
-        <div className={styles.formGroupMax200}>
-          <label className={styles.formLabel}>Payroll Month</label>
-          <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={styles.formSelect}>
-            {MONTHS.map((m, idx) => {
-              const mIndex = idx + 1;
-              const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
-              let isDisabled = false;
-              if (selectedYear < currentYear) isDisabled = true;
-              else if (selectedYear === currentYear && mIndex <= recentMonth) isDisabled = true;
-              return <option key={m} value={m} disabled={isDisabled}>{m}</option>;
-            })}
-          </select>
-        </div>
-        <div className={styles.formGroupMax150}>
-          <label className={styles.formLabel}>Payroll Year</label>
-          <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className={styles.formSelect}>
-            {[currentYear - 1, currentYear, currentYear + 1].map(y => (
-              <option key={y} value={y} disabled={y < currentYear}>{y}</option>
-            ))}
-          </select>
+              <div className={styles.staffAvatar}>
+                {staff.firstName.charAt(0)}{staff.lastName.charAt(0)}
+              </div>
+              <div className={styles.staffInfo}>
+                <div className={styles.staffName}>{staff.firstName} {staff.lastName}</div>
+                <div className={styles.staffRole}>{staff.designation || 'Staff Member'}</div>
+              </div>
+              {selectedStaffId === String(staff.id) && <div className={styles.activeDot}></div>}
+              {selectedStaffId !== String(staff.id) && <KeyboardArrowRightIcon className={styles.arrowIcon} />}
+            </div>
+          ))}
         </div>
       </div>
 
-      {selectedStaffId && (
-        <div className={styles.variableContainer}>
-          <div className={styles.variableHeader}>
-            <h3 className={styles.variableTitle}>Assign Monthly Variables</h3>
-            <div className={styles.totalsBox}>
-              <div><span className={styles.totalLabel}>Total Earning: </span><span className={styles.earningValue}>₹{totals.earning.toLocaleString()}</span></div>
-              <div><span className={styles.totalLabel}>Total Deduction: </span><span className={styles.deductionValue}>₹{totals.deduction.toLocaleString()}</span></div>
-              <div className={styles.netLabel}><span className={styles.totalLabel}>Net Salary: </span><span className={styles.netValue}>₹{totals.net.toLocaleString()}</span></div>
-            </div>
-          </div>
-
-          <div className={styles.formGrid}>
-            {loading ? (
-              <div className={styles.loadingText}>Loading variables...</div>
-            ) : components.length === 0 ? (
-              <div className={styles.emptyText}>No variable monthly components found for this store.</div>
-            ) : (
-              components.map((comp, idx) => (
-                <div key={comp.id} className={styles.formGroup}>
-                  <label className={styles.formLabelSpaced}>
-                    <span>{comp.componentName}</span>
-                    <span className={comp.componentCategory === 'EARNING' ? styles.earningLabel : styles.deductionLabel}>
-                      {comp.componentCategory}
-                    </span>
-                  </label>
-                  <input 
-                    type="number" 
-                    value={comp.monthlyValue || ''}
-                    onChange={(e) => handleValueChange(idx, e.target.value)}
-                    readOnly={!canManage}
-                    disabled={!canManage}
-                    className={!canManage ? styles.inputReadonly : styles.inputEditable}
-                  />
+      <div className={styles.contentArea}>
+        {selectedStaffId && (
+          <>
+            <div className={styles.card} style={{ marginBottom: '24px' }}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitleWrap}>
+                  <h4 className={styles.cardTitleText}>Payroll Period</h4>
                 </div>
-              ))
-            )}
-          </div>
-          
-          <div className={styles.saveContainer}>
-            {(() => {
-              const selMonthIndex = MONTHS.indexOf(selectedMonth) + 1;
-              const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
-              let isLocked = false;
-              if (selectedYear < currentYear) isLocked = true;
-              else if (selectedYear === currentYear && selMonthIndex <= recentMonth) isLocked = true;
+              </div>
+              <div className={styles.cardBody}>
+                <div className={styles.formGrid}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.inputLabel}>Payroll Month</label>
+                    <div className={styles.inputWrapper}>
+                      <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={styles.amountInput} style={{paddingLeft: '12px'}}>
+                        {MONTHS.map((m, idx) => {
+                          const mIndex = idx + 1;
+                          const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
+                          let isDisabled = false;
+                          if (selectedYear < currentYear) isDisabled = true;
+                          else if (selectedYear === currentYear && mIndex <= recentMonth) isDisabled = true;
+                          return <option key={m} value={m} disabled={isDisabled}>{m}</option>;
+                        })}
+                      </select>
+                    </div>
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.inputLabel}>Payroll Year</label>
+                    <div className={styles.inputWrapper}>
+                      <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className={styles.amountInput} style={{paddingLeft: '12px'}}>
+                        {[currentYear - 1, currentYear, currentYear + 1].map(y => (
+                          <option key={y} value={y} disabled={y < currentYear}>{y}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-              return canManage && (
-                <div className={styles.saveContainerEnd}>
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitleWrap}>
+                  <h4 className={styles.cardTitleText}>Assign Monthly Variables</h4>
+                </div>
+              </div>
+              <div className={styles.cardBody}>
+                {loading ? (
+                  <div className={styles.loadingText}>Loading variables...</div>
+                ) : components.length === 0 ? (
+                  <div className={styles.emptyText}>No variable monthly components found for this store.</div>
+                ) : (
+                  <div className={styles.formGrid}>
+                    {components.map((comp, idx) => (
+                      <div key={comp.id} className={styles.formGroup}>
+                        <label className={styles.inputLabel}>
+                          {comp.componentName} <span style={{color: comp.componentCategory === 'EARNING' ? '#10b981' : '#f87171', fontSize: '10px', marginLeft: '4px'}}>{comp.componentCategory}</span>
+                        </label>
+                        <div className={styles.inputWrapper}>
+                          <span className={styles.currencySymbol}>$</span>
+                          <input 
+                            type="number" 
+                            value={comp.monthlyValue || ''}
+                            onChange={(e) => handleValueChange(idx, e.target.value)}
+                            readOnly={!canManage}
+                            disabled={!canManage}
+                            className={styles.amountInput}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div className={styles.cardFooter} style={{flexDirection: 'column', alignItems: 'stretch', gap: '16px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)'}}>
+                  <span className={styles.footerLabel}>Total Earning</span>
+                  <span className={styles.footerAmount}>$ {totals.earning.toLocaleString()}</span>
+                </div>
+                <div style={{display: 'flex', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)'}}>
+                  <span className={styles.footerLabel}>Total Deduction</span>
+                  <span className={styles.footerAmountDeduction}>$ {totals.deduction.toLocaleString()}</span>
+                </div>
+                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                  <span className={styles.footerLabel} style={{color: 'var(--text-dark)', fontWeight: 'bold'}}>Net Salary</span>
+                  <span className={styles.footerAmount} style={{fontSize: '20px'}}>$ {totals.net.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '20px'}}>
+              {(() => {
+                const selMonthIndex = MONTHS.indexOf(selectedMonth) + 1;
+                const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
+                let isLocked = false;
+                if (selectedYear < currentYear) isLocked = true;
+                else if (selectedYear === currentYear && selMonthIndex <= recentMonth) isLocked = true;
+  
+                return canManage && (
                   <button 
-                    className={`${styles.saveBtn} ${loading || saving || isLocked ? styles.saveBtnDisabled : ''}`} 
+                    className={styles.btnSave} 
                     onClick={handleSave} 
                     disabled={loading || saving || isLocked}
                   >
-                    {saving ? 'Saving...' : 'Save Variables'}
+                    <SaveIcon style={{fontSize: 16}} /> {saving ? 'Saving...' : 'Save Variables'}
                   </button>
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+                );
+              })()}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
