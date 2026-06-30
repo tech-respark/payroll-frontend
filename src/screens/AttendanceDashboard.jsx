@@ -283,7 +283,7 @@ const AttendanceDashboard = () => {
     const dateFormatted = dObj.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
     
     return (
-      <div className={styles.detailsContainer}>
+      <div className={styles.detailsCard}>
         <div className={styles.detailsHeader}>
           {dateFormatted}
         </div>
@@ -291,12 +291,12 @@ const AttendanceDashboard = () => {
         <div className={styles.detailsBody}>
           
           <div className={styles.metricsGrid}>
-            <div className={styles.metricCard}>
+            <div className={styles.metricCell}>
               <div className={styles.metricLabel}>Shift Timing</div>
               <div className={styles.metricValue}>{selectedDateObj.shiftStart} - {selectedDateObj.shiftEnd}</div>
             </div>
             
-            <div className={styles.metricCard}>
+            <div className={styles.metricCell}>
               <div className={styles.metricLabel}>Punch Records</div>
               <div className={styles.metricValue}>
                 <span className={styles.punchIn}>In: {selectedDateObj.inTime}</span>
@@ -305,24 +305,24 @@ const AttendanceDashboard = () => {
               </div>
             </div>
             
-            <div className={styles.metricCard}>
+            <div className={styles.metricCell}>
               <div className={styles.metricLabel}>Total Duration</div>
-              <div className={styles.metricValueBold}>{selectedDateObj.duration} Hrs</div>
+              <div className={`${styles.metricValue} ${styles.metricValueBold}`}>{selectedDateObj.duration} Hrs</div>
             </div>
             
-            <div className={styles.metricCardDanger}>
-              <div className={styles.metricLabelDanger}>Late In</div>
-              <div className={styles.metricValueDanger}>{selectedDateObj.lateIn}</div>
+            <div className={styles.metricCell}>
+              <div className={`${styles.metricLabel} ${styles.metricLabelDanger}`}>Late In</div>
+              <div className={`${styles.metricValue} ${styles.metricValueDanger}`}>{selectedDateObj.lateIn}</div>
             </div>
             
-            <div className={styles.metricCardDanger}>
-              <div className={styles.metricLabelDanger}>Early Out</div>
-              <div className={styles.metricValueDanger}>{selectedDateObj.earlyOut}</div>
+            <div className={styles.metricCell}>
+              <div className={`${styles.metricLabel} ${styles.metricLabelDanger}`}>Early Out</div>
+              <div className={`${styles.metricValue} ${styles.metricValueDanger}`}>{selectedDateObj.earlyOut}</div>
             </div>
             
-            <div className={styles.metricCardPrimary}>
-              <div className={styles.metricLabelPrimary}>Day Status</div>
-              <div className={styles.metricValueBold} style={{ color: getStatusColor(selectedDateObj.status) }}>
+            <div className={styles.metricCell}>
+              <div className={`${styles.metricLabel} ${styles.metricLabelPrimary}`}>Day Status</div>
+              <div className={`${styles.metricValue} ${styles.metricValueBold}`} style={{ color: getStatusColor(selectedDateObj.status) }}>
                 {getStatusLabel(selectedDateObj.status)}
               </div>
             </div>
@@ -330,14 +330,14 @@ const AttendanceDashboard = () => {
 
           <div className={styles.actionButtons}>
             <button 
-              className={`btn btn-primary ${styles.btnPrimaryIcon}`} 
+              className={styles.btnRegularize} 
               onClick={handleRegularizeClick}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
               Attendance Regularization
             </button>
             <button 
-              className={`btn ${styles.btnSecondaryIcon}`} 
+              className={styles.btnLeave} 
               onClick={() => history.push('/submit-leave')}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -385,23 +385,23 @@ const AttendanceDashboard = () => {
     <div className="dashboard">
       <h2 className={styles.dashboardHeader}>Attendance Regularization</h2>
       
-      <div className={`payroll-card ${styles.filterCard}`}>
-        <div className={styles.formGroup}>
-          <label className={styles.formLabel}>Month</label>
-          <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={styles.formSelect}>
+      <div className={styles.filterBar}>
+        <div className={styles.filterGroup}>
+          <label className={styles.filterLabel}>Month</label>
+          <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={styles.filterSelect}>
             {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
-        <div className={styles.formGroup}>
-          <label className={styles.formLabel}>Year</label>
-          <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className={styles.formSelect}>
+        <div className={styles.filterGroup}>
+          <label className={styles.filterLabel}>Year</label>
+          <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className={styles.filterSelect}>
             {[currentYear - 1, currentYear, currentYear + 1].map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
         {hasAccess(['VIEW_OTHER_STAFF']) && (
-          <div className={styles.formGroupLarge}>
-            <label className={styles.formLabel}>Staff Member</label>
-            <select value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)} className={styles.formSelect}>
+          <div className={styles.filterGroup}>
+            <label className={styles.filterLabel}>Staff Member</label>
+            <select value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)} className={styles.filterSelect}>
               {staffList.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
             </select>
           </div>

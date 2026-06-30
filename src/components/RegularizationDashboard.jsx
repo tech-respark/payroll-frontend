@@ -2,43 +2,18 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
-import {
-  Box,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Checkbox,
-  Button,
-  TablePagination,
-  TextField,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  ButtonGroup,
-  Chip
-} from '@mui/material';
 import styles from './RegularizationDashboard.module.scss';
-
-const statusColor = {
-  PENDING_BORDER: 'rgb(239, 197, 111)',
-  APPROVED_BORDER: 'rgb(134, 234, 172)',
-  REJECTED_BORDER: 'rgb(246, 130, 137)',
-  APPROVED: 'rgba(161, 237, 190, 0.18)',
-  PENDING: 'rgba(239, 197, 111, 0.18)',
-  REJECTED: 'rgba(246, 130, 137, 0.18)',
-  TERMINAL_BORDER: '#9CC7F4',
-  TERMINAL: '#f1f5f9'
-};
 
 const formatTime = (timeStr) => {
   if (!timeStr) return '';
   return timeStr.substring(0, 5);
+};
+
+const getInitials = (name) => {
+  if (!name) return 'U';
+  const parts = name.split(' ');
+  if (parts.length >= 2) return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+  return name.charAt(0).toUpperCase();
 };
 
 const RegularizationDashboard = ({ staffList }) => {
@@ -82,6 +57,7 @@ const RegularizationDashboard = ({ staffList }) => {
 
   const requests = requestData?.regularizationRequests || [];
   const totalCount = requestData?.pageModel?.totalNumberOfRecords || 0;
+  const totalPages = Math.ceil(totalCount / rowsPerPage) || 1;
 
   const handleAction = async (action, reqIds) => {
     if (!reqIds || reqIds.length === 0) return;
@@ -128,180 +104,245 @@ const RegularizationDashboard = ({ staffList }) => {
   const renderPunches = (punches) => {
     if (!punches || punches.length === 0) return null;
     return (
-      <Box className={styles.punchesContainer}>
+      <div className={styles.punchBlocksContainer}>
         {punches.map((punch, index) => {
-          const borderCol = punch.uploadSource === 'TERMINAL' ? statusColor.TERMINAL_BORDER : statusColor[`${punch.currentStatus}_BORDER`] || statusColor.APPROVED_BORDER;
-          const bgCol = punch.uploadSource === 'TERMINAL' ? statusColor.TERMINAL : statusColor[punch.currentStatus] || statusColor.APPROVED;
-          
+          const isOut = index % 2 !== 0;
           return (
-            <Chip
+            <div
               key={index}
-              label={`${formatTime(punch.punchTime)} (${index % 2 === 0 ? 'IN' : 'OUT'})`}
-              size="small"
-              sx={{
-                borderLeft: `4px solid ${borderCol}`,
-                backgroundColor: bgCol,
-                fontWeight: 600,
-                borderRadius: '4px'
-              }}
-            />
+              className={`${styles.punchBlock} ${isOut ? styles.punchOut : styles.punchIn}`}
+            >
+              {formatTime(punch.punchTime)} ({isOut ? 'OUT' : 'IN'})
+            </div>
           );
         })}
-      </Box>
+      </div>
     );
   };
 
   return (
-    <Box>
-      <Box className={styles.headerControls}>
-        
-        <Box className={styles.filterGroup}>
-          <TextField
-            label="From Date"
-            type="date"
-            size="small"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            label="To Date"
-            type="date"
-            size="small"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Staff Member</InputLabel>
-            <Select
-              value={selectedStaffId}
-              label="Staff Member"
-              onChange={(e) => setSelectedStaffId(e.target.value)}
-            >
-              <MenuItem value="All">All Staff</MenuItem>
-              {staffList.map(staff => (
-                <MenuItem key={staff.id} value={staff.id}>{staff.firstName} {staff.lastName}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+    <div className={styles.dashboardWrapper}>
+      
+      {/* Top Filter Bar */}
+      <div className={styles.filterCard}>
+        <div className={styles.filterRow}>
+          <div className={styles.filterInputs}>
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>From Date</label>
+              <input 
+                type="date" 
+                className={styles.inputField} 
+                value={fromDate} 
+                onChange={(e) => setFromDate(e.target.value)} 
+              />
+            </div>
+            
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>To Date</label>
+              <input 
+                type="date" 
+                className={styles.inputField} 
+                value={toDate} 
+                onChange={(e) => setToDate(e.target.value)} 
+              />
+            </div>
 
-        <ButtonGroup variant="outlined" size="small">
-          <Button 
-            variant={activeTab === 'PENDING' ? 'contained' : 'outlined'} 
-            onClick={() => { setActiveTab('PENDING'); setPage(0); }}
-            disableElevation
-          >
-            Pending
-          </Button>
-          <Button 
-            variant={activeTab === 'APPROVED' ? 'contained' : 'outlined'} 
-            onClick={() => { setActiveTab('APPROVED'); setPage(0); }}
-            disableElevation
-          >
-            Approved
-          </Button>
-          <Button 
-            variant={activeTab === 'REJECTED' ? 'contained' : 'outlined'} 
-            onClick={() => { setActiveTab('REJECTED'); setPage(0); }}
-            disableElevation
-          >
-            Rejected
-          </Button>
-        </ButtonGroup>
-      </Box>
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>Staff Member</label>
+              <select 
+                className={styles.inputField} 
+                value={selectedStaffId} 
+                onChange={(e) => setSelectedStaffId(e.target.value)}
+              >
+                <option value="All">All Staff</option>
+                {staffList.map(staff => (
+                  <option key={staff.id} value={staff.id}>{staff.firstName} {staff.lastName}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className={styles.statusToggleGroup}>
+            <button 
+              className={activeTab === 'PENDING' ? styles.statusToggleBtnActive : styles.statusToggleBtn}
+              onClick={() => { setActiveTab('PENDING'); setPage(0); }}
+            >
+              PENDING
+            </button>
+            <button 
+              className={activeTab === 'APPROVED' ? styles.statusToggleBtnActive : styles.statusToggleBtn}
+              onClick={() => { setActiveTab('APPROVED'); setPage(0); }}
+            >
+              APPROVED
+            </button>
+            <button 
+              className={activeTab === 'REJECTED' ? styles.statusToggleBtnActive : styles.statusToggleBtn}
+              onClick={() => { setActiveTab('REJECTED'); setPage(0); }}
+            >
+              REJECTED
+            </button>
+          </div>
+        </div>
+      </div>
 
       {activeTab === 'PENDING' && selectedRequests.length > 0 && (
-        <Box className={styles.actionButtons}>
-          <Button variant="contained" color="success" size="small" onClick={() => handleAction('APPROVED', selectedRequests)}>
+        <div className={styles.actionsCell} style={{ marginBottom: '16px' }}>
+          <button className={`${styles.neonBtn} ${styles.btnApprove}`} onClick={() => handleAction('APPROVED', selectedRequests)}>
             Approve Selected ({selectedRequests.length})
-          </Button>
-          <Button variant="contained" color="error" size="small" onClick={() => handleAction('REJECTED', selectedRequests)}>
+          </button>
+          <button className={`${styles.neonBtn} ${styles.btnReject}`} onClick={() => handleAction('REJECTED', selectedRequests)}>
             Reject Selected ({selectedRequests.length})
-          </Button>
-        </Box>
+          </button>
+        </div>
       )}
 
-      <TableContainer component={Paper} elevation={0} className={styles.tableContainer}>
-        <Table size="small">
-          <TableHead className={styles.tableHead}>
-            <TableRow>
-              {activeTab === 'PENDING' && (
-                <TableCell padding="checkbox">
-                  <Checkbox 
-                    checked={requests.length > 0 && selectedRequests.length === requests.length}
-                    indeterminate={selectedRequests.length > 0 && selectedRequests.length < requests.length}
-                    onChange={handleSelectAll} 
-                  />
-                </TableCell>
-              )}
-              <TableCell className={styles.tableHeadCell}>Staff Name</TableCell>
-              <TableCell className={styles.tableHeadCell}>Attendance Date</TableCell>
-              <TableCell className={styles.tableHeadCell}>Punch Time</TableCell>
-              <TableCell className={styles.tableHeadCell}>Status</TableCell>
-              <TableCell className={styles.tableHeadCell}>Attendance Data</TableCell>
-              {activeTab === 'PENDING' && <TableCell align="right" className={styles.tableHeadCell}>Actions</TableCell>}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading && requests.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={activeTab === 'PENDING' ? 7 : 6} align="center" className={styles.emptyStateCell}>
-                  Loading requests...
-                </TableCell>
-              </TableRow>
-            ) : requests.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={activeTab === 'PENDING' ? 7 : 6} align="center" className={styles.emptyStateCell}>
-                  No {activeTab.toLowerCase()} requests available.
-                </TableCell>
-              </TableRow>
-            ) : (
-              requests.map((row) => (
-                <TableRow key={row.personnelAttendanceId} hover>
-                  {activeTab === 'PENDING' && (
-                    <TableCell padding="checkbox">
-                      <Checkbox 
-                        checked={selectedRequests.includes(row.personnelAttendanceId)}
-                        onChange={() => handleSelectOne(row.personnelAttendanceId)}
-                      />
-                    </TableCell>
-                  )}
-                  <TableCell>{row.personnelName}</TableCell>
-                  <TableCell>{row.attendanceDate}</TableCell>
-                  <TableCell>{formatTime(row.punchTime)}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={row.currentStatus} 
-                      size="small" 
-                      color={row.currentStatus === 'APPROVED' ? 'success' : row.currentStatus === 'REJECTED' ? 'error' : 'warning'}
-                      variant="outlined"
+      {/* Main Table Card */}
+      <div className={styles.tableCard}>
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                {activeTab === 'PENDING' && (
+                  <th className={styles.th} style={{ width: '40px' }}>
+                    <input 
+                      type="checkbox"
+                      className={styles.checkbox}
+                      checked={requests.length > 0 && selectedRequests.length === requests.length}
+                      onChange={handleSelectAll}
                     />
-                  </TableCell>
-                  <TableCell>{renderPunches(row.individualPunchesList)}</TableCell>
-                  {activeTab === 'PENDING' && (
-                    <TableCell align="right">
-                      <Button size="small" color="success" onClick={() => handleAction('APPROVED', [row.personnelAttendanceId])}>Approve</Button>
-                      <Button size="small" color="error" onClick={() => handleAction('REJECTED', [row.personnelAttendanceId])}>Reject</Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-        <TablePagination
-          component="div"
-          count={totalCount}
-          page={page}
-          onPageChange={(e, newPage) => setPage(newPage)}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
-          rowsPerPageOptions={[10, 25, 50]}
-        />
-      </TableContainer>
-    </Box>
+                  </th>
+                )}
+                <th className={styles.th}>Staff Name</th>
+                <th className={styles.th}>Attendance Date</th>
+                <th className={styles.th}>Punch Time</th>
+                <th className={styles.th}>Status</th>
+                <th className={styles.th}>Attendance Data</th>
+                {activeTab === 'PENDING' && <th className={styles.th} style={{ textAlign: 'right' }}>Actions</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {loading && requests.length === 0 ? (
+                <tr>
+                  <td colSpan={activeTab === 'PENDING' ? 7 : 6} className={styles.td} style={{ textAlign: 'center', padding: '40px' }}>
+                    Loading requests...
+                  </td>
+                </tr>
+              ) : requests.length === 0 ? (
+                <tr>
+                  <td colSpan={activeTab === 'PENDING' ? 7 : 6} className={styles.td} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                    No {activeTab.toLowerCase()} requests available.
+                  </td>
+                </tr>
+              ) : (
+                requests.map((row) => {
+                  const statusClass = row.currentStatus === 'APPROVED' ? styles.statusApproved : 
+                                     row.currentStatus === 'REJECTED' ? styles.statusRejected : 
+                                     styles.statusPending;
+
+                  return (
+                    <tr key={row.personnelAttendanceId} className={styles.tr}>
+                      {activeTab === 'PENDING' && (
+                        <td className={styles.td}>
+                          <input 
+                            type="checkbox"
+                            className={styles.checkbox}
+                            checked={selectedRequests.includes(row.personnelAttendanceId)}
+                            onChange={() => handleSelectOne(row.personnelAttendanceId)}
+                          />
+                        </td>
+                      )}
+                      <td className={styles.td}>
+                        <div className={styles.staffCell}>
+                          <div className={styles.avatar}>
+                            {getInitials(row.personnelName)}
+                          </div>
+                          <div>
+                            <div className={styles.staffName}>{row.personnelName}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className={styles.td}>{row.attendanceDate}</td>
+                      <td className={styles.td}>{formatTime(row.punchTime)}</td>
+                      <td className={styles.td}>
+                        <span className={`${styles.statusPill} ${statusClass}`}>
+                          {row.currentStatus}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        {renderPunches(row.individualPunchesList)}
+                      </td>
+                      {activeTab === 'PENDING' && (
+                        <td className={styles.td} style={{ textAlign: 'right' }}>
+                          <div className={styles.actionsCell} style={{ justifyContent: 'flex-end' }}>
+                            <button 
+                              className={`${styles.neonBtn} ${styles.btnApprove}`}
+                              onClick={() => handleAction('APPROVED', [row.personnelAttendanceId])}
+                              disabled={isMutating}
+                            >
+                              Approve
+                            </button>
+                            <button 
+                              className={`${styles.neonBtn} ${styles.btnReject}`}
+                              onClick={() => handleAction('REJECTED', [row.personnelAttendanceId])}
+                              disabled={isMutating}
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className={styles.pagination}>
+          <div className={styles.pageControls}>
+            <span>Rows per page:</span>
+            <select 
+              className={styles.inputField} 
+              style={{ padding: '4px 8px', fontSize: '13px' }}
+              value={rowsPerPage}
+              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(0); }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <span>
+              {totalCount === 0 ? 0 : (page * rowsPerPage) + 1} - {Math.min((page + 1) * rowsPerPage, totalCount)} of {totalCount}
+            </span>
+            <div className={styles.pageArrows}>
+              <button 
+                className={styles.arrowBtn}
+                onClick={() => setPage(Math.max(0, page - 1))}
+                disabled={page === 0}
+                style={{ opacity: page === 0 ? 0.3 : 1, cursor: page === 0 ? 'default' : 'pointer' }}
+              >
+                &lsaquo;
+              </button>
+              <button 
+                className={styles.arrowBtn}
+                onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+                disabled={page >= totalPages - 1}
+                style={{ opacity: page >= totalPages - 1 ? 0.3 : 1, cursor: page >= totalPages - 1 ? 'default' : 'pointer' }}
+              >
+                &rsaquo;
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
   );
 };
 

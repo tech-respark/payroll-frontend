@@ -1,154 +1,231 @@
-.header {
+.dashboardLayout {
+  min-height: calc(100vh - var(--header-height));
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+.pageHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
 }
 
-.headerTitle {
+.headerLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-dark);
   margin: 0;
 }
 
-.headerBtn {
+.breadcrumbs {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.createBtn {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: max-content;
   padding: 10px 24px;
-  flex-shrink: 0;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--primary-color-shadow);
+
+  &:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .mainContainer {
   display: flex;
-  gap: 24px;
-  align-items: flex-start;
+  gap: 30px;
+  flex: 1;
+  min-height: 0;
 }
 
+/* Left Panel: Roles List */
 .rolesListContainer {
-  flex: 0 0 350px;
-  min-width: 0;
-}
-
-.rolesCard {
-  padding: 0;
-  overflow: hidden;
-}
-
-.rolesCardHeader {
-  padding: 16px 20px;
-  border-bottom: 1px solid #e2e8f0;
-  background-color: #f8fafc;
+  width: 360px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
 }
 
 .rolesCardTitle {
-  margin: 0;
-  color: #1e293b;
   font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 20px 0;
 }
 
-.rolesListLoading,
-.rolesListEmpty {
-  padding: 40px;
+.rolesListEmpty,
+.rolesListLoading {
   text-align: center;
-  color: #64748b;
+  padding: 40px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.rolesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
 }
 
 .roleRow {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.15s;
-  border-left: 3px solid transparent;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+  transition: var(--transition);
+  background: transparent;
 
   &:hover {
-    background-color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.03);
+  }
+  
+  @media (prefers-color-scheme: light) {
+    &:hover {
+      background: #f8fafc;
+    }
   }
 }
 
 .roleRowActive {
-  background-color: #eff6ff;
-  border-left: 3px solid #3f97ef;
-  border-radius: 5px;
-  padding: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--primary-color);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: var(--transition);
+  background: rgba(63, 151, 239, 0.08); /* subtle blue tint */
 }
 
 .roleName {
   font-weight: 600;
-  color: #1e293b;
-  font-size: 14px;
+  color: var(--text-dark);
+  font-size: 15px;
 }
 
 .roleDesc {
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 3px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
 }
 
 .rolePermsCount {
   font-size: 12px;
-  color: #94a3b8;
-  margin-top: 4px;
+  color: var(--primary-color);
+  margin-top: 6px;
+  font-weight: 500;
 }
 
+.roleIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.roleIconActive {
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+
+/* Right Panel: Form */
 .formContainer {
   flex: 1;
-  min-width: 0;
-}
-
-.formCard {
-  padding: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
 .formHeader {
+  padding: 24px;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
+  align-items: flex-start;
 }
 
 .formTitle {
-  margin: 0 0 2px 0;
-  color: #1e293b;
   font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 6px 0;
 }
 
 .formSubtitle {
-  margin: 0;
-  color: #64748b;
   font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
 }
 
 .closeBtn {
-  background: none;
+  background: transparent;
   border: none;
+  color: var(--text-muted);
   cursor: pointer;
-  color: #94a3b8;
   padding: 4px;
+  
+  &:hover {
+    color: var(--text-dark);
+  }
 }
 
 .formContent {
-  padding: 24px;
+  padding: 30px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .formRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .formLabel {
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 6px;
-  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
 }
 
 .requiredAsterisk {
@@ -156,84 +233,98 @@
 }
 
 .optionalText {
-  color: #94a3b8;
-  font-weight: 400;
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: normal;
 }
 
 .formInput {
-  width: 100%;
-  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  padding: 12px 16px;
+  color: var(--text-dark);
   font-size: 14px;
-  box-sizing: border-box;
+  transition: var(--transition);
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+  }
 }
 
 .modulesTitle {
-  margin: 0 0 16px 0;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #64748b;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: 1px;
+  margin: 0 0 20px 0;
 }
 
 .modulesGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
 
 .moduleCard {
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  overflow: hidden;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
 }
 
 .moduleHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background-color: #f8fafc;
-  padding: 12px 14px;
-  border-bottom: 1px solid #e2e8f0;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .moduleIcon {
-  color: #3f97ef;
+  color: var(--text-muted);
   display: flex;
+  align-items: center;
+  
+  svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .moduleTitle {
   font-weight: 600;
-  color: #1e293b;
-  font-size: 13px;
+  color: var(--text-dark);
+  font-size: 14px;
 }
 
 .moduleBody {
-  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .permissionRow {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
 .permissionLabel {
   font-size: 13px;
-  color: #475569;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
+/* Custom Toggle Switch */
 .toggleSwitch {
   position: relative;
   display: inline-block;
-  width: 38px;
-  height: 21px;
-  flex-shrink: 0;
+  width: 44px;
+  height: 24px;
 }
 
 .toggleInput {
@@ -249,9 +340,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #e2e8f0;
-  transition: 0.3s;
-  border-radius: 34px;
+  background-color: var(--border-color); /* OFF state background */
+  transition: .3s;
+  border-radius: 24px;
 }
 
 .toggleSliderSelected {
@@ -261,95 +352,74 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #10b981;
-  transition: 0.3s;
-  border-radius: 34px;
+  background-color: var(--primary-color); /* ON state background */
+  transition: .3s;
+  border-radius: 24px;
 }
 
 .toggleThumb {
   position: absolute;
-  height: 15px;
-  width: 15px;
+  height: 18px;
+  width: 18px;
   left: 3px;
   bottom: 3px;
-  background-color: white;
-  transition: 0.3s;
+  background-color: #94a3b8; /* OFF state thumb */
+  transition: .3s;
   border-radius: 50%;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .toggleThumbSelected {
   position: absolute;
-  height: 15px;
-  width: 15px;
-  left: 20px;
+  height: 18px;
+  width: 18px;
+  left: 3px;
   bottom: 3px;
-  background-color: white;
-  transition: 0.3s;
+  background-color: #ffffff; /* ON state thumb */
+  transform: translateX(20px);
+  transition: .3s;
   border-radius: 50%;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .formFooter {
+  padding: 24px 30px;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid #e2e8f0;
+  gap: 16px;
+  background: var(--bg-card);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .cancelBtn {
-  background: white;
-  color: #475569;
-  border: 1px solid #cbd5e1;
-  padding: 9px 20px;
-  border-radius: 6px;
-  font-weight: 500;
+  padding: 10px 24px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-dark);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 14px;
+  transition: var(--transition);
+
+  &:hover {
+    background: rgba(255,255,255,0.05);
+  }
 }
 
-.submitBtn {
-  background: #3f97ef;
+.saveBtn {
+  padding: 10px 24px;
+  background: var(--primary-color);
   color: white;
   border: none;
-  padding: 9px 28px;
-  border-radius: 6px;
-  font-weight: 500;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 14px;
-}
+  transition: var(--transition);
+  box-shadow: var(--primary-color-shadow);
 
-.submitBtnDisabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.emptySelection {
-  padding: 80px 40px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 400px;
-}
-
-.emptyIcon {
-  margin-bottom: 16px;
-}
-
-.emptyTitle {
-  margin: 0 0 8px 0;
-  color: #475569;
-  font-size: 18px;
-}
-
-.emptyDesc {
-  margin: 0;
-  color: #94a3b8;
-  font-size: 14px;
-  max-width: 300px;
+  &:hover {
+    transform: translateY(-2px);
+  }
 }

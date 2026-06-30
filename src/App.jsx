@@ -1,11 +1,13 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from './components/Toast';
 import GlobalLoader from './components/GlobalLoader';
 import Navigation from './components/Navigation';
+import TopHeader from './components/TopHeader';
 
 // ─── Eagerly loaded (always needed) ──────────────────────────────────────────
 import Login from './screens/Login';
@@ -71,10 +73,12 @@ const AppContent = () => {
   return (
     <div className="app-layout">
       <Navigation />
-      <main className="main-content">
-        <Suspense fallback={<PageLoader />}>
-          <Switch>
-            <Route path="/staff"      component={StaffDashboard} />
+      <div className="content-wrapper" style={{ flex: 1, marginLeft: 'var(--sidebar-width)', display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-color)' }}>
+        <TopHeader />
+        <main className="main-content" style={{ flex: 1, padding: '30px', margin: 0 }}>
+          <Suspense fallback={<PageLoader />}>
+            <Switch>
+              <Route path="/staff"      component={StaffDashboard} />
             <Route path="/attendance" component={AttendanceDashboard} />
 
             {/* Leave Management Routes */}
@@ -94,7 +98,8 @@ const AppContent = () => {
             <Redirect from="/"      to="/staff" />
           </Switch>
         </Suspense>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
@@ -117,15 +122,17 @@ if (typeof window !== 'undefined') {
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <AuthProvider>
-          <Router>
-            <AppContent />
-            <Toast />
-            <GlobalLoader />
-          </Router>
-        </AuthProvider>
-      </ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <Router>
+              <AppContent />
+              <Toast />
+              <GlobalLoader />
+            </Router>
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

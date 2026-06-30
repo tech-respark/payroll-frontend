@@ -27,6 +27,7 @@ const ShiftsDashboard = () => {
   const [slotName, setSlotName] = useState('');
   const [slotStartTime, setSlotStartTime] = useState('09:00');
   const [slotEndTime, setSlotEndTime] = useState('18:00');
+  const [slotColor, setSlotColor] = useState('#3f97ef');
 
   // Roster Data
   const [assignStartDate, setAssignStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -118,11 +119,13 @@ const ShiftsDashboard = () => {
       setSlotName(slot.shiftName);
       setSlotStartTime(slot.startTime);
       setSlotEndTime(slot.endTime);
+      setSlotColor(slot.color || '#3f97ef');
     } else {
       setSelectedSlotId(null);
       setSlotName('');
       setSlotStartTime('09:00');
       setSlotEndTime('18:00');
+      setSlotColor('#3f97ef');
     }
     
   };
@@ -155,6 +158,7 @@ const ShiftsDashboard = () => {
       shiftName: slotName,
       startTime: slotStartTime,
       endTime: slotEndTime,
+      color: slotColor,
       tenantId,
       storeId,
       active: true
@@ -342,304 +346,332 @@ const ShiftsDashboard = () => {
   };
 
   return (
-    <div className="dashboard">
-      <h2 style={{ marginBottom: '10px' }}>Shift and Roster Management</h2>
+    <div className={styles.dashboardLayout}>
+      <h2 className={styles.title}>Shift and Roster Management</h2>
       
       {/* Internal Tabs */}
-      <div className="tab-switcher" style={{ marginBottom: '40px' }}>
+      <div className={styles.tabContainer}>
         <button 
-          className={`btn ${activeTab === 'templates' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('templates');  }}
+          className={activeTab === 'templates' ? styles.tabBtnActive : styles.tabBtn}
+          onClick={() => setActiveTab('templates')}
         >
           Shift Management
         </button>
         <button 
-          className={`btn ${activeTab === 'roster' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('roster');  }}
+          className={activeTab === 'roster' ? styles.tabBtnActive : styles.tabBtn}
+          onClick={() => setActiveTab('roster')}
         >
           Roster Management
         </button>
         <button 
-          className={`btn ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('settings');  }}
+          className={activeTab === 'settings' ? styles.tabBtnActive : styles.tabBtn}
+          onClick={() => setActiveTab('settings')}
         >
           Store Settings
         </button>
       </div>
 
-      <div className="staff-container" style={{ backgroundColor: 'transparent', boxShadow: 'none', height: 'auto', overflow: 'visible', padding: 0 }}>
-        
-        {/* TAB 1: STORE SETTINGS */}
-        {activeTab === 'settings' && (
-          <div className={styles.layoutContainer}>
-            <div className={`${styles.payrollCard} ${styles.settingsCard}`}>
-              <h3 className={styles.settingsTitle}>Store Operating Hours</h3>
-              <form onSubmit={handleSaveStoreSettings}>
-                <div className={styles.formGrid}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.rosterLabel}>Opening Time</label>
-                    <input 
-                      type="time" 
-                      value={storeOpenTime} 
-                      onChange={(e) => setStoreOpenTime(e.target.value)} 
-                      required 
-                      className={styles.timeInput}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.rosterLabel}>Closing Time</label>
-                    <input 
-                      type="time" 
-                      value={storeCloseTime} 
-                      onChange={(e) => setStoreCloseTime(e.target.value)} 
-                      required 
-                      className={styles.timeInput}
-                    />
-                  </div>
-                </div>
-                <div className={styles.saveContainer}>
-                  {canManage && (
-                    <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={saveSettingsMutation.isPending}>
-                      {saveSettingsMutation.isPending ? 'Saving...' : 'Save Settings'}
-                    </button>
-                  )}
-                </div>
-              </form>
+      {/* STORE SETTINGS */}
+      {activeTab === 'settings' && (
+        <div className={styles.settingsLayout}>
+          <div className={styles.settingsPanel}>
+            <div className={styles.settingsHeader}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <h3>Store Operating Hours</h3>
             </div>
+            
+            <form onSubmit={handleSaveStoreSettings} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <div className={styles.settingsBody}>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label>Opening Time</label>
+                    <div className={styles.selectWrapper}>
+                      <input 
+                        type="time" 
+                        value={storeOpenTime} 
+                        onChange={(e) => setStoreOpenTime(e.target.value)} 
+                        required 
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Closing Time</label>
+                    <div className={styles.selectWrapper}>
+                      <input 
+                        type="time" 
+                        value={storeCloseTime} 
+                        onChange={(e) => setStoreCloseTime(e.target.value)} 
+                        required 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-            <div className={styles.infoCard}>
-              <h3 className={styles.infoCardTitle}>About Store Hours</h3>
-              <p className={styles.infoCardText}>
-                Store operating hours define the boundaries for generating shift times. 
-                <br/><br/>
+              <div className={styles.settingsFooter}>
+                {canManage && (
+                  <button type="submit" className={styles.saveBtn} disabled={saveSettingsMutation.isPending}>
+                    {saveSettingsMutation.isPending ? 'Saving...' : 'SAVE SETTINGS'}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          <div className={styles.infoPanel}>
+            <div className={styles.infoHeader}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <h4>About Store Hours</h4>
+            </div>
+            <p className={styles.infoText}>
+              Store operating hours define the boundaries for generating shift times.
+            </p>
+            <div className={styles.infoBox}>
+              <p>
                 When assigning shifts, the dropdown times will be restricted to intervals between your configured Opening and Closing times. Ensure these hours encompass your earliest and latest possible shifts.
               </p>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* TAB 2: SHIFT MANAGEMENT */}
-        {activeTab === 'templates' && (
-          <div className={styles.layoutContainer}>
-            <div className={styles.shiftSidebar}>
-              {canManage && (
-                <button className={`btn btn-primary ${styles.sidebarBtn}`} onClick={() => handleSelectSlot(null)}>
-                  + CREATE NEW SHIFT
-                </button>
-              )}
-              <h3 className={styles.sidebarTitle}>Shift Templates</h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {shiftSlots.length === 0 ? <p className={styles.emptySidebarText}>No shifts configured yet.</p> : null}
-                {shiftSlots.map(slot => (
-                  <div 
-                    key={slot.id} 
-                    className={`shift-card ${selectedSlotId === slot.id ? 'active' : ''}`}
-                    onClick={() => handleSelectSlot(slot)}
-                  >
-                    <div className="shift-card-title">{slot.shiftName}</div>
-                    <div className="shift-card-time">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                      {slot.startTime} - {slot.endTime}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* SHIFT MANAGEMENT */}
+      {activeTab === 'templates' && (
+        <div className={styles.shiftLayout}>
+          <div className={styles.shiftSidebar}>
+            {canManage && (
+              <button className={styles.createShiftBtn} onClick={() => handleSelectSlot(null)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                CREATE NEW SHIFT
+              </button>
+            )}
+            <h3 className={styles.sidebarHeader}>Shift Templates</h3>
             
-            <div className={`${styles.payrollCard} ${styles.formCard}`}>
-              <h3 className={styles.settingsTitle}>
-                {selectedSlotId ? 'Update Shift Template' : 'Create New Shift'}
-              </h3>
-              <form onSubmit={handleAddShiftSlot}>
-                <div className={styles.formGrid}>
-                  <div className={styles.formGroupFull}>
-                    <label className={styles.rosterLabel}>Shift Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Morning Shift"
-                      value={slotName} 
-                      onChange={(e) => setSlotName(e.target.value)} 
-                      required 
-                      className={styles.formInput}
-                      style={{ maxWidth: '400px' }}
-                    />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {shiftSlots.length === 0 ? <p style={{color: 'var(--text-muted)'}}>No shifts configured yet.</p> : null}
+              {shiftSlots.map(slot => (
+                <div 
+                  key={slot.id} 
+                  className={`${styles.shiftCard} ${selectedSlotId === slot.id ? styles.active : ''}`}
+                  onClick={() => handleSelectSlot(slot)}
+                >
+                  <div className={styles.cardHeader}>
+                    <h4>{slot.shiftName}</h4>
                   </div>
-                  
-                  <div className={styles.formGroup}>
-                    <label className={styles.rosterLabel}>Start Time</label>
-                    <select value={slotStartTime} onChange={(e) => setSlotStartTime(e.target.value)} required className={styles.formSelect}>
-                      {timeOptions.map(t => <option key={`start-${t}`} value={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.rosterLabel}>End Time</label>
-                    <select value={slotEndTime} onChange={(e) => setSlotEndTime(e.target.value)} required className={styles.formSelect}>
-                      {timeOptions.map(t => <option key={`end-${t}`} value={t}>{t}</option>)}
-                    </select>
+                  <div className={styles.cardTime}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    {slot.startTime} - {slot.endTime}
                   </div>
                 </div>
-
-                <div className={styles.saveContainer}>
-                  {canManage && (
-                    <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={saveSlotMutation.isPending}>
-                      {saveSlotMutation.isPending ? 'Saving...' : 'Save Shift'}
-                    </button>
-                  )}
-                </div>
-              </form>
+              ))}
             </div>
           </div>
-        )}
-
-        {/* TAB 3: ROSTER MANAGEMENT */}
-        {activeTab === 'roster' && (
-          <div className={styles.rosterContainer}>
+          
+          <div className={styles.formPanel}>
+            <div className={styles.panelHeader}>
+              <h3>{selectedSlotId ? 'Update Shift' : 'Create New Shift'}</h3>
+              <p>Configure the timings and details for a new shift template.</p>
+            </div>
             
-            {/* Global Options Bar */}
-            <div className={styles.globalOptionsBar}>
-              <div className={styles.rosterFormGroup}>
-                <label className={styles.rosterLabel}>Apply For (Days) :</label>
-                <input 
-                  type="number" 
-                  min="1"
-                  value={assignNoOfDays} 
-                  onChange={(e) => setAssignNoOfDays(e.target.value)} 
-                  className={styles.rosterInput}
-                />
+            <form onSubmit={handleAddShiftSlot} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <div className={styles.panelBody}>
+                <div className={styles.formGroup} style={{ maxWidth: '100%' }}>
+                  <label>Shift Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Morning Shift"
+                    value={slotName} 
+                    onChange={(e) => setSlotName(e.target.value)} 
+                    required 
+                  />
+                </div>
+                
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label>Start Time</label>
+                    <div className={styles.selectWrapper}>
+                      <select value={slotStartTime} onChange={(e) => setSlotStartTime(e.target.value)} required>
+                        {timeOptions.map(t => <option key={`start-${t}`} value={t}>{t}</option>)}
+                      </select>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>End Time</label>
+                    <div className={styles.selectWrapper}>
+                      <select value={slotEndTime} onChange={(e) => setSlotEndTime(e.target.value)} required>
+                        {timeOptions.map(t => <option key={`end-${t}`} value={t}>{t}</option>)}
+                      </select>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className={styles.rosterFormGroup}>
-                <label className={styles.rosterLabel}>Use Shift :</label>
+              <div className={styles.panelFooter}>
+                <button type="button" className={styles.cancelBtn} onClick={() => handleSelectSlot(null)}>
+                  CANCEL
+                </button>
+                {canManage && (
+                  <button type="submit" className={styles.saveBtn} disabled={saveSlotMutation.isPending}>
+                    {saveSlotMutation.isPending ? 'SAVING...' : 'SAVE SHIFT'}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+        {/* TAB 3: ROSTER MANAGEMENT */}
+      {activeTab === 'roster' && (
+        <div className={styles.rosterContainer}>
+          
+          <div className={styles.rosterTopBar}>
+            <div className={styles.filterGroup}>
+              <label>Apply For (Days)</label>
+              <input 
+                type="number" 
+                min="1"
+                value={assignNoOfDays} 
+                onChange={(e) => setAssignNoOfDays(e.target.value)} 
+                className={styles.filterInput}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label>Use Shift</label>
+              <div className={styles.selectWrapper}>
                 <select 
                   value={globalShiftId} 
                   onChange={handleGlobalShiftChange}
-                  className={styles.rosterSelect}
                 >
                   <option value="">Select shift template</option>
                   {shiftSlots.map(s => (
                     <option key={s.id} value={s.id}>{s.shiftName} ({s.startTime} - {s.endTime})</option>
                   ))}
                 </select>
-              </div>
-
-              <div className={styles.rosterFormGroup}>
-                <label className={styles.rosterLabel}>Select Date :</label>
-                <div className={styles.dateSelector}>
-                  <button type="button" onClick={() => handleDateShift(-1)} className={styles.dateBtn}>&lt;</button>
-                  <button type="button" onClick={() => handleDateShift(0)} className={styles.dateBtnToday}>TODAY</button>
-                  <div className={styles.dateDisplay}>
-                    {new Date(assignStartDate).toLocaleDateString('en-GB').replace(/\//g, '-')}
-                  </div>
-                  <button type="button" onClick={() => handleDateShift(1)} className={styles.dateBtnNext}>TOMORROW</button>
-                  <button type="button" onClick={() => handleDateShift(1)} className={styles.dateBtnNext} style={{ borderLeft: '1px solid #cbd5e1' }}>&gt;</button>
-                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
             </div>
 
-            {/* List Header */}
-            <div className={styles.listHeader}>
-              <div className={styles.headerCheckbox}>
-                <input 
-                  type="checkbox" 
-                  checked={allSelected} 
-                  onChange={handleSelectAllStaff} 
-                  className={styles.headerCheckboxInput}
-                />
-                <span className={styles.headerCheckboxLabel}>Apply<br/>to All</span>
+            <div className={styles.dateSelectorGroup} style={{marginLeft: 'auto'}}>
+              <label>Select Date</label>
+              <div className={styles.dateBox}>
+                <button type="button" onClick={() => handleDateShift(-1)} className={styles.arrowBtn}>&lt;</button>
+                <button type="button" onClick={() => handleDateShift(0)} className={styles.todayBtn}>TODAY</button>
+                <div className={styles.dateText}>
+                  {new Date(assignStartDate).toLocaleDateString('en-GB').replace(/\//g, '-')}
+                </div>
+                <button type="button" onClick={() => handleDateShift(1)} className={styles.tomorrowBtn}>TOMORROW</button>
+                <button type="button" onClick={() => handleDateShift(1)} className={styles.arrowBtn}>&gt;</button>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.rosterTable}>
+            <div className={styles.tableHeader}>
+              <div className={styles.checkboxHeader} onClick={() => handleSelectAllStaff({ target: { checked: !allSelected } })}>
+                <div className={`${styles.checkbox} ${allSelected ? styles.checked : ''}`}>
+                  {allSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                </div>
+                <span>APPLY TO ALL</span>
               </div>
               <div>Staff Name</div>
               <div>From Time</div>
               <div>To Time</div>
-              <div className={styles.centerCell}>Is Working</div>
-              <div className={styles.centerCell}>Add Break</div>
+              <div className={styles.center}>Working</div>
+              <div className={styles.center}>Action</div>
             </div>
 
-            {/* Staff Rows */}
-            <div className={styles.staffRowsContainer}>
+            <div className={styles.tableBody}>
               {staffList.map(staff => {
                 const assignData = bulkAssignments[staff.id] || {};
+                const isSelected = assignData.selected || false;
+                const isWorking = assignData.isWorking ?? true;
+                
                 return (
-                  <div key={staff.id} className={`${styles.staffRow} ${assignData.selected ? styles.staffRowSelected : ''}`}>
-                    <div className={styles.centerCell}>
-                      <input 
-                        type="checkbox" 
-                        checked={assignData.selected || false} 
-                        onChange={(e) => handleBulkAssignmentChange(staff.id, 'selected', e.target.checked)}
-                        className={styles.staffRowCheckbox}
-                      />
+                  <div key={staff.id} className={styles.tableRow} style={{ borderColor: isSelected ? 'var(--primary-color)' : 'var(--border-color)' }}>
+                    <div className={styles.center}>
+                      <div 
+                        className={`${styles.checkbox} ${isSelected ? styles.checked : ''}`}
+                        onClick={() => handleBulkAssignmentChange(staff.id, 'selected', !isSelected)}
+                      >
+                        {isSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                      </div>
                     </div>
                     
-                    <div className={styles.staffNameCell}>
-                      {staff.firstName} {staff.lastName}
+                    <div className={styles.staffInfo}>
+                      <span className={styles.name}>{staff.firstName} {staff.lastName}</span>
+                      <span className={styles.role}>Role Name (TBD)</span>
                     </div>
 
-                    <div>
+                    <div className={styles.selectWrapper}>
                       <select 
                         value={assignData.startTime || '09:00'} 
                         onChange={(e) => handleBulkAssignmentChange(staff.id, 'startTime', e.target.value)}
-                        className={styles.rosterTimeSelect}
+                        className={styles.timeSelect}
                       >
                         {timeOptions.map(t => <option key={`from-${t}`} value={t}>{t}</option>)}
                       </select>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </div>
 
-                    <div>
+                    <div className={styles.selectWrapper}>
                       <select 
                         value={assignData.endTime || '18:00'} 
                         onChange={(e) => handleBulkAssignmentChange(staff.id, 'endTime', e.target.value)}
-                        className={styles.rosterTimeSelect}
+                        className={styles.timeSelect}
                       >
                         {timeOptions.map(t => <option key={`to-${t}`} value={t}>{t}</option>)}
                       </select>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </div>
 
-                    <div className={styles.centerCell}>
-                      <input 
-                        type="checkbox" 
-                        checked={assignData.isWorking ?? true}
-                        onChange={(e) => handleBulkAssignmentChange(staff.id, 'isWorking', e.target.checked)}
-                        className={styles.staffRowCheckbox}
-                      />
+                    <div className={styles.center} style={{ cursor: 'pointer' }} onClick={() => handleBulkAssignmentChange(staff.id, 'isWorking', !isWorking)}>
+                      <div className={isWorking ? styles.statusCircle : styles.statusCircleOff}>
+                        {isWorking ? 
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : 
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        }
+                      </div>
                     </div>
 
-                    <div className={styles.centerCell}>
+                    <div className={styles.center}>
                       <button 
                         type="button" 
                         onClick={() => openBreakModal(staff.id)}
-                        className={(assignData.breaks && assignData.breaks.length > 0) ? styles.editBreakBtn : styles.addBreakBtn}
+                        className={styles.actionBtn}
+                        title={(assignData.breaks && assignData.breaks.length > 0) ? 'Edit Break' : 'Add Break'}
                       >
-                        {(assignData.breaks && assignData.breaks.length > 0) ? 'Edit Break' : 'Add Break'}
+                        +
                       </button>
                     </div>
                   </div>
                 );
               })}
             </div>
-
-            {/* Footer Actions */}
-            <div className={styles.rosterFooter}>
-              <button 
-                type="button" 
-                className={`btn btn-outline ${styles.rosterCancelBtn}`}
-                onClick={() => setActiveTab('templates')}
-              >
-                Cancel
-              </button>
-                <button 
-                type="button" 
-                className={`btn btn-primary ${styles.rosterSaveBtn}`}
-                disabled={generateRosterMutation.isPending}
-                onClick={handleBulkAssignShift}
-              >
-                {generateRosterMutation.isPending ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-            
           </div>
-        )}
 
-      </div>
+          <div className={styles.rosterFooter}>
+            <button 
+              type="button" 
+              className={styles.cancelBtn}
+              onClick={() => setActiveTab('templates')}
+            >
+              CANCEL
+            </button>
+            <button 
+              type="button" 
+              className={styles.saveBtn}
+              disabled={generateRosterMutation.isPending}
+              onClick={handleBulkAssignShift}
+            >
+              {generateRosterMutation.isPending ? 'SAVING...' : 'SAVE ROSTER'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Break Time Modal */}
       {breakModalOpen && (

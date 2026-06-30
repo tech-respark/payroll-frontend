@@ -184,57 +184,65 @@ const StaffDashboard = () => {
   );
 
   return (
-    <div className="dashboard">
-      <h2>Employee Directory</h2>
-      <div className={`staff-container ${styles.staffContainer}`}>
-        
-        {/* Left Sidebar: Staff List */}
-        <div className={`staff-sidebar ${styles.staffSidebar}`}>
-          <button onClick={handleCreateNew} className={`btn btn-primary ${styles.createBtn}`}>+ New Employee</button>
-          {isStaffLoading ? <p className={styles.loadingText}>Loading directory...</p> : (
-            <ul className="staff-list">
-              {staffList.map((staff) => (
-                <li 
-                  key={staff.id} 
-                  className={selectedStaff?.id === staff.id ? 'active' : ''}
-                  onClick={() => handleSelectStaff(staff)}
-                >
-                  <div className="staff-list-item-content">
-                    <div className="sidebar-avatar">
-                      {getInitials(staff.firstName, staff.lastName)}
-                    </div>
-                    <span>{staff.firstName} {staff.lastName}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+    <div className={styles.dashboardLayout}>
+      
+      {/* Left Sidebar: Staff List */}
+      <div className={styles.directoryPanel}>
+        <button onClick={handleCreateNew} className={styles.newEmployeeBtn}>
+          + New Employee
+        </button>
+        {isStaffLoading ? <p className={styles.loadingText}>Loading directory...</p> : (
+          <ul className={styles.employeeList}>
+            {staffList.map((staff) => (
+              <li 
+                key={staff.id} 
+                className={`${styles.employeeItem} ${selectedStaff?.id === staff.id ? styles.activeItem : ''}`}
+                onClick={() => handleSelectStaff(staff)}
+              >
+                <div className={styles.avatar}>
+                  {getInitials(staff.firstName, staff.lastName)}
+                </div>
+                <div className={styles.employeeInfo}>
+                  <span className={styles.employeeName}>{staff.firstName} {staff.lastName}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-        {/* Right Content: 360-Degree Employee Card */}
-        <div className="staff-content">
-          {(selectedStaff || isNew) ? (
-            <form onSubmit={handleSave} className={`staff-form payroll-card ${styles.staffForm}`}>
-              
-              {/* Profile Header Card */}
-              <div className={`profile-header ${styles.profileHeader}`}>
-                <div className="profile-info-group">
-                  <div className="profile-avatar">
-                    {isNew ? 'NEW' : getInitials(formData.firstName, formData.lastName)}
-                  </div>
-                  <div className="profile-title-container">
-                    <h2 className="profile-name">
-                      {isNew ? 'New Employee Profile' : `${formData.firstName} ${formData.lastName}`}
-                    </h2>
-                    <div className={styles.statusGroup}>
-                      <span className={`status-pill ${formData.active === 1 ? 'active' : 'inactive'}`}>
-                        {formData.active === 1 ? 'Active Employee' : 'Inactive'}
-                      </span>
-                      {!isNew && <span className={styles.staffId}>ID: {formData.id}</span>}
-                    </div>
-                  </div>
+      {/* Right Content: Profile Panel */}
+      <div className={styles.profilePanel}>
+        {(!selectedStaff && !isNew) ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <p>Select a staff member from the directory to view their profile.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSave} className={styles.profileContent}>
+            
+            {/* Profile Header Card */}
+            <div className={styles.profileHeader}>
+              <div className={styles.largeAvatar}>
+                {isNew ? 'NEW' : getInitials(formData.firstName, formData.lastName)}
+              </div>
+              <div className={styles.headerDetails}>
+                <h2 className={styles.profileName}>
+                  {isNew ? 'New Employee Profile' : `${formData.firstName} ${formData.lastName}`}
+                </h2>
+                <div className={styles.statusRow}>
+                  <span className={styles.statusBadge}>
+                    {formData.active === 1 ? 'Active Employee' : 'Inactive'}
+                  </span>
+                  {!isNew && <span className={styles.staffId}>ID: {formData.id}</span>}
                 </div>
               </div>
+            </div>
 
               {renderTabs()}
 
@@ -406,23 +414,18 @@ const StaffDashboard = () => {
               )}
 
               {/* Form Actions Footer */}
-              <div className={styles.footerActions}>
-                <button type="submit" className={`btn btn-primary ${styles.saveBtn}`} disabled={isSaving}>
+              <div className={styles.actionsRow}>
+                <button type="button" className={styles.cancelBtn} onClick={() => { setSelectedStaff(null); setIsNew(false); }}>
+                  Cancel
+                </button>
+                <button type="submit" className={styles.saveBtn} disabled={isSaving}>
                   {isSaving ? 'Saving...' : 'Save Profile'}
                 </button>
               </div>
             </form>
-          ) : (
-            <div className={`placeholder ${styles.placeholderContainer}`}>
-              <div className={styles.placeholderIconBox}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              </div>
-              <p className={styles.placeholderText}>Select a staff member from the directory to view their profile.</p>
-            </div>
           )}
         </div>
       </div>
-    </div>
   );
 };
 

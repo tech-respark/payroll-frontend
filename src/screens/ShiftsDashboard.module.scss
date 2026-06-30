@@ -1,402 +1,832 @@
-.layoutContainer {
+.dashboardLayout {
+  min-height: calc(100vh - var(--header-height));
   display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  width: 100%;
-}
-
-.payrollCard {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.settingsCard {
-  flex: 1;
-  max-width: 800px;
-}
-
-.settingsTitle {
-  margin: 0 0 24px 0;
-  color: #1e293b;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 12px;
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.formGroup {
-  margin-bottom: 16px;
-}
-
-.formGroupFull {
-  grid-column: 1 / -1;
-  margin-bottom: 16px;
-}
-
-.timeInput,
-.formInput,
-.formSelect {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-}
-
-.saveContainer {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.saveBtn {
-  width: auto;
-  padding: 12px 30px;
-}
-
-.infoCard {
-  width: 350px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  box-shadow: none;
-  border-radius: 8px;
-  padding: 24px;
-}
-
-.infoCardTitle {
-  font-size: 15px;
-  color: #334155;
-  margin-bottom: 12px;
-  margin-top: 0;
-}
-
-.infoCardText {
-  font-size: 13px;
-  color: #64748b;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.shiftSidebar {
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-  flex-shrink: 0;
-  width: 280px;
-  background: white;
-  padding: 20px;
-}
-
-.sidebarBtn {
-  width: 100%;
-  margin-bottom: 24px;
-}
-
-.sidebarTitle {
-  font-size: 14px;
-  text-transform: uppercase;
-  color: #64748b;
-  letter-spacing: 0.5px;
-  margin-bottom: 16px;
-  margin-top: 0;
-}
-
-.emptySidebarText {
-  color: #94a3b8;
-  font-size: 14px;
-  margin: 0;
-}
-
-.formCard {
-  flex: 1;
-}
-
-.rosterContainer {
-  width: 100%;
-  padding-bottom: 40px;
-}
-
-.globalOptionsBar {
-  display: grid;
-  grid-template-columns: 1fr 2fr 2fr;
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.rosterFormGroup {
-  margin: 0;
-}
-
-.rosterLabel {
-  font-size: 13px;
-  color: #64748b;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.rosterInput,
-.rosterSelect {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  flex-direction: column;
+  padding: 30px;
   box-sizing: border-box;
 }
 
-.rosterSelect {
-  background-color: #f8fafc;
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 24px 0;
 }
 
-.dateSelector {
+/* Tabs */
+.tabContainer {
   display: flex;
-  align-items: center;
-  background-color: white;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  overflow: hidden;
-}
-
-.dateBtn {
-  padding: 10px 16px;
-  background: white;
-  border: none;
-  border-right: 1px solid #cbd5e1;
-  color: #3f97ef;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.dateBtnNext {
-  padding: 10px 16px;
-  background: white;
-  border: none;
-  color: #3f97ef;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.dateBtnToday {
-  flex: 1;
-  padding: 10px 16px;
-  background: white;
-  border: none;
-  border-right: 1px solid #cbd5e1;
-  color: #3f97ef;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.dateDisplay {
-  padding: 10px 16px;
-  flex: 1;
-  text-align: center;
-  font-weight: 600;
-  border-right: 1px solid #cbd5e1;
-  font-size: 14px;
-}
-
-.listHeader {
-  display: grid;
-  grid-template-columns: 80px 2fr 1.5fr 1.5fr 1fr 1fr;
-  align-items: center;
-  padding: 16px 20px;
-  background-color: #f1f5f9;
-  border-radius: 8px 8px 0 0;
-  color: #475569;
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 10px;
-}
-
-.headerCheckbox {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-direction: column;
-}
-
-.headerCheckboxInput {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-.headerCheckboxLabel {
-  font-size: 11px;
-  text-align: center;
-  line-height: 1.2;
-}
-
-.staffRowsContainer {
-  display: flex;
-  flex-direction: column;
   gap: 8px;
+  background: var(--bg-card);
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  width: fit-content;
+  margin-bottom: 30px;
 }
 
-.staffRow {
-  display: grid;
-  grid-template-columns: 80px 2fr 1.5fr 1.5fr 1fr 1fr;
-  align-items: center;
-  padding: 16px 20px;
-  background-color: white;
-  border: 1px solid #e2e8f0;
+.tabBtn {
+  padding: 10px 24px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
   border-radius: 8px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover {
+    color: var(--text-dark);
+  }
 }
 
-.staffRowSelected {
-  border-color: #3f97ef;
+.tabBtnActive {
+  background: var(--primary-color);
+  color: white;
+  
+  &:hover {
+    color: white;
+  }
 }
 
-.centerCell {
+/* Tab 1: Shift Management */
+.shiftLayout {
   display: flex;
-  justify-content: center;
+  gap: 30px;
+  flex: 1;
 }
 
-.staffRowCheckbox {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: #3f97ef;
+.shiftSidebar {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .createShiftBtn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: var(--transition);
+    margin-bottom: 12px;
+    box-shadow: var(--primary-color-shadow);
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  .sidebarHeader {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 8px 0;
+  }
+
+  .shiftCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: var(--transition);
+
+    &:hover {
+      border-color: var(--primary-color);
+    }
+
+    &.active {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 1px var(--primary-color);
+    }
+
+    .cardHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+
+      h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-dark);
+      }
+
+      .defaultBadge {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-muted);
+        font-size: 10px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+    }
+
+    .cardTime {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+  }
 }
 
-.staffNameCell {
-  font-weight: 500;
-  color: #1e293b;
+.formPanel {
+  flex: 1;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+
+  .panelHeader {
+    padding: 30px;
+    border-bottom: 1px solid var(--border-color);
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+  }
+
+  .panelBody {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    flex: 1;
+  }
+
+  .formRow {
+    display: flex;
+    gap: 30px;
+  }
+
+  .formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input, select {
+      padding: 14px 16px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-dark);
+      font-size: 15px;
+      font-weight: 500;
+      transition: var(--transition);
+      appearance: none; /* For custom select */
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-color);
+      }
+    }
+
+    .selectWrapper {
+      position: relative;
+      
+      select {
+        width: 100%;
+      }
+
+      .selectIcon {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  .colorSelector {
+    display: flex;
+    gap: 16px;
+    
+    .colorCircle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: var(--transition);
+
+      &:hover {
+        transform: scale(1.1);
+      }
+
+      &.active {
+        box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-muted);
+      }
+    }
+  }
+
+  .panelFooter {
+    padding: 30px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+
+    .cancelBtn {
+      padding: 12px 24px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-dark);
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba(255,255,255,0.05);
+      }
+    }
+
+    .saveBtn {
+      padding: 12px 32px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--primary-color-shadow);
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+    }
+  }
 }
 
-.rosterTimeSelect {
-  width: 80%;
-  padding: 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  color: #334155;
-  background-color: white;
+/* Tab 2: Roster */
+.rosterContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
-.addBreakBtn {
-  background: white;
-  border: 1px solid #cbd5e1;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #475569;
-  cursor: pointer;
+.rosterTopBar {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 30px;
+  
+  .filterGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .filterInput {
+      padding: 12px 16px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-dark);
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 200px;
+    }
+
+    .selectWrapper {
+      position: relative;
+      
+      select {
+        width: 100%;
+        padding: 12px 16px;
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--text-dark);
+        font-size: 14px;
+        font-weight: 500;
+        min-width: 200px;
+        appearance: none;
+      }
+
+      .selectIcon {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  .dateSelectorGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .dateBox {
+      display: flex;
+      align-items: center;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      height: 44px;
+
+      .arrowBtn {
+        padding: 12px 16px;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        
+        &:hover {
+          background: rgba(255,255,255,0.05);
+          color: var(--text-dark);
+        }
+      }
+
+      .todayBtn, .tomorrowBtn {
+        padding: 12px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        cursor: pointer;
+        border: none;
+      }
+
+      .todayBtn {
+        background: rgba(63, 151, 239, 0.1);
+        color: var(--primary-color);
+        height: 100%;
+      }
+
+      .tomorrowBtn {
+        background: transparent;
+        color: var(--text-muted);
+        height: 100%;
+        &:hover {
+          color: var(--text-dark);
+        }
+      }
+
+      .dateText {
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-dark);
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+      }
+    }
+  }
 }
 
-.editBreakBtn {
-  background: #eff6ff;
-  border: 1px solid #3f97ef;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #3f97ef;
-  cursor: pointer;
+.rosterTable {
+  background: transparent;
+  border-radius: 16px;
+  flex: 1;
+
+  .tableHeader {
+    display: grid;
+    grid-template-columns: 80px 2fr 1fr 1fr 100px 100px;
+    padding: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    align-items: center;
+    margin-bottom: 16px;
+    
+    .center {
+      text-align: center;
+    }
+    
+    .checkboxHeader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 9px;
+      color: var(--primary-color);
+      cursor: pointer;
+    }
+  }
+
+  .tableBody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 30px;
+
+    .tableRow {
+      display: grid;
+      grid-template-columns: 80px 2fr 1fr 1fr 100px 100px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 20px;
+      align-items: center;
+
+      .staffInfo {
+        display: flex;
+        flex-direction: column;
+        
+        .name {
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--text-dark);
+        }
+        
+        .role {
+          font-size: 12px;
+          color: var(--text-muted);
+          margin-top: 4px;
+        }
+      }
+
+      .timeSelect {
+        padding: 10px 16px;
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-dark);
+        font-size: 14px;
+        font-weight: 500;
+        width: 140px;
+        appearance: none;
+      }
+      
+      .selectWrapper {
+        position: relative;
+        width: fit-content;
+        
+        .selectIcon {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          pointer-events: none;
+          color: var(--text-muted);
+        }
+      }
+
+      .center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .statusCircle {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #10b981;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+      
+      .statusCircleOff {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #ef4444;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      .actionBtn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 20px;
+        cursor: pointer;
+        transition: var(--transition);
+
+        &:hover {
+          color: var(--text-dark);
+        }
+      }
+      
+      .checkbox {
+        width: 20px;
+        height: 20px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        &.checked {
+          background: var(--primary-color);
+          border-color: var(--primary-color);
+          color: white;
+        }
+      }
+    }
+  }
 }
 
 .rosterFooter {
   display: flex;
   justify-content: flex-end;
   gap: 16px;
-  margin-top: 24px;
-  padding: 20px;
-  background-color: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 -4px 10px rgba(0,0,0,0.02);
+  padding-top: 20px;
+
+  .cancelBtn {
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-dark);
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .saveBtn {
+    padding: 12px 32px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--primary-color-shadow);
+  }
 }
 
-.rosterCancelBtn {
-  padding: 10px 24px;
-  width: auto;
+/* Tab 3: Store Settings */
+.settingsLayout {
+  display: flex;
+  gap: 30px;
 }
 
-.rosterSaveBtn {
-  padding: 10px 32px;
-  width: auto;
+.settingsPanel {
+  flex: 1;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+
+  .settingsHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 30px;
+    border-bottom: 1px solid var(--border-color);
+
+    .icon {
+      color: var(--primary-color);
+    }
+    
+    h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+  }
+
+  .settingsBody {
+    padding: 30px;
+    flex: 1;
+  }
+
+  .formRow {
+    display: flex;
+    gap: 30px;
+  }
+
+  .formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input {
+      padding: 14px 16px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-dark);
+      font-size: 15px;
+      font-weight: 500;
+      transition: var(--transition);
+
+      /* Fix time input icon color in dark mode */
+      color-scheme: dark;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-color);
+      }
+    }
+  }
+
+  .settingsFooter {
+    padding: 30px;
+    display: flex;
+    justify-content: flex-end;
+  }
 }
 
+.infoPanel {
+  width: 360px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--primary-color);
+  padding: 30px;
+  height: fit-content;
+
+  .infoHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    .icon {
+      color: var(--primary-color);
+    }
+
+    h4 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+  }
+
+  .infoText {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0 0 20px 0;
+  }
+  
+  .infoBox {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+  }
+}
+
+/* Modals */
 .modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.6);
-  z-index: 9999;
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(4px);
+  z-index: 1000;
 }
 
 .modalCard {
-  width: 400px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
   padding: 30px;
-  animation: fadeIn 0.2s ease-out;
-}
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  h3 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text-dark);
+  }
 }
 
 .modalTitle {
   margin: 0 0 20px 0;
-  color: #1e293b;
+  color: var(--text-dark);
 }
 
 .modalFormGroup {
   margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rosterLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .modalSelect {
   width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
-  background-color: white;
-  box-sizing: border-box;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-dark);
+  font-size: 14px;
 }
 
 .modalTimeGrid {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
 .modalTimeCol {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .modalFooter {
   display: flex;
   justify-content: space-between;
-  margin-top: 32px;
-  gap: 16px;
-}
-
-.removeBreakBtn {
-  background-color: #fee2e2;
-  color: #dc2626;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  width: auto;
-  height: fit-content;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
 }
 
 .modalActions {
@@ -404,31 +834,34 @@
   gap: 12px;
 }
 
+.removeBreakBtn {
+  color: #ef4444;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .modalCancelBtn {
-  background-color: white;
-  color: #475569;
-  border: 1px solid #cbd5e1;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 10px 20px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-dark);
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
-  width: auto;
-  height: fit-content;
 }
 
 .modalSaveBtn {
-  background-color: #3f97ef;
-  color: white;
+  padding: 10px 20px;
   border: none;
-  padding: 8px 24px;
-  border-radius: 6px;
-  font-size: 13px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
-  width: auto;
-  height: fit-content;
-  box-shadow: 0 2px 4px rgba(63, 151, 239, 0.2);
 }

@@ -1,45 +1,325 @@
-.punchesContainer {
+.dashboardWrapper {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.headerControls {
+/* Filter Card */
+.filterCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.filterRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filterInputs {
+  display: flex;
+  gap: 24px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.inputField {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: var(--text-dark);
+  font-size: 14px;
+  outline: none;
+
+  option {
+    background-color: var(--bg-card);
+    color: var(--text-dark);
+  }
+  
+  &:focus {
+    border-color: var(--primary-color);
+  }
+}
+
+.statusToggleGroup {
+  display: flex;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.statusToggleBtn {
+  background: transparent;
+  border: none;
+  padding: 10px 24px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.statusToggleBtnActive {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--primary-color-shadow);
+}
+
+/* Table Card */
+.tableCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  text-align: left;
+  padding: 16px 24px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.td {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-dark);
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.tr {
+  transition: var(--transition);
+  &:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+.staffCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(63, 151, 239, 0.15);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.staffName {
+  font-weight: 600;
+}
+
+.staffRole {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Status Pill */
+.statusPill {
+  display: inline-block;
+  padding: 4px 16px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  background: transparent;
+}
+
+.statusPending {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.statusApproved {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.statusRejected {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* Punch Blocks */
+.punchBlocksContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.punchBlock {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  width: max-content;
+}
+
+.punchIn {
+  background: rgba(59, 130, 246, 0.15);
+  border-left: 3px solid #3b82f6;
+  color: #60a5fa;
+  @media (prefers-color-scheme: light) {
+    color: #2563eb;
+  }
+}
+
+.punchOut {
+  background: rgba(245, 158, 11, 0.15);
+  border-left: 3px solid #f59e0b;
+  color: #fbbf24;
+  @media (prefers-color-scheme: light) {
+    color: #d97706;
+  }
+}
+
+/* Neon Actions */
+.actionsCell {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.neonBtn {
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  border: none;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.btnApprove {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.btnReject {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Checkbox */
+.checkbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:checked {
+    background: white;
+    border-color: white;
+  }
+  
+  &:checked::after {
+    content: "✓";
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: bold;
+  }
+}
+
+/* Pagination */
+.pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 16px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
 }
 
-.filterGroup {
+.pageControls {
   display: flex;
+  align-items: center;
   gap: 16px;
-  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
-.actionButtons {
-  margin-bottom: 16px;
+.pageArrows {
   display: flex;
   gap: 8px;
 }
 
-.tableContainer {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+.arrowBtn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  
+  &:hover {
+    color: var(--text-dark);
+    border-color: var(--text-muted);
+  }
 }
 
-.tableHead {
-  background-color: #f8fafc;
-}
 
-.tableHeadCell {
-  font-weight: bold;
-}
-
-.emptyStateCell {
-  padding-top: 24px;
-  padding-bottom: 24px;
-  color: rgba(0, 0, 0, 0.6);
-}

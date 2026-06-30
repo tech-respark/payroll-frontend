@@ -1,373 +1,465 @@
-.dashboardHeader {
-  margin-bottom: 24px;
-}
-
-.filterCard {
-  margin-bottom: 24px;
-  padding: 20px;
-  display: flex;
-  gap: 20px;
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-
-.formGroup {
-  flex: 1;
-  min-width: 150px;
-  margin: 0;
-}
-
-.formGroupLarge {
-  flex: 2;
-  min-width: 200px;
-  margin: 0;
-}
-
-.formLabel {
-  font-size: 13px;
-  color: #64748b;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.formSelect {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-}
-
-.calendarContainer {
-  display: flex;
-  gap: 24px;
-  min-height: 600px;
-}
-
-.calendarLeftPane {
-  flex: 1;
+.dashboardLayout {
+  min-height: calc(100vh - var(--header-height));
   display: flex;
   flex-direction: column;
+  padding: 30px;
+  box-sizing: border-box;
 }
 
-.calendarHeader {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-  padding: 16px;
+.pageHeader {
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 8px 0;
+}
+
+.breadcrumbs {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 16px 0;
+}
+
+.filterBar {
   display: flex;
-  justify-content: space-between;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 16px 24px;
+  gap: 24px;
   align-items: center;
 }
 
-.calendarTitle {
-  margin: 0;
-  color: #1e293b;
+.filterGroup {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
 }
 
-.calendarMonthYear {
-  font-weight: bold;
-  color: #334155;
+.filterGroupLarge {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
 }
 
-.loadingState {
+.filterLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.filterSelect {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-dark);
+  font-size: 14px;
+  font-weight: 500;
+  appearance: none;
+  cursor: pointer;
+  transition: var(--transition);
+
+  /* Force option colors so they don't inherit OS defaults that clash */
+  option {
+    background-color: var(--bg-card);
+    color: var(--text-dark);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+  }
+}
+
+.selectWrapper {
+  position: relative;
+  width: 100%;
+  
+  select {
+    width: 100%;
+  }
+
+  .selectIcon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #64748b;
+  }
+}
+
+.mainLayout {
+  display: flex;
+  gap: 30px;
+  margin-top: 24px;
   flex: 1;
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0 0 8px 8px;
+}
+
+.calendarContainer {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+.calendarLeftPane {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.detailsRightPane {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.calendarCard {
+  flex: 1;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calendarTitle {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #94a3b8;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+
+  .icon {
+    color: var(--text-muted);
+  }
+}
+
+.calendarMonthYear {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.calendarGridWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .calendarGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  background: var(--border-color);
   gap: 1px;
-  background-color: #e2e8f0;
-  border: 1px solid #e2e8f0;
-  border-radius: 0 0 8px 8px;
-  overflow: hidden;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .calendarWeekday {
-  background-color: #f8fafc;
-  padding: 10px 0;
+  background: var(--bg-card);
   text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.calendarBlankCell {
-  background-color: #ffffff;
-  min-height: 80px;
+  padding: 16px 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
 .calendarCell {
-  background-color: #ffffff;
-  min-height: 80px;
-  padding: 8px;
+  background: var(--bg-card);
+  min-height: 100px;
+  padding: 12px;
   cursor: pointer;
-  position: relative;
-  transition: all 0.1s;
-  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f8fafc;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  
+  /* For light mode hover */
+  @media (prefers-color-scheme: light) {
+    &:hover {
+      background: #f8fafc;
+    }
   }
 }
 
+.calendarBlankCell {
+  background: var(--bg-card);
+}
+
 .calendarCellSelected {
-  background-color: #eff6ff;
-  min-height: 80px;
-  padding: 8px;
+  background: var(--bg-card);
+  min-height: 100px;
+  padding: 12px;
   cursor: pointer;
-  position: relative;
-  transition: all 0.1s;
-  box-shadow: inset 0 0 0 2px #3f97ef;
+  display: flex;
+  flex-direction: column;
+  box-shadow: inset 0 0 0 2px var(--primary-color);
 }
 
 .calendarDayNum {
   font-size: 14px;
-  color: #334155;
-  font-weight: normal;
-}
-
-.calendarDayNumSelected {
-  font-size: 14px;
-  color: #3f97ef;
-  font-weight: bold;
+  font-weight: 600;
+  color: var(--text-dark);
 }
 
 .calendarStatus {
-  margin-top: 8px;
+  margin-top: auto;
   text-align: center;
-  font-weight: bold;
   font-size: 14px;
+  font-weight: 700;
 }
 
 .legendContainer {
-  margin-top: 16px;
-  font-size: 12px;
-  color: #64748b;
+  padding: 20px 24px;
   display: flex;
-  gap: 16px;
+  gap: 20px;
   flex-wrap: wrap;
-  background-color: white;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
 }
 
 .legendItem {
-  font-weight: bold;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.detailsRightPane {
-  width: 45%;
-  min-width: 400px;
-}
-
-.emptyDetails {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #94a3b8;
-}
-
-.detailsContainer {
+/* Right Panel */
+.detailsCard {
+  width: 440px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  overflow: hidden;
+  height: fit-content;
 }
 
 .detailsHeader {
-  background-color: #334155;
+  background: #1e293b;
   color: white;
-  padding: 16px;
-  border-radius: 8px 8px 0 0;
+  padding: 20px;
   text-align: center;
-  font-weight: 500;
   font-size: 16px;
+  font-weight: 600;
 }
 
 .detailsBody {
   padding: 24px;
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .metricsGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  background-color: #e2e8f0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 24px;
 }
 
-.metricCard {
-  flex: 1;
-  background-color: #f1f5f9;
-  padding: 16px;
+.metricCell {
+  background: var(--bg-card);
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  min-width: 150px;
-}
-
-.metricCardDanger {
-  flex: 1;
-  background-color: #fef2f2;
-  padding: 16px;
-  text-align: center;
-  min-width: 150px;
-}
-
-.metricCardPrimary {
-  flex: 1;
-  background-color: #eff6ff;
-  padding: 16px;
-  text-align: center;
-  min-width: 150px;
 }
 
 .metricLabel {
-  font-size: 12px;
-  color: #64748b;
-  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
   text-transform: uppercase;
-  font-weight: 600;
-}
-
-.metricLabelDanger {
-  font-size: 12px;
-  color: #991b1b;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.metricLabelPrimary {
-  font-size: 12px;
-  color: #1e3a8a;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
 }
 
 .metricValue {
-  font-size: 15px;
-  color: #334155;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
 }
 
 .metricValueBold {
-  font-size: 15px;
-  color: #334155;
-  font-weight: bold;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.metricLabelDanger {
+  color: #ef4444;
 }
 
 .metricValueDanger {
-  font-size: 15px;
   color: #ef4444;
-  font-weight: 500;
+}
+
+.metricLabelPrimary {
+  color: #3b82f6;
 }
 
 .punchIn {
   color: #10b981;
 }
 
-.punchDivider {
-  margin: 0 8px;
-  color: #cbd5e1;
-}
-
 .punchOut {
   color: #ef4444;
 }
 
+.punchDivider {
+  color: var(--text-muted);
+  margin: 0 4px;
+}
+
+.bgTintRed {
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+.bgTintGreen {
+  background: rgba(16, 185, 129, 0.08) !important;
+}
+
 .actionButtons {
   display: flex;
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: 12px;
 }
 
-.btnPrimaryIcon {
+.btnRegularize {
+  flex: 1;
+  padding: 12px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 12px 24px;
+  transition: var(--transition);
+  box-shadow: var(--primary-color-shadow);
+
+  &:hover {
+    transform: translateY(-2px);
+  }
 }
 
-.btnSecondaryIcon {
+.btnLeave {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 12px 24px;
-  background-color: white;
-  border: 1px solid #cbd5e1;
-  color: #334155;
+  transition: var(--transition);
+
+  &:hover {
+    background: rgba(255,255,255,0.05);
+  }
+}
+
+.balanceSection {
+  margin-top: 8px;
 }
 
 .balanceTabs {
-  border-bottom: 1px solid #e2e8f0;
-  margin-bottom: 20px;
+  display: flex;
+  gap: 30px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
 }
 
-.balanceTabActive {
-  display: inline-block;
-  padding: 10px 20px;
-  border-bottom: 2px solid #3f97ef;
-  color: #3f97ef;
+.tabActive {
+  color: var(--primary-color);
+  font-size: 14px;
   font-weight: 600;
-  font-size: 14px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-color);
+  cursor: pointer;
 }
 
-.balanceTabInactive {
-  display: inline-block;
-  padding: 10px 20px;
-  color: #64748b;
-  font-weight: 500;
+.tabInactive {
+  color: var(--text-muted);
   font-size: 14px;
+  font-weight: 500;
+  padding-bottom: 12px;
   cursor: pointer;
+  
+  &:hover {
+    color: var(--text-dark);
+  }
 }
 
 .leaveTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
-}
+  
+  th {
+    text-align: left;
+    padding: 12px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
+  }
 
-.leaveTableHeaderRow {
-  border-bottom: 1px solid #e2e8f0;
-  color: #64748b;
-}
+  td {
+    padding: 16px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dark);
+    border-bottom: 1px solid var(--border-color);
+  }
 
-.leaveTableHeader {
-  text-align: left;
-  padding: 12px 0;
-}
-
-.leaveTableRow {
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.leaveType {
-  padding: 12px 0;
-  color: #3f97ef;
-  font-weight: 500;
-}
-
-.leaveValue {
-  padding: 12px 0;
-  color: #334155;
+  .leaveTypeCol {
+    color: var(--primary-color);
+    font-weight: 600;
+  }
 }

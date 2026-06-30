@@ -88,7 +88,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
     
     const formattedPunches = punches.map((p, index) => ({
       ...p,
-      punchTime: p.punchTime.substring(0, 5),
+      punchTime: p.punchTime.length === 5 ? `${p.punchTime}` :  p.punchTime.substring(0, 5),
       punchEvent: index % 2 === 0 ? 'CHECKIN' : 'CHECKOUT',
       uploadSource: p.uploadSource || 'SYSTEM',
       currentStatus: p.isNew ? (canManage ? 'APPROVED' : 'PENDING') : (p.currentStatus || 'APPROVED'),

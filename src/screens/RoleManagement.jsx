@@ -98,11 +98,11 @@ const RoleManagement = () => {
   };
 
   return (
-    <div className="dashboard">
-      <div className={styles.header}>
-        <h2 className={styles.headerTitle}>Role Management</h2>
+    <div className={styles.dashboardLayout}>
+      <div className={styles.pageHeader} style={{ justifyContent: 'flex-end' }}>
         <button 
-          className={`btn btn-primary ${styles.headerBtn}`}
+
+          className={styles.createBtn}
           onClick={() => {
             setEditingRoleId(null);
             setNewRoleName('');
@@ -112,7 +112,7 @@ const RoleManagement = () => {
           }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Create New Role
+          CREATE NEW ROLE
         </button>
       </div>
 
@@ -121,10 +121,8 @@ const RoleManagement = () => {
 
         {/* LEFT: ROLES LIST */}
         <div className={styles.rolesListContainer}>
-          <div className={`payroll-card ${styles.rolesCard}`}>
-            <div className={styles.rolesCardHeader}>
-              <h3 className={styles.rolesCardTitle}>Active Security Roles</h3>
-            </div>
+          <h3 className={styles.rolesCardTitle}>Active Security Roles</h3>
+          <div className={styles.rolesList}>
 
             {loadingRoles ? (
               <div className={styles.rolesListLoading}>Loading...</div>
@@ -152,7 +150,11 @@ const RoleManagement = () => {
                         {role.description && <div className={styles.roleDesc}>{role.description}</div>}
                         <div className={styles.rolePermsCount}>{perms.length} permission{perms.length !== 1 ? 's' : ''}</div>
                       </div>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isActive ? '#3f97ef' : '#94a3b8'} strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      {isActive ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={styles.roleIconActive} strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={styles.roleIcon} strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      )}
                     </div>
                   );
                 })}
@@ -164,7 +166,7 @@ const RoleManagement = () => {
         {/* RIGHT: CREATE / EDIT FORM */}
         <div className={styles.formContainer}>
           {isModalOpen ? (
-            <div className={`payroll-card ${styles.formCard}`}>
+            <>
               
               {/* Form Header */}
               <div className={styles.formHeader}>
@@ -252,18 +254,18 @@ const RoleManagement = () => {
                   <button 
                     type="submit" 
                     disabled={loading}
-                    className={`${styles.submitBtn} ${loading ? styles.submitBtnDisabled : ''}`}
+                    className={styles.saveBtn}
                   >
-                    {loading ? 'Saving...' : (editingRoleId ? 'Save Changes' : 'Create Role')}
+                    {loading ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </form>
-            </div>
+            </>
           ) : (
-            <div className={`payroll-card ${styles.emptySelection}`}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" className={styles.emptyIcon}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
-              <h3 className={styles.emptyTitle}>Select a Role to Manage</h3>
-              <p className={styles.emptyDesc}>Choose a role from the left list to view and edit permissions, or create a brand new role.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, textAlign: 'center', color: 'var(--text-muted)' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+              <h3 style={{ marginTop: '16px', color: 'var(--text-dark)' }}>Select a Role to Manage</h3>
+              <p>Choose a role from the left list to view and edit permissions, or create a brand new role.</p>
             </div>
           )}
         </div>
