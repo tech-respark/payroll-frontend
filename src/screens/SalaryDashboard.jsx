@@ -18,7 +18,7 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 const SalaryDashboard = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
   const { showToast } = useToast();
-  const canManage = hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_SALARY']);
+  const canManage = hasAccess(['MANAGE_SALARY']);
   const [activeTab, setActiveTab] = useState('fixed');
   const { staffList } = useStaffList();
 

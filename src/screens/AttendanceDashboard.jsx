@@ -7,6 +7,7 @@ import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import AttendanceRegularizeModal from '../components/AttendanceRegularizeModal';
 import styles from './AttendanceDashboard.module.scss';
+import { Badge } from '../components/ui';
 import '../styles/main.scss';
 
 const MONTHS = [
@@ -25,6 +26,19 @@ const getStatusColor = (status) => {
     case 'WO': return '#94a3b8'; // Gray
     case 'PH': return '#d946ef'; // Pink
     default: return '#cbd5e1';
+  }
+};
+
+
+const getBadgeVariant = (status) => {
+  switch(status) {
+    case 'P': return 'success';
+    case 'A': return 'danger';
+    case 'HD': return 'warning';
+    case 'L': return 'default';
+    case 'WO': return 'default';
+    case 'PH': return 'default';
+    default: return 'default';
   }
 };
 
@@ -245,7 +259,7 @@ const AttendanceDashboard = () => {
             today.setHours(0,0,0,0);
             
             if (cellDate >= today && (!cell.status || cell.status === '' || cell.status === 'No Record')) {
-              history.push(`/submit-leave?startDate=${cell.dateStr}&endDate=${cell.dateStr}`);
+              history.push(`/leave-dashboard?startDate=${cell.dateStr}&endDate=${cell.dateStr}`);
             } else {
               setSelectedDateObj(cell);
             }
@@ -261,8 +275,8 @@ const AttendanceDashboard = () => {
                 {cell.dayNum}
               </div>
               {cell.status && (
-                <div className={styles.calendarStatus} style={{ color: getStatusColor(cell.status) }}>
-                  {cell.status}
+                <div className={styles.calendarStatus}>
+                  <Badge variant={getBadgeVariant(cell.status)}>{cell.status}</Badge>
                 </div>
               )}
             </div>
@@ -338,7 +352,7 @@ const AttendanceDashboard = () => {
             </button>
             <button 
               className={styles.btnLeave} 
-              onClick={() => history.push('/submit-leave')}
+              onClick={() => history.push('/leave-dashboard')}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
               Leave Application
@@ -431,12 +445,12 @@ const AttendanceDashboard = () => {
           )}
           
           <div className={styles.legendContainer}>
-            <span className={styles.legendItem} style={{ color: getStatusColor('P') }}>P - Present</span>
-            <span className={styles.legendItem} style={{ color: getStatusColor('HD') }}>HD - Half Day</span>
-            <span className={styles.legendItem} style={{ color: getStatusColor('A') }}>A - Absent</span>
-            <span className={styles.legendItem} style={{ color: getStatusColor('L') }}>L - Leave</span>
-            <span className={styles.legendItem} style={{ color: getStatusColor('WO') }}>WO - Weekly Off</span>
-            <span className={styles.legendItem} style={{ color: getStatusColor('PH') }}>PH - Public Holiday</span>
+            <Badge variant={getBadgeVariant('P')}>P - Present</Badge>
+            <Badge variant={getBadgeVariant('HD')}>HD - Half Day</Badge>
+            <Badge variant={getBadgeVariant('A')}>A - Absent</Badge>
+            <Badge variant={getBadgeVariant('L')}>L - Leave</Badge>
+            <Badge variant={getBadgeVariant('WO')}>WO - Weekly Off</Badge>
+            <Badge variant={getBadgeVariant('PH')}>PH - Public Holiday</Badge>
           </div>
         </div>
         

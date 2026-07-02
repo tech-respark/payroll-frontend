@@ -15,7 +15,7 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 
-const NavGroup = ({ title, icon: Icon, children, defaultOpen = true }) => {
+const NavGroup = ({ title, icon: Icon, children, defaultOpen = true, isCollapsed }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   
   // If no children (meaning permissions hid all sub-items), don't render group
@@ -23,54 +23,56 @@ const NavGroup = ({ title, icon: Icon, children, defaultOpen = true }) => {
   if (!hasChildren) return null;
 
   return (
-    <li className={styles.navGroupContainer}>
-      <div className={styles.navGroupHeader} onClick={() => setIsOpen(!isOpen)}>
+    <li className={`${styles.navGroupContainer} ${isCollapsed ? styles.collapsed : ''}`}>
+      <div className={styles.navGroupHeader} onClick={() => !isCollapsed && setIsOpen(!isOpen)}>
         <div className={styles.navGroupHeaderLeft}>
           <Icon className={styles.navGroupIcon} fontSize="small" />
-          <span>{title}</span>
+          {!isCollapsed && <span>{title}</span>}
         </div>
-        {isOpen ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+        {!isCollapsed && (isOpen ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />)}
       </div>
-      {isOpen && <ul className={styles.navGroupSubList}>{children}</ul>}
+      {(isOpen && !isCollapsed) && <ul className={styles.navGroupSubList}>{children}</ul>}
     </li>
   );
 };
 
-const Navigation = () => {
+const Navigation = ({ isCollapsed }) => {
   const { logout, hasAccess } = useAuth();
   const { storeConfig } = useStoreConfig();
 
   return (
-    <nav className={styles.mainNavigation}>
+    <nav className={`${styles.mainNavigation} ${isCollapsed ? styles.collapsed : ''}`}>
       <div className={styles.navBrand}>
         <div className={styles.brandLogo}>
           <span className={styles.logoIcon}>💼</span>
         </div>
-        <div className={styles.brandText}>
-          <h1>Relfor <span>Payroll</span></h1>
-          <p>Enterprise Suite</p>
-        </div>
+        {!isCollapsed && (
+          <div className={styles.brandText}>
+            <h1>Relfor <span>Payroll</span></h1>
+            <p>Enterprise Suite</p>
+          </div>
+        )}
       </div>
 
       <ul className={styles.navLinks}>
         
-        <NavGroup title="Staff Mgmt" icon={PeopleIcon} defaultOpen={true}>
+        <NavGroup title="Core Management" icon={PeopleIcon} isCollapsed={isCollapsed}>
           <li>
             <NavLink to="/staff" activeClassName={styles.activeLink}>
-              Staff Dashboard
+              Staff Details
             </NavLink>
           </li>
-          {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN']) && (
+          {hasAccess(['MANAGE_ROLES']) && (
             <li>
               <NavLink to="/roles" activeClassName={styles.activeLink}>
-                Role Management
+                Roles & Permissions
               </NavLink>
             </li>
           )}
         </NavGroup>
 
-        {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SHIFTS', 'MANAGE_SHIFTS']) && (
-          <NavGroup title="Shift & Roster Mgmt" icon={CalendarMonthIcon} defaultOpen={true}>
+        {hasAccess(['VIEW_SHIFTS', 'MANAGE_SHIFTS']) && (
+          <NavGroup title="Shift & Roster Mgmt" icon={CalendarMonthIcon} isCollapsed={isCollapsed}>
             <li>
               <NavLink to="/shifts" activeClassName={styles.activeLink}>
                 Shift Management
@@ -79,13 +81,13 @@ const Navigation = () => {
           </NavGroup>
         )}
 
-        <NavGroup title="Attendance Module" icon={EventAvailableIcon} defaultOpen={true}>
+        <NavGroup title="Attendance Module" icon={EventAvailableIcon} isCollapsed={isCollapsed}>
           <li>
             <NavLink to="/attendance" activeClassName={styles.activeLink}>
               Attendance
             </NavLink>
           </li>
-          {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_ATTENDANCE']) && (
+          {hasAccess(['MANAGE_ATTENDANCE']) && (
             <li>
               <NavLink to="/approvals" activeClassName={styles.activeLink}>
                 Regularization Approvals
@@ -94,8 +96,8 @@ const Navigation = () => {
           )}
         </NavGroup>
 
-        {hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'VIEW_SALARY', 'MANAGE_SALARY']) && (
-          <NavGroup title="Salary Mgmt" icon={PaymentsIcon} defaultOpen={true}>
+        {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY']) && (
+          <NavGroup title="Salary Mgmt" icon={PaymentsIcon} isCollapsed={isCollapsed}>
             <li>
               <NavLink to="/salary" activeClassName={styles.activeLink}>
                 Salary Management
@@ -109,7 +111,7 @@ const Navigation = () => {
           </NavGroup>
         )}
 
-        <NavGroup title="Leave Mgmt" icon={FlightTakeoffIcon} defaultOpen={true}>
+        <NavGroup title="Leave Management" icon={FlightTakeoffIcon} isCollapsed={isCollapsed}>
           {hasAccess(['MANAGE_LEAVES']) && (
             <li>
               <NavLink to="/leave-configuration" activeClassName={styles.activeLink}>
@@ -117,24 +119,15 @@ const Navigation = () => {
               </NavLink>
             </li>
           )}
-          {hasAccess(['VIEW_LEAVES', 'MANAGE_LEAVES']) && (
-            <li>
-              <NavLink to="/leave-dashboard" activeClassName={styles.activeLink}>
-                Leave Dashboard
-              </NavLink>
-            </li>
-          )}
+          <li>
+            <NavLink to="/leave-dashboard" activeClassName={styles.activeLink}>
+              My Leaves
+            </NavLink>
+          </li>
           {hasAccess(['MANAGE_LEAVES']) && (
             <li>
               <NavLink to="/leave-approvals" activeClassName={styles.activeLink}>
-                Leave Approval
-              </NavLink>
-            </li>
-          )}
-          {hasAccess(['VIEW_LEAVES', 'MANAGE_LEAVES']) && (
-            <li>
-              <NavLink to="/submit-leave" activeClassName={styles.activeLink}>
-                Request Leave
+                Leave Approvals
               </NavLink>
             </li>
           )}
@@ -151,10 +144,12 @@ const Navigation = () => {
           </div>
         </div>
         
-        <button onClick={logout} className={styles.signOutBtn}>
-          <LogoutIcon fontSize="small" />
-          <span>Sign Out</span>
-        </button>
+        <div className={styles.logoutWrapper}>
+          <button onClick={logout} className={`${styles.logoutButton} ${isCollapsed ? styles.collapsedBtn : ''}`}>
+            <LogoutIcon fontSize="small" />
+            {!isCollapsed && <span>Logout</span>}
+          </button>
+        </div>
       </div>
     </nav>
   );

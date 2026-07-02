@@ -12,7 +12,7 @@ const ShiftsDashboard = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   
-  const canManage = hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_SHIFTS']);
+  const canManage = hasAccess(['MANAGE_SHIFTS']);
   
   // Tabs: 'settings', 'templates', 'roster'
   const [activeTab, setActiveTab] = useState('templates');

@@ -12,7 +12,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
   const { hasAccess } = useAuth();
   const { showToast } = useToast();
   // An admin has MANAGE_ATTENDANCE
-  const canManage = hasAccess(['ROLE_MANAGER', 'ROLE_ADMIN', 'MANAGE_ATTENDANCE']);
+  const canManage = hasAccess(['MANAGE_ATTENDANCE']);
 
   const [punches, setPunches] = useState([]);
   const [loading, setLoading] = useState(false);

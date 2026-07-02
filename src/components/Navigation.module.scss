@@ -200,7 +200,7 @@ $text-light: #ffffff;
       }
     }
 
-    .signOutBtn {
+    .logoutButton {
       width: 100%;
       padding: 12px;
       background: transparent;
@@ -256,6 +256,64 @@ $text-light: #ffffff;
     .navFooter {
       margin: 20px -16px -20px -16px;
       padding: 16px;
+    }
+  }
+}
+
+.mainNavigation.collapsed {
+  width: 80px;
+  
+  .navBrand {
+    justify-content: center;
+    padding: 24px 0;
+    
+    .brandText {
+      display: none;
+    }
+  }
+
+  .navLinks {
+    padding: 0 8px;
+    
+    .navGroupContainer {
+      .navGroupHeader {
+        justify-content: center;
+        padding: 12px 0;
+        
+        .navGroupHeaderLeft span {
+          display: none;
+        }
+      }
+      
+      .navGroupSubList {
+        display: none; // sublists aren't great in collapsed mode, or we can just hide them
+      }
+    }
+  }
+
+  .navFooter {
+    .storeCard {
+      justify-content: center;
+      padding: 12px 0;
+      
+      .storeDetails {
+        display: none;
+      }
+    }
+    
+    .logoutWrapper {
+      display: flex;
+      justify-content: center;
+    }
+    
+    .logoutButton.collapsedBtn {
+      padding: 12px 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      span {
+        display: none;
+      }
     }
   }
 }

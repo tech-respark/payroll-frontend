@@ -530,7 +530,22 @@
 .expContainer {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 2rem;
+}
+
+.fullWidthProfile {
+  flex: 1 1 100%;
+}
+
+.readOnlyBanner {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color, #ef4444);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  text-align: center;
 }
 
 .expRow {

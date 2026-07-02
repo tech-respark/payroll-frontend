@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useStaffList, useRoles } from '../hooks/queries';
 import { useSaveStaff } from '../hooks/mutations';
 import styles from './StaffDashboard.module.scss';
+import { Button } from '../components/ui';
 import '../styles/main.scss';
 
 const StaffDashboard = () => {
@@ -49,6 +50,18 @@ const StaffDashboard = () => {
 
   const { staffList, rawStaffList, isLoading: isStaffLoading } = useStaffList();
   const { roles: rolesList } = useRoles();
+
+  const canViewOtherStaff = hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF']);
+  const canManageStaff = hasAccess(['MANAGE_STAFF']);
+
+  useEffect(() => {
+    if (!canViewOtherStaff && staffList.length > 0 && !selectedStaff) {
+      const me = staffList.find(s => String(s.id) === String(user?.staffId || user?.id));
+      if (me) {
+        handleSelectStaff(me);
+      }
+    }
+  }, [canViewOtherStaff, staffList, user, selectedStaff]);
 
   const fetchStaffRole = async (staffId) => {
     try {
@@ -154,7 +167,7 @@ const StaffDashboard = () => {
         showToast("Password is required for new staff", "error");
         return;
     }
-    if (payload.id) delete payload.pwd;
+    if (payload.id && !payload.pwd) delete payload.pwd;
     
     saveStaff(payload);
   };
@@ -186,11 +199,14 @@ const StaffDashboard = () => {
   return (
     <div className={styles.dashboardLayout}>
       
-      {/* Left Sidebar: Staff List */}
+      {/* Left Sidebar: Staff List - ONLY FOR MANAGERS/ADMINS */}
+      {canViewOtherStaff && (
       <div className={styles.directoryPanel}>
-        <button onClick={handleCreateNew} className={styles.newEmployeeBtn}>
-          + New Employee
-        </button>
+        {canManageStaff && (
+          <button onClick={handleCreateNew} className={styles.newEmployeeBtn}>
+            + New Employee
+          </button>
+        )}
         {isStaffLoading ? <p className={styles.loadingText}>Loading directory...</p> : (
           <ul className={styles.employeeList}>
             {staffList.map((staff) => (
@@ -210,9 +226,10 @@ const StaffDashboard = () => {
           </ul>
         )}
       </div>
+      )}
 
       {/* Right Content: Profile Panel */}
-      <div className={styles.profilePanel}>
+      <div className={`${styles.profilePanel} ${!canViewOtherStaff ? styles.fullWidthProfile : ''}`}>
         {(!selectedStaff && !isNew) ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
@@ -225,6 +242,7 @@ const StaffDashboard = () => {
           </div>
         ) : (
           <form onSubmit={handleSave} className={styles.profileContent}>
+            {!canManageStaff && <div className={styles.readOnlyBanner}>You are viewing your profile in read-only mode. Contact HR to request changes.</div>}
             
             {/* Profile Header Card */}
             <div className={styles.profileHeader}>
@@ -398,7 +416,7 @@ const StaffDashboard = () => {
                         <div key={idx} className={styles.expRow}>
                           <div className={styles.expHeader}>
                             <h4 className={styles.expTitle}>Experience #{idx + 1}</h4>
-                            <button type="button" onClick={() => handleRemoveArrayItem('personnelWorkExperienceDetailsList', idx)} className={styles.removeTextBtn}>Remove</button>
+                            <Button type="button" variant="danger" onClick={() => handleRemoveArrayItem('personnelWorkExperienceDetailsList', idx)}>Remove</Button>
                           </div>
                           <div className={styles.formGrid}>
                             <div className={styles.formGroup}><label className={styles.formLabel}>Company Name</label><input type="text" className={styles.formInput} value={exp.companyName} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'companyName', e.target.value)} /></div>
@@ -415,12 +433,8 @@ const StaffDashboard = () => {
 
               {/* Form Actions Footer */}
               <div className={styles.actionsRow}>
-                <button type="button" className={styles.cancelBtn} onClick={() => { setSelectedStaff(null); setIsNew(false); }}>
-                  Cancel
-                </button>
-                <button type="submit" className={styles.saveBtn} disabled={isSaving}>
-                  {isSaving ? 'Saving...' : 'Save Profile'}
-                </button>
+                <Button type="button" variant="outline" onClick={() => { setSelectedStaff(null); setIsNew(false); }}>Cancel</Button>
+                {canManageStaff && <Button type="submit" variant="primary" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Profile'}</Button>}
               </div>
             </form>
           )}
@@ -429,5 +443,6 @@ const StaffDashboard = () => {
   );
 };
 
-export default StaffDashboard;
 
+
+export default StaffDashboard;

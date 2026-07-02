@@ -6,8 +6,9 @@ import styles from './TopHeader.module.scss';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import MenuIcon from '@mui/icons-material/Menu';
 
-const TopHeader = () => {
+const TopHeader = ({ onMenuClick, isCollapsed }) => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
@@ -59,7 +60,12 @@ const TopHeader = () => {
   return (
     <header className={styles.topHeader}>
       <div className={styles.headerLeft}>
-        <h2 className={styles.pageTitle}>{getPageTitle()}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+          <button className={styles.iconBtn} onClick={onMenuClick} title="Toggle Menu" style={{ marginLeft: '-10px', background: 'transparent' }}>
+            <MenuIcon fontSize="small" />
+          </button>
+          <h2 className={styles.pageTitle} style={{ margin: 0 }}>{getPageTitle()}</h2>
+        </div>
         <div className={styles.breadcrumbs}>{getBreadcrumbs()}</div>
       </div>
       <div className={styles.headerRight}>
