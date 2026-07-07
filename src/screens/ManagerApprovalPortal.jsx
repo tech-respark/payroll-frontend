@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import styles from './ManagerApprovalPortal.module.scss';
 import { apiService } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 const ManagerApprovalPortal = ({ managerId = 1 }) => {
-  const [requests, setRequests] = useState([]);
   const [selectedReq, setSelectedReq] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [remarks, setRemarks] = useState('');
@@ -16,41 +16,44 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
   const { tenantId, storeId } = useAuth();
   const { showToast } = useToast();
 
-  useEffect(() => {
-    const fetchPending = async () => {
-      try {
-        const data = await apiService.get(`/leaves/applications/pending?tenantId=${tenantId}&storeId=${storeId}`);
-        setRequests(data);
-      } catch (err) {
-        console.error("Failed to fetch pending requests", err);
-      }
-    };
-    if (tenantId && storeId) fetchPending();
-  }, [tenantId, storeId]);
+  const queryClient = useQueryClient();
 
-  const openDetails = async (req) => {
+  const { data: requests = [], isLoading: loadingRequests } = useQuery({
+    queryKey: ['pendingLeaves', tenantId, storeId],
+    queryFn: async () => {
+      const data = await apiService.get(`/leaves/applications/pending?tenantId=${tenantId}&storeId=${storeId}`);
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!tenantId && !!storeId
+  });
+
+  const { data: selectedStaffData, isLoading: loadingDetails } = useQuery({
+    queryKey: ['staffLeaveDetails', selectedReq?.staffId],
+    queryFn: async () => {
+      const balanceData = await apiService.get(`/leaves/balances/all/${selectedReq.staffId}?tenantId=${tenantId}&storeId=${storeId}`);
+      const historyData = await apiService.get(`/leaves/applications/staff/${selectedReq.staffId}`);
+      return { balanceData, historyData };
+    },
+    enabled: !!selectedReq?.staffId
+  });
+
+  useEffect(() => {
+    if (selectedStaffData && selectedReq) {
+      const targetBalance = selectedStaffData.balanceData.find(b => b.typeId === selectedReq.leaveType?.id);
+      setCurrentBalance(targetBalance ? targetBalance.available : null);
+      
+      const currentMonth = new Date().getMonth();
+      const thisMonthHistory = selectedStaffData.historyData.filter(h => new Date(h.startDate).getMonth() === currentMonth);
+      setLeaveHistory(thisMonthHistory);
+    }
+  }, [selectedStaffData, selectedReq]);
+
+  const openDetails = (req) => {
     setSelectedReq(req);
     setRemarks('');
     setCurrentBalance(null);
     setLeaveHistory([]);
     setIsModalOpen(true);
-
-    try {
-      const balanceData = await apiService.get(`/leaves/balances/all/${req.staffId}?tenantId=${tenantId}&storeId=${storeId}`);
-      const targetBalance = balanceData.find(b => b.typeId === req.leaveType?.id);
-      if (targetBalance) {
-        setCurrentBalance(targetBalance.available);
-      }
-      
-      const historyData = await apiService.get(`/leaves/applications/staff/${req.staffId}`);
-      // Filter for this month
-      const currentMonth = new Date().getMonth();
-      const thisMonthHistory = historyData.filter(h => new Date(h.startDate).getMonth() === currentMonth);
-      setLeaveHistory(thisMonthHistory);
-      
-    } catch (err) {
-      console.error("Failed to fetch details", err);
-    }
   };
 
   const closeDetails = () => {
@@ -58,58 +61,67 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
     setIsModalOpen(false);
   };
 
-  const handleAction = async (action, req = selectedReq) => {
-    if (!req) return;
-    
-    let endpoint = '';
-    if (action === 'approve') {
-      endpoint = req.status === 'CANCELLATION_REQUESTED' ? `approve-cancellation` : `approve`;
-    } else if (action === 'reject') {
-      endpoint = `reject`;
-    }
-
-    // Capture remarks if we are currently looking at this request in the modal, else empty string
-    const finalRemarks = req === selectedReq ? remarks : '';
-
-    try {
-      await apiService.post(`/leaves/${req.id}/${endpoint}`, { managerId, remarks: finalRemarks });
-      showToast(`Request ${action}d successfully`, 'success');
-      setRequests(prev => prev.filter(r => r.id !== req.id));
-      setSelectedIds(prev => prev.filter(id => id !== req.id));
-      if (req === selectedReq) {
+  const actionMutation = useMutation({
+    mutationFn: async ({ reqId, endpoint, remarks }) => {
+      return await apiService.post(`/leaves/${reqId}/${endpoint}`, { managerId, remarks });
+    },
+    onSuccess: (data, variables) => {
+      if (variables.reqId === selectedReq?.id) {
         closeDetails();
       }
-    } catch (err) {
-      showToast(err.message || "Action failed", 'error');
+      setSelectedIds(prev => prev.filter(id => id !== variables.reqId));
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['pendingLeaves'] });
     }
+  });
+
+  const handleAction = (action, req = selectedReq) => {
+    if (!req) return;
+    let endpoint = action === 'approve' 
+      ? (req.status === 'CANCELLATION_REQUESTED' ? 'approve-cancellation' : 'approve')
+      : (req.status === 'CANCELLATION_REQUESTED' ? 'reject-cancellation' : 'reject');
+    const finalRemarks = req === selectedReq ? remarks : '';
+    
+    actionMutation.mutate(
+      { reqId: req.id, endpoint, remarks: finalRemarks },
+      {
+        onSuccess: () => showToast(`Request ${action}d successfully`, 'success'),
+        onError: (err) => showToast(err.message || "Action failed", 'error')
+      }
+    );
   };
-  
-  const handleBulkAction = async (action) => {
-    if (selectedIds.length === 0) return;
-    try {
-      for (const id of selectedIds) {
+
+  const bulkActionMutation = useMutation({
+    mutationFn: async ({ action, ids }) => {
+      for (const id of ids) {
         const req = requests.find(r => r.id === id);
         if (req) {
-          let endpoint = '';
-          if (action === 'approve') {
-            endpoint = req.status === 'CANCELLATION_REQUESTED' ? `approve-cancellation` : `approve`;
-          } else if (action === 'reject') {
-            endpoint = `reject`;
-          }
-          await apiService.post(`/leaves/${req.id}/${endpoint}`, { managerId, remarks: '' });
+          let endpoint = action === 'approve' 
+            ? (req.status === 'CANCELLATION_REQUESTED' ? 'approve-cancellation' : 'approve') 
+            : (req.status === 'CANCELLATION_REQUESTED' ? 'reject-cancellation' : 'reject');
+          await apiService.post(`/leaves/${req.id}/${endpoint}`, { managerId, remarks: action === 'approve' ? 'Bulk Approved' : 'Bulk Rejected' });
         }
       }
-      showToast(`Bulk ${action}d ${selectedIds.length} requests successfully`, 'success');
-      setRequests(prev => prev.filter(r => !selectedIds.includes(r.id)));
+    },
+    onSuccess: (_, variables) => {
+      showToast(`Bulk ${variables.action}d ${variables.ids.length} requests successfully`, 'success');
       setSelectedIds([]);
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['pendingLeaves'] });
+    },
+    onError: (err) => {
       showToast(err.message || "Bulk action failed", 'error');
     }
+  });
+
+  const handleBulkAction = (action) => {
+    if (selectedIds.length === 0) return;
+    bulkActionMutation.mutate({ action, ids: selectedIds });
   };
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedIds(requests.slice(0, 3).map(r => r.id));
+      setSelectedIds(requests.map(r => r.id));
     } else {
       setSelectedIds([]);
     }
@@ -152,8 +164,12 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
           <div className={styles.tableTitle}>Pending Requests</div>
           {selectedIds.length > 0 && (
             <div className={styles.bulkActions}>
-              <button className={styles.bulkBtnReject} onClick={() => handleBulkAction('reject')}>✕ Reject ({selectedIds.length})</button>
-              <button className={styles.bulkBtn} onClick={() => handleBulkAction('approve')}>✓ Approve ({selectedIds.length})</button>
+              <button className={styles.bulkBtnReject} onClick={() => handleBulkAction('reject')} disabled={bulkActionMutation.isPending}>
+                {bulkActionMutation.isPending && bulkActionMutation.variables?.action === 'reject' ? 'Processing...' : `✕ Reject (${selectedIds.length})`}
+              </button>
+              <button className={styles.bulkBtn} onClick={() => handleBulkAction('approve')} disabled={bulkActionMutation.isPending}>
+                {bulkActionMutation.isPending && bulkActionMutation.variables?.action === 'approve' ? 'Processing...' : `✓ Approve (${selectedIds.length})`}
+              </button>
             </div>
           )}
         </div>
@@ -164,7 +180,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                 <input 
                   type="checkbox" 
                   onChange={handleSelectAll} 
-                  checked={requests.length > 0 && selectedIds.length === Math.min(requests.length, 3)} 
+                  checked={requests.length > 0 && selectedIds.length === requests.length} 
                 />
               </th>
               <th>STAFF ID & NAME</th>
@@ -176,7 +192,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
             </tr>
           </thead>
           <tbody>
-            {requests.slice(0, 3).map((req, idx) => {
+            {requests.map((req, idx) => {
               const staffName = req.staffName || "Unknown Staff";
               return (
               <tr key={req.id} onClick={() => openDetails(req)} className={styles.clickableRow}>
@@ -225,12 +241,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
         </table>
         <div className={styles.tableFooter}>
           <div className={styles.showingText}>
-            SHOWING 1-{Math.min(requests.length, 3)} OF {requests.length} PENDING REQUESTS
-          </div>
-          <div className={styles.pagination}>
-            <button>&lt;</button>
-            <button className={styles.active}>1</button>
-            <button>&gt;</button>
+            SHOWING {requests.length} PENDING REQUEST{requests.length !== 1 ? 'S' : ''}
           </div>
         </div>
       </div>
@@ -325,7 +336,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                               <span style={{
                                 fontSize: '0.65rem', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600,
                                 border: '1px solid ' + (h.status === 'APPROVED' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'),
-                                color: h.status === 'APPROVED' ? '#93C5FD' : '#F59E0B'
+                                color: h.status === 'APPROVED' ? '#2563EB' : '#D97706'
                               }}>
                                 {h.status}
                               </span>
@@ -347,8 +358,12 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
             </div>
             
             <div className={styles.modalFooter}>
-              <button className={styles.rejectBtn} onClick={() => handleAction('reject')}>Reject Request</button>
-              <button className={styles.approveBtn} onClick={() => handleAction('approve')}>Approve Request</button>
+              <button className={styles.rejectBtn} onClick={() => handleAction('reject')} disabled={actionMutation.isPending}>
+                {actionMutation.isPending && actionMutation.variables?.endpoint === 'reject' ? 'Processing...' : 'Reject Request'}
+              </button>
+              <button className={styles.approveBtn} onClick={() => handleAction('approve')} disabled={actionMutation.isPending}>
+                {actionMutation.isPending && actionMutation.variables?.endpoint !== 'reject' ? 'Processing...' : 'Approve Request'}
+              </button>
             </div>
           </div>
         </div>

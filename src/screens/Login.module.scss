@@ -25,10 +25,10 @@
 .formGroup { display: flex; flex-direction: column; gap: 8px; }
 .label { font-size: 14px; color: var(--text-dark); font-weight: 600; }
 .input {
-  padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 12px;
+  padding: 14px 16px; border: 1px solid var(--input-border, var(--border-color)); border-radius: 12px;
   font-size: 15px; color: var(--text-dark); outline: none; transition: var(--transition);
   font-family: var(--secondary-font); background: var(--bg-white);
-  &:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px var(--primary-color-alpha); }
+  &:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(63, 151, 239, 0.2); }
 }
 .button {
   background: var(--primary-color); color: white; padding: 14px; border-radius: 12px;
@@ -36,4 +36,71 @@
   box-shadow: var(--primary-color-shadow); transition: var(--transition);
   &:hover:not(:disabled) { transform: translateY(-2px); }
   &:disabled { opacity: 0.7; cursor: not-allowed; }
+}
+
+.forgotBtn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  text-align: center;
+  width: 100%;
+  &:hover { text-decoration: underline; }
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--bg-white);
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 20px;
+  color: var(--text-dark);
+}
+
+.modalText {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  button {
+    flex: 1;
+  }
+}
+
+.cancelBtn {
+  background: #f1f3f5;
+  color: var(--text-dark);
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover { background: #e9ecef; }
 }

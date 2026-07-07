@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import styles from './LeaveConfiguration.module.scss';
 import { apiService } from '../api/apiService';
 import { useStaffList } from '../hooks/queries';
@@ -7,25 +8,25 @@ import { useToast } from '../context/ToastContext';
 
 const LeaveConfiguration = () => {
   const [activeTab, setActiveTab] = useState('types');
-  const [leaveTypes, setLeaveTypes] = useState([]);
-  const [leavePlans, setLeavePlans] = useState([]);
   const { tenantId, storeId } = useAuth();
-
-  const fetchTypes = async () => {
-    try {
+  
+  const { data: leaveTypes = [] } = useQuery({
+    queryKey: ['leaveTypes', tenantId, storeId],
+    queryFn: async () => {
       const data = await apiService.get(`/admin/leave-plans/leave-types?tenantId=${tenantId}&storeId=${storeId}`);
-      setLeaveTypes(Array.isArray(data) ? data : []);
-    } catch (err) { console.error(err); }
-  };
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!tenantId && !!storeId
+  });
 
-  const fetchPlans = async () => {
-    try {
+  const { data: leavePlans = [] } = useQuery({
+    queryKey: ['leavePlans', tenantId, storeId],
+    queryFn: async () => {
       const data = await apiService.get(`/admin/leave-plans/plans?tenantId=${tenantId}&storeId=${storeId}`);
-      setLeavePlans(Array.isArray(data) ? data : []);
-    } catch (err) { console.error(err); }
-  };
-
-  useEffect(() => { fetchTypes(); fetchPlans(); }, []);
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!tenantId && !!storeId
+  });
 
   const TABS = [
     { id: 'types', label: 'Leave Types' },
@@ -63,8 +64,8 @@ const LeaveConfiguration = () => {
 
       {/* Content */}
       <div className={styles.tabContent}>
-        {activeTab === 'types'      && <LeaveTypesTab types={leaveTypes} refresh={fetchTypes} />}
-        {activeTab === 'plans'      && <LeavePlansTab plans={leavePlans} types={leaveTypes} refresh={fetchPlans} />}
+        {activeTab === 'types'      && <LeaveTypesTab types={leaveTypes} />}
+        {activeTab === 'plans'      && <LeavePlansTab plans={leavePlans} types={leaveTypes} />}
         {activeTab === 'enrollment' && <EnrollmentTab plans={leavePlans} />}
       </div>
     </div>
@@ -74,7 +75,7 @@ const LeaveConfiguration = () => {
 /* ─────────────────────────────────────────────────────────────────
    TAB 1 — LEAVE TYPES
 ───────────────────────────────────────────────────────────────── */
-const LeaveTypesTab = ({ types, refresh }) => {
+const LeaveTypesTab = ({ types }) => {
   const { tenantId, storeId } = useAuth();
   const { showToast } = useToast();
   const [formData, setFormData] = useState({ leaveCode: '', leaveName: '', description: '', paid: true });
@@ -89,16 +90,20 @@ const LeaveTypesTab = ({ types, refresh }) => {
   const paginated = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await apiService.post('/admin/leave-plans/leave-types', { ...formData, tenantId, storeId });
+  const queryClient = useQueryClient();
+  const createTypeMutation = useMutation({
+    mutationFn: (payload) => apiService.post('/admin/leave-plans/leave-types', payload),
+    onSuccess: () => {
       showToast('Leave Type created!', 'success');
       setFormData({ leaveCode: '', leaveName: '', description: '', paid: true });
-      refresh();
-    } catch (err) {
-      showToast(err.message || 'Failed to create Leave Type', 'error');
-    }
+      queryClient.invalidateQueries({ queryKey: ['leaveTypes'] });
+    },
+    onError: (err) => showToast(err.message || 'Failed to create Leave Type', 'error')
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createTypeMutation.mutate({ ...formData, tenantId, storeId });
   };
 
   return (
@@ -157,7 +162,9 @@ const LeaveTypesTab = ({ types, refresh }) => {
             />
           </div>
 
-          <button type="submit" className={styles.primaryBtn}>Save Type</button>
+          <button type="submit" className={styles.primaryBtn} disabled={createTypeMutation.isPending}>
+            {createTypeMutation.isPending ? 'Saving...' : 'Save Type'}
+          </button>
         </form>
       </div>
 
@@ -234,59 +241,69 @@ const LeaveTypesTab = ({ types, refresh }) => {
 /* ─────────────────────────────────────────────────────────────────
    TAB 2 — LEAVE PLANS & RULES
 ───────────────────────────────────────────────────────────────── */
-const LeavePlansTab = ({ plans, types, refresh }) => {
+const LeavePlansTab = ({ plans, types }) => {
   const { tenantId, storeId } = useAuth();
   const { showToast } = useToast();
   const [planForm, setPlanForm] = useState({ planName: '', effectiveYear: new Date().getFullYear() });
   const [ruleForm, setRuleForm] = useState({ planId: '', leaveTypeId: '', annualAllotment: '', maxConsecutiveDays: '', proofRequiredAfterDays: '', allowNegativeBalance: false });
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [editModal, setEditModal] = useState(null); // plan object
-  const [mappedRules, setMappedRules] = useState([]);
+  const queryClient = useQueryClient();
 
-  // When a plan is selected in the rule form, load its mapped rules
-  const loadRulesForPlan = async (planId) => {
-    if (!planId) { setMappedRules([]); return; }
-    try {
-      const data = await apiService.get(`/admin/leave-plans/plans/${planId}/rules?tenantId=${tenantId}&storeId=${storeId}`);
-      setMappedRules(Array.isArray(data) ? data : []);
-    } catch { setMappedRules([]); }
-  };
+  const { data: mappedRules = [] } = useQuery({
+    queryKey: ['leaveRules', ruleForm.planId],
+    queryFn: async () => {
+      const data = await apiService.get(`/admin/leave-plans/plans/${ruleForm.planId}/rules?tenantId=${tenantId}&storeId=${storeId}`);
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!ruleForm.planId
+  });
 
-  const handlePlanSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await apiService.post('/admin/leave-plans/plans', { ...planForm, tenantId, storeId });
+  const createPlanMutation = useMutation({
+    mutationFn: (payload) => apiService.post('/admin/leave-plans/plans', payload),
+    onSuccess: () => {
       showToast('Plan created!', 'success');
       setPlanForm({ planName: '', effectiveYear: new Date().getFullYear() });
-      refresh();
-    } catch (err) {
-      showToast(err.message || 'Failed to create Plan', 'error');
-    }
-  };
+      queryClient.invalidateQueries({ queryKey: ['leavePlans'] });
+    },
+    onError: (err) => showToast(err.message || 'Failed to create Plan', 'error')
+  });
 
-  const handleRuleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await apiService.post('/admin/leave-plans/map-rules', ruleForm);
+  const mapRuleMutation = useMutation({
+    mutationFn: (payload) => apiService.post('/admin/leave-plans/map-rules', payload),
+    onSuccess: () => {
       showToast('Rule mapped successfully!', 'success');
       setRuleForm({ planId: ruleForm.planId, leaveTypeId: '', annualAllotment: '', maxConsecutiveDays: '', proofRequiredAfterDays: '', allowNegativeBalance: false });
-      loadRulesForPlan(ruleForm.planId);
-    } catch (err) {
-      showToast(err.message || 'Failed to map rule', 'error');
-    }
+      queryClient.invalidateQueries({ queryKey: ['leaveRules', ruleForm.planId] });
+    },
+    onError: (err) => showToast(err.message || 'Failed to map rule', 'error')
+  });
+
+  const deleteRuleMutation = useMutation({
+    mutationFn: (ruleId) => apiService.post(`/admin/leave-plans/rules/${ruleId}/delete`),
+    onSuccess: () => {
+      showToast('Rule removed.', 'success');
+      queryClient.invalidateQueries({ queryKey: ['leaveRules', ruleForm.planId] });
+    },
+    onError: () => showToast('Failed to delete rule', 'error')
+  });
+
+  const handlePlanSubmit = (e) => {
+    e.preventDefault();
+    createPlanMutation.mutate({ ...planForm, tenantId, storeId });
   };
 
-  const handleDeleteRule = async (ruleId) => {
-    try {
-      await apiService.post(`/admin/leave-plans/rules/${ruleId}/delete`);
-      showToast('Rule removed.', 'success');
-      loadRulesForPlan(ruleForm.planId);
-    } catch { showToast('Failed to delete rule', 'error'); }
+  const handleRuleSubmit = (e) => {
+    e.preventDefault();
+    mapRuleMutation.mutate(ruleForm);
+  };
+
+  const handleDeleteRule = (ruleId) => {
+    deleteRuleMutation.mutate(ruleId);
   };
 
   const handlePlanSelect = (planId) => {
     setRuleForm(f => ({ ...f, planId }));
-    loadRulesForPlan(planId);
   };
 
   const getTypeName = (id) => types.find(t => String(t.id) === String(id))?.leaveName || '—';
@@ -476,7 +493,7 @@ const LeavePlansTab = ({ plans, types, refresh }) => {
             try {
               await apiService.post(`/admin/leave-plans/plans/${updated.id}/update`, updated);
               showToast('Plan updated!', 'success');
-              refresh();
+              queryClient.invalidateQueries({ queryKey: ['leavePlans'] });
               setEditModal(null);
             } catch (err) {
               showToast(err.message || 'Failed to update plan', 'error');
@@ -573,29 +590,32 @@ const EnrollmentTab = ({ plans }) => {
   const { showToast } = useToast();
   const { staffList = [], isLoading } = useStaffList();
   const [enrollForm, setEnrollForm] = useState({ planId: '', staffId: '' });
-  const [enrollments, setEnrollments] = useState([]);
   const [dirPage, setDirPage] = useState(0);
   const DIR_PAGE_SIZE = 4;
+  const queryClient = useQueryClient();
 
-  const fetchEnrollments = async () => {
-    try {
+  const { data: enrollments = [] } = useQuery({
+    queryKey: ['enrollments', tenantId, storeId],
+    queryFn: async () => {
       const data = await apiService.get(`/admin/leave-plans/enrollments?tenantId=${tenantId}&storeId=${storeId}`);
-      setEnrollments(Array.isArray(data) ? data : []);
-    } catch { setEnrollments([]); }
-  };
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!tenantId && !!storeId
+  });
 
-  useEffect(() => { fetchEnrollments(); }, []);
-
-  const handleEnroll = async (e) => {
-    e.preventDefault();
-    try {
-      await apiService.post(`/admin/leave-plans/plans/${enrollForm.planId}/assign/${enrollForm.staffId}?tenantId=${tenantId}&storeId=${storeId}`);
+  const enrollMutation = useMutation({
+    mutationFn: () => apiService.post(`/admin/leave-plans/plans/${enrollForm.planId}/assign/${enrollForm.staffId}?tenantId=${tenantId}&storeId=${storeId}`),
+    onSuccess: () => {
       showToast('Staff successfully enrolled in plan!', 'success');
       setEnrollForm({ planId: '', staffId: '' });
-      fetchEnrollments();
-    } catch (err) {
-      showToast(err.message || 'Failed to enroll staff', 'error');
-    }
+      queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+    },
+    onError: (err) => showToast(err.message || 'Failed to enroll staff', 'error')
+  });
+
+  const handleEnroll = (e) => {
+    e.preventDefault();
+    enrollMutation.mutate();
   };
 
   const getInitials = (name) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??';

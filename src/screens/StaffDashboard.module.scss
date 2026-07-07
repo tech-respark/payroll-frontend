@@ -298,24 +298,24 @@
   width: 100%;
   padding: 10px 14px;
   border-radius: 6px;
-  border: 1px solid #cbd5e1;
-  background-color: white;
+  border: 1px solid var(--input-border, var(--border-color));
+  background-color: var(--bg-white);
   box-sizing: border-box;
   font-family: inherit;
   font-size: 14px;
-  color: #334155;
+  color: var(--text-dark);
   transition: border-color 0.2s, box-shadow 0.2s;
 
   &:focus {
     outline: none;
-    border-color: #3f97ef;
-    box-shadow: 0 0 0 3px rgba(63, 151, 239, 0.1);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(63, 151, 239, 0.15);
   }
 }
 
 .formLabel {
   font-size: 13px;
-  color: #64748b;
+  color: var(--text-label);
   margin-bottom: 6px;
   display: block;
   font-weight: 500;
@@ -336,7 +336,7 @@
 
 .weeklyOffLabel {
   font-size: 13px;
-  color: #64748b;
+  color: var(--text-label);
   margin-bottom: -8px;
 }
 
@@ -349,9 +349,9 @@
 .weeklyOffBtn {
   padding: 8px 16px;
   border-radius: 20px;
-  border: 1px solid #cbd5e1;
-  background-color: white;
-  color: #64748b;
+  border: 1px solid var(--input-border, var(--border-color));
+  background-color: var(--bg-white);
+  color: var(--text-muted);
   cursor: pointer;
   text-transform: capitalize;
   font-weight: 500;
@@ -361,9 +361,9 @@
 .weeklyOffBtnActive {
   padding: 8px 16px;
   border-radius: 20px;
-  border: 1px solid #3f97ef;
-  background-color: #eff6ff;
-  color: #3f97ef;
+  border: 1px solid var(--primary-color);
+  background-color: rgba(63, 151, 239, 0.1);
+  color: var(--primary-color);
   cursor: pointer;
   text-transform: capitalize;
   font-weight: 500;
@@ -371,7 +371,7 @@
 }
 
 .emptyStateText {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-style: italic;
   margin: 0;
 }
@@ -387,9 +387,9 @@
   gap: 16px;
   align-items: flex-start;
   padding: 16px;
-  background-color: #f8fafc;
+  background-color: var(--bg-subtle);
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .docFormGroup {
@@ -416,9 +416,9 @@
 
 .expRow {
   padding: 20px;
-  background-color: #f8fafc;
+  background-color: var(--bg-subtle);
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .expHeader {
@@ -429,7 +429,7 @@
 
 .expTitle {
   margin: 0;
-  color: #334155;
+  color: var(--text-dark);
 }
 
 .removeTextBtn {

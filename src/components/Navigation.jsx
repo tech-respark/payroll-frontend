@@ -7,6 +7,7 @@ import StoreIcon from '@mui/icons-material/Store';
 import LogoutIcon from '@mui/icons-material/Logout';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 // Menu Icons
 import PeopleIcon from '@mui/icons-material/People';
@@ -15,16 +16,14 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 
-const NavGroup = ({ title, icon: Icon, children, defaultOpen = true, isCollapsed }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  
+const NavGroup = ({ title, icon: Icon, children, isOpen, onToggleGroup, isCollapsed }) => {
   // If no children (meaning permissions hid all sub-items), don't render group
   const hasChildren = React.Children.toArray(children).some(child => child !== false);
   if (!hasChildren) return null;
 
   return (
     <li className={`${styles.navGroupContainer} ${isCollapsed ? styles.collapsed : ''}`}>
-      <div className={styles.navGroupHeader} onClick={() => !isCollapsed && setIsOpen(!isOpen)}>
+      <div className={styles.navGroupHeader} onClick={() => !isCollapsed && onToggleGroup()}>
         <div className={styles.navGroupHeaderLeft}>
           <Icon className={styles.navGroupIcon} fontSize="small" />
           {!isCollapsed && <span>{title}</span>}
@@ -36,27 +35,48 @@ const NavGroup = ({ title, icon: Icon, children, defaultOpen = true, isCollapsed
   );
 };
 
-const Navigation = ({ isCollapsed }) => {
+const Navigation = ({ isCollapsed, onToggle }) => {
   const { logout, hasAccess } = useAuth();
   const { storeConfig } = useStoreConfig();
+  const [openGroup, setOpenGroup] = useState('Core Management');
+
+  const handleGroupToggle = (title) => {
+    setOpenGroup(prev => prev === title ? null : title);
+  };
 
   return (
     <nav className={`${styles.mainNavigation} ${isCollapsed ? styles.collapsed : ''}`}>
       <div className={styles.navBrand}>
-        <div className={styles.brandLogo}>
+        <div 
+          className={styles.brandLogo} 
+          onClick={isCollapsed ? onToggle : undefined}
+          style={{ cursor: isCollapsed ? 'pointer' : 'default' }}
+          title={isCollapsed ? "Expand Menu" : ""}
+        >
           <span className={styles.logoIcon}>💼</span>
         </div>
         {!isCollapsed && (
-          <div className={styles.brandText}>
-            <h1>Relfor <span>Payroll</span></h1>
-            <p>Enterprise Suite</p>
-          </div>
+          <>
+            <div className={styles.brandText}>
+              <h1>Relfor <span>Payroll</span></h1>
+              <p>Enterprise Suite</p>
+            </div>
+            <button className={styles.collapseBtn} onClick={onToggle} title="Collapse Menu">
+              <ChevronLeftIcon fontSize="small" />
+            </button>
+          </>
         )}
       </div>
 
       <ul className={styles.navLinks}>
         
-        <NavGroup title="Core Management" icon={PeopleIcon} isCollapsed={isCollapsed}>
+        <NavGroup 
+          title="Core Management" 
+          icon={PeopleIcon} 
+          isCollapsed={isCollapsed}
+          isOpen={openGroup === 'Core Management'}
+          onToggleGroup={() => handleGroupToggle('Core Management')}
+        >
           <li>
             <NavLink to="/staff" activeClassName={styles.activeLink}>
               Staff Details
@@ -72,7 +92,13 @@ const Navigation = ({ isCollapsed }) => {
         </NavGroup>
 
         {hasAccess(['VIEW_SHIFTS', 'MANAGE_SHIFTS']) && (
-          <NavGroup title="Shift & Roster Mgmt" icon={CalendarMonthIcon} isCollapsed={isCollapsed}>
+          <NavGroup 
+            title="Shift & Roster Mgmt" 
+            icon={CalendarMonthIcon} 
+            isCollapsed={isCollapsed}
+            isOpen={openGroup === 'Shift & Roster Mgmt'}
+            onToggleGroup={() => handleGroupToggle('Shift & Roster Mgmt')}
+          >
             <li>
               <NavLink to="/shifts" activeClassName={styles.activeLink}>
                 Shift Management
@@ -81,7 +107,13 @@ const Navigation = ({ isCollapsed }) => {
           </NavGroup>
         )}
 
-        <NavGroup title="Attendance Module" icon={EventAvailableIcon} isCollapsed={isCollapsed}>
+        <NavGroup 
+          title="Attendance Module" 
+          icon={EventAvailableIcon} 
+          isCollapsed={isCollapsed}
+          isOpen={openGroup === 'Attendance Module'}
+          onToggleGroup={() => handleGroupToggle('Attendance Module')}
+        >
           <li>
             <NavLink to="/attendance" activeClassName={styles.activeLink}>
               Attendance
@@ -97,7 +129,13 @@ const Navigation = ({ isCollapsed }) => {
         </NavGroup>
 
         {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY']) && (
-          <NavGroup title="Salary Mgmt" icon={PaymentsIcon} isCollapsed={isCollapsed}>
+          <NavGroup 
+            title="Salary Mgmt" 
+            icon={PaymentsIcon} 
+            isCollapsed={isCollapsed}
+            isOpen={openGroup === 'Salary Mgmt'}
+            onToggleGroup={() => handleGroupToggle('Salary Mgmt')}
+          >
             <li>
               <NavLink to="/salary" activeClassName={styles.activeLink}>
                 Salary Management
@@ -111,7 +149,13 @@ const Navigation = ({ isCollapsed }) => {
           </NavGroup>
         )}
 
-        <NavGroup title="Leave Management" icon={FlightTakeoffIcon} isCollapsed={isCollapsed}>
+        <NavGroup 
+          title="Leave Management" 
+          icon={FlightTakeoffIcon} 
+          isCollapsed={isCollapsed}
+          isOpen={openGroup === 'Leave Management'}
+          onToggleGroup={() => handleGroupToggle('Leave Management')}
+        >
           {hasAccess(['MANAGE_LEAVES']) && (
             <li>
               <NavLink to="/leave-configuration" activeClassName={styles.activeLink}>

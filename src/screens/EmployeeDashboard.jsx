@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import styles from './EmployeeDashboard.module.scss';
 import StatusBadge from '../components/StatusBadge';
@@ -10,10 +11,6 @@ const EmployeeDashboard = () => {
   const { user, tenantId, storeId } = useAuth();
   const staffId = user?.staffId || user?.id || 1;
   const { showToast } = useToast();
-
-  const [balances, setBalances] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -30,34 +27,33 @@ const EmployeeDashboard = () => {
   const [leaveSession, setLeaveSession] = useState('FULL_DAY');
   const [calculatedDuration, setCalculatedDuration] = useState(0);
 
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      // Fetch History
-      const historyData = await apiService.get(`/leaves/applications/staff/${staffId}`);
-      setHistory(Array.isArray(historyData) ? historyData : []);
-      
-      // Fetch Balances
-      const balanceData = await apiService.get(`/leaves/balances/all/${staffId}?tenantId=${tenantId}&storeId=${storeId}`);
-      const mappedBalances = (Array.isArray(balanceData) ? balanceData : []).map((b) => ({
+  const queryClient = useQueryClient();
+
+  const { data: history = [], isLoading: loadingHistory } = useQuery({
+    queryKey: ['leaveHistory', staffId],
+    queryFn: async () => {
+      const res = await apiService.get(`/leaves/applications/staff/${staffId}`);
+      return Array.isArray(res) ? res : [];
+    },
+    enabled: !!staffId
+  });
+
+  const { data: balances = [], isLoading: loadingBalances } = useQuery({
+    queryKey: ['leaveBalances', staffId, tenantId, storeId],
+    queryFn: async () => {
+      const res = await apiService.get(`/leaves/balances/all/${staffId}?tenantId=${tenantId}&storeId=${storeId}`);
+      return (Array.isArray(res) ? res : []).map((b) => ({
         id: b.typeId,
         type: b.typeName,
         code: b.code || b.typeName.substring(0, 3).toUpperCase(),
         available: b.available,
         annualAllotment: b.annualAllotment || 20,
       }));
-      setBalances(mappedBalances);
-    } catch (err) {
-      console.error("Error fetching dashboard data", err);
-      showToast("Failed to load dashboard data", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    enabled: !!staffId
+  });
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [staffId]);
+  const loading = loadingHistory || loadingBalances;
 
   // Duration Calculation Logic
   useEffect(() => {
@@ -79,18 +75,45 @@ const EmployeeDashboard = () => {
     }
   }, [formData.startDate, formData.endDate, leaveSession]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = { ...formData, staffId, tenantId, storeId, leaveSession };
-      await apiService.post(`/leaves/apply`, payload);
+  const submitLeaveMutation = useMutation({
+    mutationFn: (payload) => apiService.post(`/leaves/apply`, payload),
+    onSuccess: () => {
       showToast("Leave request submitted successfully!", 'success');
-      // Reset form
       handleCancel();
-      // Refresh balances and history seamlessly
-      fetchDashboardData();
-    } catch (err) {
-      showToast(err.message || "Failed to submit request.", 'error');
+      queryClient.invalidateQueries({ queryKey: ['leaveBalances', staffId] });
+      queryClient.invalidateQueries({ queryKey: ['leaveHistory', staffId] });
+    },
+    onError: (err) => {
+      console.error(err);
+      showToast(err.message || 'Error submitting leave request', 'error');
+    }
+  });
+
+  const cancelLeaveMutation = useMutation({
+    mutationFn: (applicationId) => apiService.post(`/leaves/${applicationId}/cancel`, {
+      staffId: staffId,
+      remarks: "Cancelled by employee"
+    }),
+    onSuccess: () => {
+      showToast("Leave cancelled successfully", "success");
+      queryClient.invalidateQueries({ queryKey: ['leaveBalances', staffId] });
+      queryClient.invalidateQueries({ queryKey: ['leaveHistory', staffId] });
+    },
+    onError: (err) => {
+      console.error(err);
+      showToast(err.message || "Failed to cancel leave", "error");
+    }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const payload = { ...formData, staffId, tenantId, storeId, leaveSession };
+    submitLeaveMutation.mutate(payload);
+  };
+
+  const handleCancelLeave = (applicationId) => {
+    if (window.confirm("Are you sure you want to cancel this leave application?")) {
+      cancelLeaveMutation.mutate(applicationId);
     }
   };
 
@@ -236,7 +259,9 @@ const EmployeeDashboard = () => {
 
             <div className={styles.formActions}>
               <button type="button" className={styles.cancelBtn} onClick={handleCancel}>Clear Form</button>
-              <button type="submit" className={styles.submitBtn}>Submit Request</button>
+              <button type="submit" className={styles.submitBtn} disabled={submitLeaveMutation.isPending}>
+                {submitLeaveMutation.isPending ? 'Submitting...' : 'Submit Request'}
+              </button>
             </div>
           </form>
         </div>
@@ -303,6 +328,15 @@ const EmployeeDashboard = () => {
               <div className={styles.historyCardDetails}>
                 {req.leaveType?.name || 'Leave'} • {req.requestedDays} {req.requestedDays === 1 ? 'Day' : 'Days'}
               </div>
+              {(req.status === 'PENDING' || req.status === 'APPROVED') && (
+                <button 
+                  className={styles.cancelActionBtn} 
+                  onClick={() => handleCancelLeave(req.id)}
+                  disabled={cancelLeaveMutation.isPending}
+                >
+                  {cancelLeaveMutation.isPending ? 'Cancelling...' : 'Cancel Leave'}
+                </button>
+              )}
             </div>
           )) : (
             <div className={styles.emptyState}>No recent leave requests found.</div>

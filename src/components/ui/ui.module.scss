@@ -67,7 +67,7 @@
 
 .label {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--text-label);
   font-weight: 500;
 }
 
@@ -75,7 +75,7 @@
   width: 100%;
   background-color: var(--bg-white);
   color: var(--text-dark);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--input-border, var(--border-color));
   padding: 12px 16px;
   border-radius: 6px;
   font-size: 14px;
@@ -84,7 +84,7 @@
   
   &:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px var(--primary-color-alpha);
+    box-shadow: 0 0 0 2px rgba(63, 151, 239, 0.2);
   }
   
   &:disabled {
@@ -98,7 +98,7 @@
   border-radius: 8px;
   border: 1px solid var(--border-color);
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .cardHeader {

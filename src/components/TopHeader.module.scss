@@ -4,8 +4,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 30px;
-  background-color: var(--bg-color); /* Usually matches app background in new UI */
+  background-color: var(--header-bg);
   color: var(--text-dark);
+  border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 99;
@@ -25,7 +26,7 @@
     
     .breadcrumbs {
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--text-label);
       font-weight: 500;
       font-family: var(--secondary-font);
     }
@@ -38,7 +39,7 @@
 
     .iconBtn {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--input-border, var(--border-color));
       color: var(--text-muted);
       width: 40px;
       height: 40px;

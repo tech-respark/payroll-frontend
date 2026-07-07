@@ -52,7 +52,7 @@ const AppContent = () => {
 
   return (
     <div className="app-layout">
-      <Navigation isCollapsed={isSidebarCollapsed} />
+      <Navigation isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
       <div 
         className="content-wrapper" 
         style={{ 
