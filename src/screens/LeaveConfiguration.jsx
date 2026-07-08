@@ -79,6 +79,7 @@ const LeaveTypesTab = ({ types }) => {
   const { tenantId, storeId } = useAuth();
   const { showToast } = useToast();
   const [formData, setFormData] = useState({ leaveCode: '', leaveName: '', description: '', paid: true });
+  const [editingType, setEditingType] = useState(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 4;
@@ -101,9 +102,39 @@ const LeaveTypesTab = ({ types }) => {
     onError: (err) => showToast(err.message || 'Failed to create Leave Type', 'error')
   });
 
+  const editTypeMutation = useMutation({
+    mutationFn: (payload) => apiService.put(`/admin/leave-plans/leave-types/${editingType.id}`, payload),
+    onSuccess: () => {
+      showToast('Leave Type updated!', 'success');
+      setFormData({ leaveCode: '', leaveName: '', description: '', paid: true });
+      setEditingType(null);
+      queryClient.invalidateQueries({ queryKey: ['leaveTypes'] });
+    },
+    onError: (err) => showToast(err.message || 'Failed to update Leave Type', 'error')
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    createTypeMutation.mutate({ ...formData, tenantId, storeId });
+    if (editingType) {
+      editTypeMutation.mutate({ ...formData, tenantId, storeId });
+    } else {
+      createTypeMutation.mutate({ ...formData, tenantId, storeId });
+    }
+  };
+
+  const handleEditClick = (type) => {
+    setEditingType(type);
+    setFormData({
+      leaveCode: type.leaveCode || '',
+      leaveName: type.leaveName || '',
+      description: type.description || '',
+      paid: type.paid !== false
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingType(null);
+    setFormData({ leaveCode: '', leaveName: '', description: '', paid: true });
   };
 
   return (
@@ -111,8 +142,8 @@ const LeaveTypesTab = ({ types }) => {
       {/* LEFT — Create Form */}
       <div className={styles.formCard}>
         <div className={styles.formCardHeader}>
-          <span className={styles.formCardIcon}>⊕</span>
-          <span className={styles.formCardTitle}>Create New Leave Type</span>
+          <span className={styles.formCardIcon}>{editingType ? '✏️' : '⊕'}</span>
+          <span className={styles.formCardTitle}>{editingType ? 'Edit Leave Type' : 'Create New Leave Type'}</span>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -162,9 +193,16 @@ const LeaveTypesTab = ({ types }) => {
             />
           </div>
 
-          <button type="submit" className={styles.primaryBtn} disabled={createTypeMutation.isPending}>
-            {createTypeMutation.isPending ? 'Saving...' : 'Save Type'}
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button type="submit" className={styles.primaryBtn} disabled={createTypeMutation.isPending || editTypeMutation.isPending} style={{ flex: 1 }}>
+              {createTypeMutation.isPending || editTypeMutation.isPending ? 'Saving...' : editingType ? 'Update Type' : 'Save Type'}
+            </button>
+            {editingType && (
+              <button type="button" className={styles.secondaryBtn} onClick={handleCancelEdit} style={{ flex: 1, border: '1px solid #E2E8F0', background: 'transparent', color: '#64748B', borderRadius: '8px', fontWeight: '500', cursor: 'pointer' }}>
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -209,8 +247,7 @@ const LeaveTypesTab = ({ types }) => {
                 </td>
                 <td>
                   <div className={styles.actionBtns}>
-                    <button className={styles.iconBtn} title="Edit">✏️</button>
-                    <button className={styles.iconBtn} title="Delete">🗑️</button>
+                    <button className={styles.iconBtn} title="Edit" onClick={() => handleEditClick(t)}>✏️</button>
                   </div>
                 </td>
               </tr>
@@ -223,14 +260,6 @@ const LeaveTypesTab = ({ types }) => {
           <div className={styles.paginationBtns}>
             <button className={styles.pageBtn} onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>‹</button>
             <button className={styles.pageBtn} onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>›</button>
-          </div>
-        </div>
-
-        <div className={styles.smartRulesBanner}>
-          <span className={styles.infoIcon}>ℹ️</span>
-          <div>
-            <div className={styles.smartRulesTitle}>Smart Rules Engine</div>
-            <div className={styles.smartRulesText}>All leave types created here automatically sync with the global payroll calendar and shift roster.</div>
           </div>
         </div>
       </div>
