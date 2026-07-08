@@ -539,6 +539,34 @@ const LeavePlansTab = ({ plans, types }) => {
 ───────────────────────────────────────────────────────────────── */
 const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
   const [form, setForm] = useState({ id: plan.id, planName: plan.planName, effectiveYear: plan.effectiveYear });
+  const [editingRuleId, setEditingRuleId] = useState(null);
+  const [editingRuleData, setEditingRuleData] = useState({});
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+
+  const editRuleMutation = useMutation({
+    mutationFn: (payload) => apiService.put(`/admin/leave-plans/rules/${payload.id}`, payload),
+    onSuccess: () => {
+      showToast('Rule updated!', 'success');
+      setEditingRuleId(null);
+      queryClient.invalidateQueries({ queryKey: ['leaveRules', String(plan.id)] });
+    },
+    onError: (err) => showToast(err.message || 'Failed to update rule', 'error')
+  });
+
+  const handleEditClick = (rule) => {
+    setEditingRuleId(rule.id);
+    setEditingRuleData({
+      id: rule.id,
+      annualAllotment: rule.annualAllotment,
+      maxConsecutiveDays: rule.maxConsecutiveDays || '',
+      proofRequiredAfterDays: rule.proofRequiredAfterDays || ''
+    });
+  };
+
+  const handleSaveRule = () => {
+    editRuleMutation.mutate(editingRuleData);
+  };
 
   const getTypeName = (id) => types.find(t => String(t.id) === String(id))?.leaveName || '—';
 
@@ -588,14 +616,32 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
               ) : mappedRules.map(r => (
                 <tr key={r.id}>
                   <td>{getTypeName(r.leaveTypeId)}</td>
-                  <td>{r.annualAllotment} Days</td>
-                  <td>
-                    {[
-                      r.proofRequiredAfterDays && `Proof after ${r.proofRequiredAfterDays} days`,
-                      r.maxConsecutiveDays && `Max ${r.maxConsecutiveDays} consecutive`,
-                    ].filter(Boolean).join(' · ') || '—'}
-                  </td>
-                  <td><button className={styles.iconBtn}>✏️</button></td>
+                  {editingRuleId === r.id ? (
+                    <>
+                      <td>
+                        <input className={styles.input} style={{width: '70px', padding: '4px'}} value={editingRuleData.annualAllotment} onChange={e => setEditingRuleData({...editingRuleData, annualAllotment: e.target.value})} type="number" />
+                      </td>
+                      <td style={{ display: 'flex', gap: '8px' }}>
+                        <input className={styles.input} style={{width: '70px', padding: '4px'}} placeholder="Max Days" title="Max Consecutive Days" value={editingRuleData.maxConsecutiveDays} onChange={e => setEditingRuleData({...editingRuleData, maxConsecutiveDays: e.target.value})} type="number" />
+                        <input className={styles.input} style={{width: '70px', padding: '4px'}} placeholder="Proof After" title="Proof Required After (Days)" value={editingRuleData.proofRequiredAfterDays} onChange={e => setEditingRuleData({...editingRuleData, proofRequiredAfterDays: e.target.value})} type="number" />
+                      </td>
+                      <td>
+                        <button className={styles.iconBtn} onClick={handleSaveRule} disabled={editRuleMutation.isPending} title="Save">💾</button>
+                        <button className={styles.iconBtn} onClick={() => setEditingRuleId(null)} title="Cancel">✕</button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{r.annualAllotment} Days</td>
+                      <td>
+                        {[
+                          r.proofRequiredAfterDays && `Proof after ${r.proofRequiredAfterDays} days`,
+                          r.maxConsecutiveDays && `Max ${r.maxConsecutiveDays} consecutive`,
+                        ].filter(Boolean).join(' · ') || '—'}
+                      </td>
+                      <td><button className={styles.iconBtn} onClick={() => handleEditClick(r)} title="Edit Rule">✏️</button></td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>
