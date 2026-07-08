@@ -616,32 +616,14 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
               ) : mappedRules.map(r => (
                 <tr key={r.id}>
                   <td>{getTypeName(r.leaveTypeId)}</td>
-                  {editingRuleId === r.id ? (
-                    <>
-                      <td>
-                        <input className={styles.input} style={{width: '70px', padding: '4px'}} value={editingRuleData.annualAllotment} onChange={e => setEditingRuleData({...editingRuleData, annualAllotment: e.target.value})} type="number" />
-                      </td>
-                      <td style={{ display: 'flex', gap: '8px' }}>
-                        <input className={styles.input} style={{width: '70px', padding: '4px'}} placeholder="Max Days" title="Max Consecutive Days" value={editingRuleData.maxConsecutiveDays} onChange={e => setEditingRuleData({...editingRuleData, maxConsecutiveDays: e.target.value})} type="number" />
-                        <input className={styles.input} style={{width: '70px', padding: '4px'}} placeholder="Proof After" title="Proof Required After (Days)" value={editingRuleData.proofRequiredAfterDays} onChange={e => setEditingRuleData({...editingRuleData, proofRequiredAfterDays: e.target.value})} type="number" />
-                      </td>
-                      <td>
-                        <button className={styles.iconBtn} onClick={handleSaveRule} disabled={editRuleMutation.isPending} title="Save">💾</button>
-                        <button className={styles.iconBtn} onClick={() => setEditingRuleId(null)} title="Cancel">✕</button>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td>{r.annualAllotment} Days</td>
-                      <td>
-                        {[
-                          r.proofRequiredAfterDays && `Proof after ${r.proofRequiredAfterDays} days`,
-                          r.maxConsecutiveDays && `Max ${r.maxConsecutiveDays} consecutive`,
-                        ].filter(Boolean).join(' · ') || '—'}
-                      </td>
-                      <td><button className={styles.iconBtn} onClick={() => handleEditClick(r)} title="Edit Rule">✏️</button></td>
-                    </>
-                  )}
+                  <td>{r.annualAllotment} Days</td>
+                  <td>
+                    {[
+                      r.proofRequiredAfterDays && `Proof after ${r.proofRequiredAfterDays} days`,
+                      r.maxConsecutiveDays && `Max ${r.maxConsecutiveDays} consecutive`,
+                    ].filter(Boolean).join(' · ') || '—'}
+                  </td>
+                  <td><button className={styles.iconBtn} onClick={() => handleEditClick(r)} title="Edit Rule">✏️</button></td>
                 </tr>
               ))}
             </tbody>
@@ -653,6 +635,38 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
           <button className={styles.primaryBtn} onClick={() => onSave(form)}>Save Changes</button>
         </div>
       </div>
+
+      {/* Sub-modal for editing mapped rule */}
+      {editingRuleId && (
+        <div className={styles.modalOverlay} style={{ zIndex: 1100, backgroundColor: 'rgba(0,0,0,0.4)' }} onClick={() => setEditingRuleId(null)}>
+          <div className={styles.modal} style={{ width: '400px' }} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Edit Rule Limits</h3>
+              <button className={styles.modalClose} onClick={() => setEditingRuleId(null)}>✕</button>
+            </div>
+            <div className={styles.modalBody} style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '24px' }}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>ANNUAL ALLOTMENT</label>
+                <input className={styles.input} value={editingRuleData.annualAllotment} onChange={e => setEditingRuleData({...editingRuleData, annualAllotment: e.target.value})} type="number" />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>MAX CONSECUTIVE DAYS (OPTIONAL)</label>
+                <input className={styles.input} value={editingRuleData.maxConsecutiveDays} onChange={e => setEditingRuleData({...editingRuleData, maxConsecutiveDays: e.target.value})} type="number" />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>PROOF REQUIRED AFTER (DAYS)</label>
+                <input className={styles.input} value={editingRuleData.proofRequiredAfterDays} onChange={e => setEditingRuleData({...editingRuleData, proofRequiredAfterDays: e.target.value})} type="number" />
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={() => setEditingRuleId(null)}>Cancel</button>
+              <button className={styles.primaryBtn} onClick={handleSaveRule} disabled={editRuleMutation.isPending}>
+                {editRuleMutation.isPending ? 'Saving...' : 'Save Rule'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
