@@ -110,7 +110,6 @@ const PayslipsDashboard = () => {
 
   return (
     <div className="dashboard">
-      <h2>Payslip Generation</h2>
       
       <div className="payroll-card no-print">
         <div className={`filter-bar ${styles.filterBar}`}>

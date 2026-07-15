@@ -54,6 +54,12 @@ const getStatusLabel = (status) => {
   }
 };
 
+const formatDateStr = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+};
+
 const AttendanceDashboard = () => {
   const history = useHistory();
   const { tenantId, storeId, user, hasAccess } = useAuth();
@@ -67,6 +73,7 @@ const AttendanceDashboard = () => {
   const [selectedStaff, setSelectedStaff] = useState('');
   const [selectedDateObj, setSelectedDateObj] = useState(null);
   const [modalState, setModalState] = useState({ show: false, staffData: null });
+  const [activeBalanceTab, setActiveBalanceTab] = useState('balance');
   const { staffList } = useStaffList();
 
   useEffect(() => {
@@ -184,6 +191,33 @@ const AttendanceDashboard = () => {
     },
     enabled: !!(selectedStaff && selectedMonth && selectedYear)
   });
+
+  const { data: leaveData } = useQuery({
+    queryKey: ['leaveData', selectedStaff, tenantId, storeId],
+    queryFn: async () => {
+      if (!selectedStaff || !tenantId || !storeId) return null;
+      try {
+        const [balances, apps] = await Promise.all([
+          apiService.get(`/leaves/balances/all/${selectedStaff}?tenantId=${tenantId}&storeId=${storeId}`),
+          apiService.get(`/leaves/applications/staff/${selectedStaff}`)
+        ]);
+        
+        // The leave APIs return the array directly, not wrapped in a data object
+        const balData = Array.isArray(balances) ? balances : [];
+        const appData = Array.isArray(apps) ? apps : [];
+        const pending = appData.filter(app => app.status === 'PENDING');
+        
+        return { balances: balData, pending };
+      } catch (e) {
+        console.error("Failed to fetch leave data", e);
+        return { balances: [], pending: [] };
+      }
+    },
+    enabled: !!selectedStaff && !!tenantId && !!storeId
+  });
+
+  const leaveBalances = leaveData?.balances || [];
+  const pendingLeaves = leaveData?.pending || [];
 
   useEffect(() => {
     setSelectedDateObj(null);
@@ -360,33 +394,74 @@ const AttendanceDashboard = () => {
           </div>
 
           <div className={styles.balanceTabs}>
-            <div className={styles.balanceTabActive}>
+            <div 
+              className={activeBalanceTab === 'balance' ? styles.tabActive : styles.tabInactive}
+              onClick={() => setActiveBalanceTab('balance')}
+            >
               Current Balance
             </div>
-            <div className={styles.balanceTabInactive}>
+            <div 
+              className={activeBalanceTab === 'pending' ? styles.tabActive : styles.tabInactive}
+              onClick={() => setActiveBalanceTab('pending')}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
               Pending Apps
+              {pendingLeaves.length > 0 && (
+                <span style={{backgroundColor: '#ef4444', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold'}}>
+                  {pendingLeaves.length}
+                </span>
+              )}
             </div>
           </div>
-          
+
           <table className={styles.leaveTable}>
-            <thead>
-              <tr className={styles.leaveTableHeaderRow}>
-                <th className={styles.leaveTableHeader}>Leave Type</th>
-                <th className={styles.leaveTableHeader}>Opening</th>
-                <th className={styles.leaveTableHeader}>Closing</th>
-              </tr>
+            <thead style={{ backgroundColor: '#f1f5f9' }}>
+              {activeBalanceTab === 'balance' ? (
+                <tr>
+                  <th className={styles.leaveTableHeader} style={{ borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px' }}>Leave Type</th>
+                  <th className={styles.leaveTableHeader}>Opening</th>
+                  <th className={styles.leaveTableHeader} style={{ borderTopRightRadius: '4px', borderBottomRightRadius: '4px' }}>Closing</th>
+                </tr>
+              ) : (
+                <tr>
+                  <th className={styles.leaveTableHeader} style={{ borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px' }}>App No</th>
+                  <th className={styles.leaveTableHeader}>App Date</th>
+                  <th className={styles.leaveTableHeader}>Type</th>
+                  <th className={styles.leaveTableHeader}>From</th>
+                  <th className={styles.leaveTableHeader} style={{ borderTopRightRadius: '4px', borderBottomRightRadius: '4px' }}>To</th>
+                </tr>
+              )}
             </thead>
             <tbody>
-              <tr className={styles.leaveTableRow}>
-                <td className={styles.leaveType}>Annual Leave (AL)</td>
-                <td className={styles.leaveValue}>12.0</td>
-                <td className={styles.leaveValue}>8.0</td>
-              </tr>
-              <tr className={styles.leaveTableRow}>
-                <td className={styles.leaveType}>Sick Leave (SL)</td>
-                <td className={styles.leaveValue}>7.0</td>
-                <td className={styles.leaveValue}>7.0</td>
-              </tr>
+              {activeBalanceTab === 'balance' ? (
+                leaveBalances.length > 0 ? leaveBalances.map((bal, idx) => (
+                  <tr key={idx} className={styles.leaveTableRow}>
+                    <td className={styles.leaveType}>{bal.typeName} ({bal.code})</td>
+                    <td className={styles.leaveValue}>{bal.annualAllotment}</td>
+                    <td className={styles.leaveValue}>{bal.available}</td>
+                  </tr>
+                )) : (
+                  <tr className={styles.leaveTableRow}>
+                    <td colSpan="3" style={{textAlign: 'center', padding: '10px', color: '#64748b'}}>No balances found</td>
+                  </tr>
+                )
+              ) : (
+                pendingLeaves.length > 0 ? pendingLeaves.map((app, idx) => (
+                  <tr key={idx} className={styles.leaveTableRow}>
+                    <td className={styles.leaveType}>
+                      <a href={`/leave-dashboard`} style={{color: '#2563eb', textDecoration: 'underline'}}>{app.id || 'N/A'}</a>
+                    </td>
+                    <td className={styles.leaveValue}>{formatDateStr(app.createdAt)}</td>
+                    <td className={styles.leaveValue}>{app.leaveType?.leaveCode || 'N/A'}</td>
+                    <td className={styles.leaveValue}>{formatDateStr(app.startDate)}</td>
+                    <td className={styles.leaveValue}>{formatDateStr(app.endDate)}</td>
+                  </tr>
+                )) : (
+                  <tr className={styles.leaveTableRow}>
+                    <td colSpan="5" style={{textAlign: 'center', padding: '10px', color: '#64748b'}}>No pending applications</td>
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
 
@@ -397,7 +472,6 @@ const AttendanceDashboard = () => {
 
   return (
     <div className="dashboard">
-      <h2 className={styles.dashboardHeader}>Attendance Regularization</h2>
       
       <div className={styles.filterBar}>
         <div className={styles.filterGroup}>

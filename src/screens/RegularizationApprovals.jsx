@@ -13,7 +13,6 @@ const RegularizationApprovals = () => {
 
   return (
     <div className="dashboard">
-      <h2>Regularization Approvals</h2>
       <div className={`staff-content ${styles.staffContent}`}>
         <RegularizationDashboard staffList={staffList} />
       </div>

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useStaffList } from '../hooks/queries';
+import { useStoreConfig } from '../hooks/queries/useStoreConfig';
 import styles from './SalaryDashboard.module.scss';
 import '../styles/main.scss';
 
@@ -59,6 +60,8 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
+  const { storeConfig } = useStoreConfig();
+  const currencySymbol = storeConfig?.currencySymbol || '$';
 
   const [components, setComponents] = useState([]);
 
@@ -174,15 +177,14 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
   const earnings = components.filter(c => c.componentCategory === 'EARNING');
   const deductions = components.filter(c => c.componentCategory === 'DEDUCTION');
 
-  const totalGross = earnings.reduce((sum, c) => sum + (Number(c.monthlyValue) || 0), 0);
-  const totalDeductions = deductions.reduce((sum, c) => sum + (Number(c.monthlyValue) || 0), 0);
+  const totalGross = earnings.reduce((sum, c) => sum + (c.includeInTotal !== false ? (Number(c.monthlyValue) || 0) : 0), 0);
+  const totalDeductions = deductions.reduce((sum, c) => sum + (c.includeInTotal !== false ? (Number(c.monthlyValue) || 0) : 0), 0);
   const netTakeHome = totalGross - totalDeductions;
 
   return (
     <div className={styles.mainContainer}>
       <div className={styles.headerContainer}>
         <div>
-          <h2 className={styles.headerTitle}>Fixed Salary Configuration</h2>
           <p className={styles.headerSubtitle}>Define core earnings and recurring deductions for staff roles.</p>
         </div>
         <div className={styles.headerActions}>
@@ -203,13 +205,6 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
             <h3 className={styles.sidebarTitle}>Staff Selection</h3>
             <span className={styles.staffCountBadge}>{staffList.length} EMPLOYEES</span>
           </div>
-          
-          <label className={styles.filterLabel}>FILTER BY DEPARTMENT</label>
-          <select className={styles.departmentSelect} defaultValue="engineering">
-            <option value="engineering">Engineering ({staffList.length})</option>
-            <option value="design">Design (0)</option>
-            <option value="hr">Human Resources (0)</option>
-          </select>
 
           <div className={styles.staffList}>
             {staffList.map(staff => (
@@ -244,7 +239,6 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                     </div>
                     <h4 className={styles.cardTitleText}>Core Earnings</h4>
                   </div>
-                  <button className={styles.btnAdd}>+ Add Component</button>
                 </div>
                 <div className={styles.cardBody}>
                   {loading ? (
@@ -257,7 +251,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                           <div key={comp.id} className={styles.formGroup}>
                             <label className={styles.inputLabel}>{comp.componentName}</label>
                             <div className={styles.inputWrapper}>
-                              <span className={styles.currencySymbol}>$</span>
+                              <span className={styles.currencySymbol}>{currencySymbol}</span>
                               <input 
                                 type="number" 
                                 min="0"
@@ -276,7 +270,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                 </div>
                 <div className={styles.cardFooter}>
                   <span className={styles.footerLabel}>Gross Salary Total</span>
-                  <span className={styles.footerAmount}>$ {totalGross.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  <span className={styles.footerAmount}>{currencySymbol} {totalGross.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
               </div>
 
@@ -289,7 +283,6 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                     </div>
                     <h4 className={styles.cardTitleText}>Fixed Deductions</h4>
                   </div>
-                  <button className={styles.btnAdd}>+ Add Deduction</button>
                 </div>
                 <div className={styles.cardBody}>
                   {loading ? (
@@ -302,7 +295,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                           <div key={comp.id} className={styles.formGroup}>
                             <label className={styles.inputLabel}>{comp.componentName}</label>
                             <div className={styles.inputWrapper}>
-                              <span className={styles.currencySymbol}>$</span>
+                              <span className={styles.currencySymbol}>{currencySymbol}</span>
                               <input 
                                 type="number" 
                                 min="0"
@@ -321,7 +314,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                 </div>
                 <div className={styles.cardFooter}>
                   <span className={styles.footerLabel}>Total Deductions</span>
-                  <span className={styles.footerAmountDeduction}>$ {totalDeductions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  <span className={styles.footerAmountDeduction}>{currencySymbol} {totalDeductions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
               </div>
 
@@ -329,7 +322,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
               <div className={styles.projectedCard}>
                 <div className={styles.projectedLeft}>
                   <span className={styles.projectedLabel}>PROJECTED NET MONTHLY TAKE HOME</span>
-                  <h2 className={styles.projectedAmount}>$ {netTakeHome.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h2>
+                  <h2 className={styles.projectedAmount}>{currencySymbol} {netTakeHome.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h2>
                 </div>
                 <div className={styles.projectedRight}>
                   <div className={styles.complianceChip}>
@@ -358,6 +351,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
   const [components, setComponents] = useState([]);
   const [totals, setTotals] = useState({ earning: 0, deduction: 0, net: 0 });
   const [storeConfig, setStoreConfig] = useState(null);
+  const currencySymbol = storeConfig?.currencySymbol || '$';
 
   const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const currentMonthIndex = new Date().getMonth();
@@ -446,7 +440,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
       });
 
       setComponents(merged);
-      calculateTotals(savedStructure.earningsList || [], savedStructure.deductionsList || []);
+      calculateTotals(savedStructure.earningsList || [], savedStructure.deductionsList || [], availableComponents);
     } catch (err) {
       console.error(err);
       showToast('Failed to fetch variables data.', 'error');
@@ -455,9 +449,15 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
     }
   };
 
-  const calculateTotals = (earnings, deductions) => {
-    const totE = earnings.reduce((sum, item) => sum + (item.annualValue / 12), 0);
-    const totD = deductions.reduce((sum, item) => sum + (item.annualValue / 12), 0);
+  const calculateTotals = (earnings, deductions, defs = []) => {
+    const totE = earnings.reduce((sum, item) => {
+      const def = defs.find(d => d.componentName === item.componentName);
+      return sum + (def && def.includeInTotal === false ? 0 : (item.annualValue / 12));
+    }, 0);
+    const totD = deductions.reduce((sum, item) => {
+      const def = defs.find(d => d.componentName === item.componentName);
+      return sum + (def && def.includeInTotal === false ? 0 : (item.annualValue / 12));
+    }, 0);
     setTotals({ earning: Math.round(totE), deduction: Math.round(totD), net: Math.round(totE - totD) });
   };
 
@@ -540,13 +540,6 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
           <h3 className={styles.sidebarTitle}>Staff Selection</h3>
           <span className={styles.staffCountBadge}>{staffList.length} EMPLOYEES</span>
         </div>
-        
-        <label className={styles.filterLabel}>FILTER BY DEPARTMENT</label>
-        <select className={styles.departmentSelect} defaultValue="engineering">
-          <option value="engineering">Engineering ({staffList.length})</option>
-          <option value="design">Design (0)</option>
-          <option value="hr">Human Resources (0)</option>
-        </select>
 
         <div className={styles.staffList}>
           {staffList.map(staff => (
@@ -628,7 +621,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
                           {comp.componentName} <span style={{color: comp.componentCategory === 'EARNING' ? '#10b981' : '#f87171', fontSize: '10px', marginLeft: '4px'}}>{comp.componentCategory}</span>
                         </label>
                         <div className={styles.inputWrapper}>
-                          <span className={styles.currencySymbol}>$</span>
+                          <span className={styles.currencySymbol}>{currencySymbol}</span>
                           <input 
                             type="number" 
                             value={comp.monthlyValue || ''}
@@ -647,15 +640,15 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
               <div className={styles.cardFooter} style={{flexDirection: 'column', alignItems: 'stretch', gap: '16px'}}>
                 <div style={{display: 'flex', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)'}}>
                   <span className={styles.footerLabel}>Total Earning</span>
-                  <span className={styles.footerAmount}>$ {totals.earning.toLocaleString()}</span>
+                  <span className={styles.footerAmount}>{currencySymbol} {totals.earning.toLocaleString()}</span>
                 </div>
                 <div style={{display: 'flex', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)'}}>
                   <span className={styles.footerLabel}>Total Deduction</span>
-                  <span className={styles.footerAmountDeduction}>$ {totals.deduction.toLocaleString()}</span>
+                  <span className={styles.footerAmountDeduction}>{currencySymbol} {totals.deduction.toLocaleString()}</span>
                 </div>
                 <div style={{display: 'flex', justifyContent: 'space-between'}}>
                   <span className={styles.footerLabel} style={{color: 'var(--text-dark)', fontWeight: 'bold'}}>Net Salary</span>
-                  <span className={styles.footerAmount} style={{fontSize: '20px'}}>$ {totals.net.toLocaleString()}</span>
+                  <span className={styles.footerAmount} style={{fontSize: '20px'}}>{currencySymbol} {totals.net.toLocaleString()}</span>
                 </div>
               </div>
             </div>

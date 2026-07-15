@@ -1,8 +1,12 @@
 .dashboardLayout {
-  min-height: calc(100vh - var(--header-height));
+  min-height: calc(100vh - var(--header-height) - 60px);
   display: flex;
   flex-direction: column;
-  padding: 30px;
+  padding: 0;
+  margin: 30px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
   box-sizing: border-box;
 }
 
@@ -16,13 +20,12 @@
 /* Tabs */
 .tabContainer {
   display: flex;
-  gap: 8px;
-  background: var(--bg-card);
-  padding: 8px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  width: fit-content;
-  margin-bottom: 30px;
+  gap: 16px;
+  padding: 20px 30px;
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  margin-bottom: 0;
+  box-sizing: border-box;
 }
 
 .tabBtn {
@@ -32,7 +35,7 @@
   color: var(--text-muted);
   font-size: 14px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: var(--transition);
 
@@ -53,15 +56,17 @@
 /* Tab 1: Shift Management */
 .shiftLayout {
   display: flex;
-  gap: 30px;
   flex: 1;
 }
 
 .shiftSidebar {
-  width: 320px;
+  width: 300px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 30px;
+  border-right: 1px solid var(--border-color);
+  box-sizing: border-box;
 
   .createShiftBtn {
     width: 100%;
@@ -69,7 +74,7 @@
     background: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -98,7 +103,7 @@
   .shiftCard {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 4px;
     padding: 20px;
     cursor: pointer;
     transition: var(--transition);
@@ -149,11 +154,9 @@
 
 .formPanel {
   flex: 1;
-  background: var(--bg-card);
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 
   .panelHeader {
     padding: 30px;
@@ -300,12 +303,15 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  padding: 10px;
 }
 
 .rosterTopBar {
   display: flex;
   gap: 30px;
-  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0;
   
   .filterGroup {
     display: flex;
@@ -361,16 +367,99 @@
   .dateSelectorGroup {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 
-    label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    .dateLabels {
+      display: flex;
+      margin-bottom: 2px;
+      label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
     }
     
+    .dateBoxWrapper {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .toggleItem {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .headerStack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      span {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+    }
+
+    .checkboxRow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      span {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-dark);
+      }
+    }
+
+    .headerLabel {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .center {
+      color: var(--text-dark);
+    }
+
+    .toggleSwitch {
+      width: 36px;
+      height: 20px;
+      border-radius: 20px;
+      background: var(--border-color);
+      position: relative;
+      transition: background-color 0.3s;
+      border: 1px solid var(--border-color-strong);
+      
+      &.activeToggle {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        
+        .toggleKnob {
+          transform: translateX(16px);
+        }
+      }
+    }
+
+    .toggleKnob {
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      transition: transform 0.3s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
     .dateBox {
       display: flex;
       align-items: center;
@@ -434,23 +523,42 @@
   border-radius: 16px;
   flex: 1;
 
+  .checkbox {
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &.checked {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: white;
+    }
+  }
+
   .tableHeader {
     display: grid;
     grid-template-columns: 80px 2fr 1fr 1fr 100px 100px;
-    padding: 20px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
     font-size: 12px;
     font-weight: 700;
     color: var(--text-muted);
     letter-spacing: 1px;
     text-transform: uppercase;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 0;
     
     .center {
       text-align: center;
+      display: flex;
+      justify-content: center;
     }
     
     .checkboxHeader {
@@ -467,16 +575,14 @@
   .tableBody {
     display: flex;
     flex-direction: column;
-    gap: 12px;
     margin-bottom: 30px;
 
     .tableRow {
       display: grid;
       grid-template-columns: 80px 2fr 1fr 1fr 100px 100px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px 20px;
+      background: transparent;
+      border-bottom: 1px solid var(--border-color);
+      padding: 24px 0;
       align-items: center;
 
       .staffInfo {
@@ -528,6 +634,27 @@
         align-items: center;
       }
 
+      .actionBtn {
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background: white;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        
+        &:hover {
+          border-color: var(--primary-color);
+          color: var(--primary-color);
+        }
+      }
+
+      .checkbox {}
+
       .statusCircle {
         width: 24px;
         height: 24px;
@@ -560,24 +687,6 @@
 
         &:hover {
           color: var(--text-dark);
-        }
-      }
-      
-      .checkbox {
-        width: 20px;
-        height: 20px;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        background: transparent;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        
-        &.checked {
-          background: var(--primary-color);
-          border-color: var(--primary-color);
-          color: white;
         }
       }
     }
@@ -864,4 +973,189 @@
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.weeklyContainer {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: var(--bg-card);
+  flex: 1;
+
+  .weeklyTable {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+
+    .tableHeader {
+      display: grid;
+      grid-template-columns: 200px repeat(7, 1fr);
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 16px;
+
+      .headerLabel {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .headerLabel:first-child {
+        justify-content: flex-start;
+      }
+    }
+
+    .tableBody {
+      display: flex;
+      flex-direction: column;
+      
+      .tableRow {
+        display: grid;
+        grid-template-columns: 200px repeat(7, 1fr);
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        align-items: center;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .staffInfo {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          
+          .name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-color);
+          }
+          .role {
+            font-size: 12px;
+            color: var(--text-muted);
+          }
+        }
+
+        .center {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+    }
+  }
+}
+
+.dayWiseContainer {
+  margin-top: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-card);
+
+  .dayWiseHeader {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-body);
+    border-bottom: 1px solid var(--border-color);
+
+    .sameForAllDays {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-right: 16px;
+
+      label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .dayCheckbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: var(--primary-color);
+      }
+    }
+  }
+
+  .dayRows {
+    display: flex;
+    flex-direction: column;
+
+    .dayRow {
+      display: grid;
+      grid-template-columns: 100px 1fr 1fr;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .dayLabel {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+    }
+  }
+
+  .selectWrapper {
+    position: relative;
+    width: 100%;
+    max-width: 160px;
+
+    select {
+      width: 100%;
+      padding: 10px 32px 10px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-dark);
+      font-size: 14px;
+      font-weight: 500;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+      
+      &:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+      }
+      
+      &:disabled {
+        background: var(--bg-body);
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+    }
+    
+    .selectIcon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--text-muted);
+      width: 16px;
+      height: 16px;
+    }
+  }
 }

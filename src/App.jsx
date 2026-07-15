@@ -26,6 +26,7 @@ const PayslipsDashboard    = lazy(() => import('./screens/PayslipsDashboard'));
 const EmployeeDashboard       = lazy(() => import('./screens/EmployeeDashboard'));
 const ManagerApprovalPortal   = lazy(() => import('./screens/ManagerApprovalPortal'));
 const LeaveConfiguration      = lazy(() => import('./screens/LeaveConfiguration'));
+const HolidayCalendarScreen   = lazy(() => import('./screens/HolidayCalendarScreen'));
 
 // ─── Route-level loading fallback ────────────────────────────────────────────
 const PageLoader = () => (
@@ -76,6 +77,7 @@ const AppContent = () => {
             <Route path="/leave-dashboard" component={EmployeeDashboard} />
             {hasAccess(['MANAGE_LEAVES']) && <Route path="/leave-approvals" component={ManagerApprovalPortal} />}
             {hasAccess(['MANAGE_LEAVES']) && <Route path="/leave-configuration" component={LeaveConfiguration} />}
+            {hasAccess(['MANAGE_LEAVES']) && <Route path="/settings/holidays" component={HolidayCalendarScreen} />}
 
             {/* Protected Routes */}
             {hasAccess(['VIEW_SHIFTS', 'MANAGE_SHIFTS'])      && <Route path="/shifts"    component={ShiftsDashboard} />}

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useStaffList, useShiftSlots, useStoreSettings } from '../hooks/queries';
+import { useStaffList, useShiftSlots, useStoreSettings, useWeeklyShifts } from '../hooks/queries';
 import styles from './ShiftsDashboard.module.scss';
 import '../styles/main.scss';
 
@@ -28,6 +28,16 @@ const ShiftsDashboard = () => {
   const [slotStartTime, setSlotStartTime] = useState('09:00');
   const [slotEndTime, setSlotEndTime] = useState('18:00');
   const [slotColor, setSlotColor] = useState('#3f97ef');
+  const [sameForAllDays, setSameForAllDays] = useState(true);
+  const [dayWiseTimings, setDayWiseTimings] = useState({
+    SUN: { startTime: '09:00', closureTime: '18:00' },
+    MON: { startTime: '09:00', closureTime: '18:00' },
+    TUE: { startTime: '09:00', closureTime: '18:00' },
+    WED: { startTime: '09:00', closureTime: '18:00' },
+    THU: { startTime: '09:00', closureTime: '18:00' },
+    FRI: { startTime: '09:00', closureTime: '18:00' },
+    SAT: { startTime: '09:00', closureTime: '18:00' }
+  });
 
   // Roster Data
   const [assignStartDate, setAssignStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -45,6 +55,9 @@ const ShiftsDashboard = () => {
   const { staffList } = useStaffList();
   const { storeSettings: storeSettingsData } = useStoreSettings();
   const { shiftSlots } = useShiftSlots();
+  
+  const [weeklyStartDate, setWeeklyStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const { weeklyShifts } = useWeeklyShifts(weeklyStartDate);
 
   useEffect(() => {
     if (storeSettingsData && storeSettingsData.length > 0) {
@@ -114,18 +127,44 @@ const ShiftsDashboard = () => {
   };
 
   const handleSelectSlot = (slot) => {
+    const defaultDayWise = {
+      SUN: { startTime: '09:00', closureTime: '18:00' },
+      MON: { startTime: '09:00', closureTime: '18:00' },
+      TUE: { startTime: '09:00', closureTime: '18:00' },
+      WED: { startTime: '09:00', closureTime: '18:00' },
+      THU: { startTime: '09:00', closureTime: '18:00' },
+      FRI: { startTime: '09:00', closureTime: '18:00' },
+      SAT: { startTime: '09:00', closureTime: '18:00' }
+    };
+
     if (slot) {
       setSelectedSlotId(slot.id);
       setSlotName(slot.shiftName);
       setSlotStartTime(slot.startTime);
       setSlotEndTime(slot.endTime);
       setSlotColor(slot.color || '#3f97ef');
+      
+      if (slot.dayWiseShiftsTiming && slot.dayWiseShiftsTiming.length > 0) {
+        setSameForAllDays(false);
+        const mapped = { ...defaultDayWise };
+        slot.dayWiseShiftsTiming.forEach(dw => {
+          if (mapped[dw.day]) {
+            mapped[dw.day] = { startTime: dw.startTime, closureTime: dw.closureTime };
+          }
+        });
+        setDayWiseTimings(mapped);
+      } else {
+        setSameForAllDays(true);
+        setDayWiseTimings(defaultDayWise);
+      }
     } else {
       setSelectedSlotId(null);
       setSlotName('');
       setSlotStartTime('09:00');
       setSlotEndTime('18:00');
       setSlotColor('#3f97ef');
+      setSameForAllDays(true);
+      setDayWiseTimings(defaultDayWise);
     }
     
   };
@@ -163,6 +202,16 @@ const ShiftsDashboard = () => {
       storeId,
       active: true
     };
+    
+    if (!sameForAllDays) {
+      payload.dayWiseShiftsTiming = Object.keys(dayWiseTimings).map(day => ({
+        day,
+        startTime: dayWiseTimings[day].startTime,
+        closureTime: dayWiseTimings[day].closureTime
+      }));
+    } else {
+      payload.dayWiseShiftsTiming = [];
+    }
     if (selectedSlotId) {
       payload.id = selectedSlotId;
     }
@@ -176,14 +225,28 @@ const ShiftsDashboard = () => {
     if (sId) {
       const selectedSlot = shiftSlots.find(s => String(s.id) === String(sId));
       if (selectedSlot) {
-        // Apply this shift's times to all currently selected staff
+        // Find the specific time for the assignStartDate if dayWise timings exist
+        let start = selectedSlot.startTime;
+        let end = selectedSlot.endTime;
+        
+        if (selectedSlot.dayWiseShiftsTiming && selectedSlot.dayWiseShiftsTiming.length > 0) {
+          const currentDayStr = new Date(assignStartDate).toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+          const dayMatch = selectedSlot.dayWiseShiftsTiming.find(d => d.day.substring(0,3).toUpperCase() === currentDayStr);
+          if (dayMatch) {
+            start = dayMatch.startTime;
+            end = dayMatch.closureTime;
+          }
+        }
+
+        // Apply this shift's times to all staff
         setBulkAssignments(prev => {
           const updated = { ...prev };
-          Object.keys(updated).forEach(staffId => {
-            if (updated[staffId].selected) {
-              updated[staffId].startTime = selectedSlot.startTime;
-              updated[staffId].endTime = selectedSlot.endTime;
+          staffList.forEach(staff => {
+            if (!updated[staff.id]) {
+              updated[staff.id] = { selected: false, isWorking: true };
             }
+            updated[staff.id].startTime = start;
+            updated[staff.id].endTime = end;
           });
           return updated;
         });
@@ -236,6 +299,9 @@ const ShiftsDashboard = () => {
         return reset;
       });
       setGlobalShiftId('');
+      
+      // Invalidate the weekly schedule data so it refetches immediately
+      queryClient.invalidateQueries(['weeklyShifts']);
     },
     onError: () => {
       showToast('Failed to assign bulk shifts.', 'error');
@@ -289,7 +355,7 @@ const ShiftsDashboard = () => {
       tenantId: tenantId,
       storeId: storeId,
       startDate: assignStartDate,
-      shiftSlotId: ""
+      shiftSlotId: globalShiftId ? parseInt(globalShiftId) : null
     });
   };
 
@@ -347,27 +413,26 @@ const ShiftsDashboard = () => {
 
   return (
     <div className={styles.dashboardLayout}>
-      <h2 className={styles.title}>Shift and Roster Management</h2>
       
       {/* Internal Tabs */}
       <div className={styles.tabContainer}>
         <button 
-          className={activeTab === 'templates' ? styles.tabBtnActive : styles.tabBtn}
+          className={`${styles.tabBtn} ${activeTab === 'templates' ? styles.tabBtnActive : ''}`}
           onClick={() => setActiveTab('templates')}
         >
           Shift Management
         </button>
         <button 
-          className={activeTab === 'roster' ? styles.tabBtnActive : styles.tabBtn}
+          className={`${styles.tabBtn} ${activeTab === 'roster' ? styles.tabBtnActive : ''}`}
           onClick={() => setActiveTab('roster')}
         >
           Roster Management
         </button>
         <button 
-          className={activeTab === 'settings' ? styles.tabBtnActive : styles.tabBtn}
-          onClick={() => setActiveTab('settings')}
+          className={`${styles.tabBtn} ${activeTab === 'weekly' ? styles.tabBtnActive : ''}`}
+          onClick={() => setActiveTab('weekly')}
         >
-          Store Settings
+          Weekly Schedule
         </button>
       </div>
 
@@ -470,7 +535,7 @@ const ShiftsDashboard = () => {
           <div className={styles.formPanel}>
             <div className={styles.panelHeader}>
               <h3>{selectedSlotId ? 'Update Shift' : 'Create New Shift'}</h3>
-              <p>Configure the timings and details for a new shift template.</p>
+              <p>Create new shift will bun a shift management dashboard.</p>
             </div>
             
             <form onSubmit={handleAddShiftSlot} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -486,25 +551,68 @@ const ShiftsDashboard = () => {
                   />
                 </div>
                 
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label>Start Time</label>
-                    <div className={styles.selectWrapper}>
-                      <select value={slotStartTime} onChange={(e) => setSlotStartTime(e.target.value)} required>
-                        {timeOptions.map(t => <option key={`start-${t}`} value={t}>{t}</option>)}
-                      </select>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                <div className={styles.dayWiseContainer}>
+                  <div className={styles.dayWiseHeader}>
+                    <div className={styles.sameForAllDays}>
+                      <label>Same For All Days</label>
+                      <input 
+                        type="checkbox" 
+                        checked={sameForAllDays} 
+                        onChange={(e) => setSameForAllDays(e.target.checked)} 
+                        className={styles.dayCheckbox}
+                      />
+                    </div>
+                    
+                    <div className={styles.formGroup} style={{flex: 1}}>
+                      <label>Start Time</label>
+                      <div className={styles.selectWrapper}>
+                        <select value={slotStartTime} onChange={(e) => setSlotStartTime(e.target.value)} disabled={!sameForAllDays}>
+                          {timeOptions.map(t => <option key={`start-${t}`} value={t}>{t}</option>)}
+                        </select>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </div>
+                    </div>
+
+                    <div className={styles.formGroup} style={{flex: 1}}>
+                      <label>End Time</label>
+                      <div className={styles.selectWrapper}>
+                        <select value={slotEndTime} onChange={(e) => setSlotEndTime(e.target.value)} disabled={!sameForAllDays}>
+                          {timeOptions.map(t => <option key={`end-${t}`} value={t}>{t}</option>)}
+                        </select>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </div>
                     </div>
                   </div>
-                  <div className={styles.formGroup}>
-                    <label>End Time</label>
-                    <div className={styles.selectWrapper}>
-                      <select value={slotEndTime} onChange={(e) => setSlotEndTime(e.target.value)} required>
-                        {timeOptions.map(t => <option key={`end-${t}`} value={t}>{t}</option>)}
-                      </select>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  
+                  {!sameForAllDays && (
+                    <div className={styles.dayRows}>
+                      {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
+                        <div key={day} className={styles.dayRow}>
+                          <div className={styles.dayLabel}>{day}</div>
+                          
+                          <div className={styles.selectWrapper}>
+                            <select 
+                              value={dayWiseTimings[day].startTime} 
+                              onChange={(e) => setDayWiseTimings(prev => ({ ...prev, [day]: { ...prev[day], startTime: e.target.value } }))}
+                            >
+                              {timeOptions.map(t => <option key={`${day}-start-${t}`} value={t}>{t}</option>)}
+                            </select>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                          </div>
+
+                          <div className={styles.selectWrapper}>
+                            <select 
+                              value={dayWiseTimings[day].closureTime} 
+                              onChange={(e) => setDayWiseTimings(prev => ({ ...prev, [day]: { ...prev[day], closureTime: e.target.value } }))}
+                            >
+                              {timeOptions.map(t => <option key={`${day}-end-${t}`} value={t}>{t}</option>)}
+                            </select>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -556,32 +664,33 @@ const ShiftsDashboard = () => {
             </div>
 
             <div className={styles.dateSelectorGroup} style={{marginLeft: 'auto'}}>
-              <label>Select Date</label>
-              <div className={styles.dateBox}>
-                <button type="button" onClick={() => handleDateShift(-1)} className={styles.arrowBtn}>&lt;</button>
-                <button type="button" onClick={() => handleDateShift(0)} className={styles.todayBtn}>TODAY</button>
-                <div className={styles.dateText}>
-                  {new Date(assignStartDate).toLocaleDateString('en-GB').replace(/\//g, '-')}
+              <div className={styles.dateLabels}>
+                <label>SELECT DATE</label>
+              </div>
+              <div className={styles.dateBoxWrapper}>
+                <div className={styles.dateBox}>
+                  <button type="button" onClick={() => handleDateShift(-1)} className={styles.arrowBtn}>&lt;</button>
+                  <div className={styles.dateText}>
+                    {new Date(assignStartDate).toLocaleDateString('en-GB').replace(/\//g, '-')}
+                  </div>
+                  <button type="button" onClick={() => handleDateShift(1)} className={styles.arrowBtn}>&gt;</button>
                 </div>
-                <button type="button" onClick={() => handleDateShift(1)} className={styles.tomorrowBtn}>TOMORROW</button>
-                <button type="button" onClick={() => handleDateShift(1)} className={styles.arrowBtn}>&gt;</button>
               </div>
             </div>
           </div>
 
           <div className={styles.rosterTable}>
             <div className={styles.tableHeader}>
-              <div className={styles.checkboxHeader} onClick={() => handleSelectAllStaff({ target: { checked: !allSelected } })}>
+              <div className={styles.center} onClick={() => handleSelectAllStaff({ target: { checked: !allSelected } })} style={{ cursor: 'pointer' }}>
                 <div className={`${styles.checkbox} ${allSelected ? styles.checked : ''}`}>
                   {allSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                 </div>
-                <span>APPLY TO ALL</span>
               </div>
-              <div>Staff Name</div>
-              <div>From Time</div>
-              <div>To Time</div>
-              <div className={styles.center}>Working</div>
-              <div className={styles.center}>Action</div>
+              <div className={styles.headerLabel}>STAFF NAME</div>
+              <div className={styles.headerLabel}>FROM TIME</div>
+              <div className={styles.headerLabel}>TO TIME</div>
+              <div className={styles.center} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>WORKING</div>
+              <div className={styles.center} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>ADD BREAK</div>
             </div>
 
             <div className={styles.tableBody}>
@@ -591,7 +700,7 @@ const ShiftsDashboard = () => {
                 const isWorking = assignData.isWorking ?? true;
                 
                 return (
-                  <div key={staff.id} className={styles.tableRow} style={{ borderColor: isSelected ? 'var(--primary-color)' : 'var(--border-color)' }}>
+                  <div key={staff.id} className={styles.tableRow}>
                     <div className={styles.center}>
                       <div 
                         className={`${styles.checkbox} ${isSelected ? styles.checked : ''}`}
@@ -746,6 +855,56 @@ const ShiftsDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* TAB 4: WEEKLY SCHEDULE */}
+      {activeTab === 'weekly' && (
+        <div className={styles.weeklyContainer}>
+          <div className={styles.weeklyTable}>
+            <div className={styles.tableHeader}>
+              <div className={styles.headerLabel}>STAFF NAME</div>
+              {[...Array(7)].map((_, i) => {
+                const date = new Date(weeklyStartDate);
+                date.setDate(date.getDate() + i);
+                return (
+                  <div key={i} className={styles.headerLabel}>
+                    {date.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div className={styles.tableBody}>
+              {staffList.map(staff => {
+                return (
+                  <div key={staff.id} className={styles.tableRow}>
+                    <div className={styles.staffInfo}>
+                      <span className={styles.name}>{staff.firstName} {staff.lastName}</span>
+                    </div>
+                    
+                    {[...Array(7)].map((_, i) => {
+                      const dateStr = (() => {
+                        const d = new Date(weeklyStartDate);
+                        d.setDate(d.getDate() + i);
+                        return d.toISOString().split('T')[0];
+                      })();
+                      
+                      // Find shift for this staff and date
+                      const shift = weeklyShifts.find(s => s.staffId === staff.id && s.shiftDate.startsWith(dateStr));
+                      
+                      return (
+                        <div key={i} className={styles.center} style={{ fontSize: '13px', fontWeight: '500', color: shift ? (shift.onLeave ? '#ef4444' : shift.weeklyOff ? 'var(--text-muted)' : 'var(--primary-color)') : 'var(--text-muted)' }}>
+                          {shift ? (shift.onLeave ? 'Leave' : shift.weeklyOff ? 'Weekly Off' : shift.slot) : '-'}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

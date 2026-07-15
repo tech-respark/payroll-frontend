@@ -22,9 +22,9 @@ const PayslipBill = ({ payslipData, payslipMonth, storeConfig }) => {
   const { showToast } = useToast();
   const [downloading, setDownloading] = useState(false);
 
-  // Fallbacks if storeConfig isn't fully set up on the backend yet
-  const companyName = storeConfig?.companyName || "RESPARK SOLUTIONS";
-  const address = storeConfig?.address || "123 Business Park, Tech City, India";
+  // Removed hardcoded fallbacks
+  const companyName = storeConfig?.companyName || "";
+  const address = storeConfig?.address || "";
   
   const handleDownloadPdf = async () => {
     try {

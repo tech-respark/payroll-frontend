@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import styles from './TopHeader.module.scss';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 
@@ -67,10 +66,6 @@ const TopHeader = ({ onMenuClick, isCollapsed }) => {
       <div className={styles.headerRight}>
         <button className={styles.iconBtn} onClick={toggleTheme} title="Toggle Theme">
           {theme === 'light' ? <DarkModeIcon fontSize="small" /> : <LightModeIcon fontSize="small" />}
-        </button>
-        <button className={styles.iconBtn} title="Notifications">
-          <NotificationsIcon fontSize="small" />
-          <span className={styles.badge}>3</span>
         </button>
         <div className={styles.userProfile}>
           <div className={styles.userInfo}>

@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import styles from './EmployeeDashboard.module.scss';
 import StatusBadge from '../components/StatusBadge';
 import { apiService } from '../api/apiService';
+import { getStoreHolidays } from '../api/holidayApi';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -52,6 +53,18 @@ const EmployeeDashboard = () => {
     },
     enabled: !!staffId
   });
+
+  const { data: storeHolidaysRaw = [] } = useQuery({
+    queryKey: ['holidays', tenantId, storeId],
+    queryFn: () => getStoreHolidays(tenantId, storeId),
+    enabled: !!tenantId && !!storeId
+  });
+  
+  const storeHolidaysList = Array.isArray(storeHolidaysRaw) ? storeHolidaysRaw : (storeHolidaysRaw?.data || []);
+  const optionalHolidays = storeHolidaysList.filter(h => h.isOptional === true);
+  
+  const selectedLeaveType = balances.find(b => String(b.id) === String(formData.leaveTypeId));
+  const isOptionalHolidaySelected = selectedLeaveType?.code === 'OH';
 
   const loading = loadingHistory || loadingBalances;
 
@@ -171,32 +184,62 @@ const EmployeeDashboard = () => {
             </div>
 
             <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>START DATE</label>
-                <input 
-                  type="date" 
-                  className={styles.input}
-                  value={formData.startDate} 
-                  onChange={e => {
-                    setFormData({...formData, startDate: e.target.value});
-                    if (e.target.value !== formData.endDate) setLeaveSession('FULL_DAY');
-                  }}
-                  required
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>END DATE</label>
-                <input 
-                  type="date" 
-                  className={styles.input}
-                  value={formData.endDate} 
-                  onChange={e => {
-                    setFormData({...formData, endDate: e.target.value});
-                    if (e.target.value !== formData.startDate) setLeaveSession('FULL_DAY');
-                  }}
-                  required
-                />
-              </div>
+              {isOptionalHolidaySelected ? (
+                <div className={styles.formGroup} style={{ width: '100%' }}>
+                  <label className={styles.label}>SELECT OPTIONAL HOLIDAY</label>
+                  {optionalHolidays.length > 0 ? (
+                    <select
+                      className={styles.select}
+                      value={formData.startDate}
+                      onChange={e => {
+                        setFormData({...formData, startDate: e.target.value, endDate: e.target.value});
+                        setLeaveSession('FULL_DAY');
+                      }}
+                      required
+                    >
+                      <option value="">Select a holiday...</option>
+                      {optionalHolidays.map(h => (
+                        <option key={h.id} value={h.holidayDate}>
+                          {h.holidayName} ({h.holidayDate})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div style={{ color: '#d32f2f', padding: '10px 0', fontSize: '14px', fontWeight: '500' }}>
+                      No optional holidays available to choose from.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>START DATE</label>
+                    <input 
+                      type="date" 
+                      className={styles.input}
+                      value={formData.startDate} 
+                      onChange={e => {
+                        setFormData({...formData, startDate: e.target.value});
+                        if (e.target.value !== formData.endDate) setLeaveSession('FULL_DAY');
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>END DATE</label>
+                    <input 
+                      type="date" 
+                      className={styles.input}
+                      value={formData.endDate} 
+                      onChange={e => {
+                        setFormData({...formData, endDate: e.target.value});
+                        if (e.target.value !== formData.startDate) setLeaveSession('FULL_DAY');
+                      }}
+                      required
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             {formData.startDate && formData.endDate && formData.startDate === formData.endDate && (
@@ -259,7 +302,7 @@ const EmployeeDashboard = () => {
 
             <div className={styles.formActions}>
               <button type="button" className={styles.cancelBtn} onClick={handleCancel}>Clear Form</button>
-              <button type="submit" className={styles.submitBtn} disabled={submitLeaveMutation.isPending}>
+              <button type="submit" className={styles.submitBtn} disabled={submitLeaveMutation.isPending || (isOptionalHolidaySelected && optionalHolidays.length === 0)}>
                 {submitLeaveMutation.isPending ? 'Submitting...' : 'Submit Request'}
               </button>
             </div>

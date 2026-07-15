@@ -257,7 +257,6 @@ const StaffDashboard = () => {
                   <span className={styles.statusBadge}>
                     {formData.active === 1 ? 'Active Employee' : 'Inactive'}
                   </span>
-                  {!isNew && <span className={styles.staffId}>ID: {formData.id}</span>}
                 </div>
               </div>
             </div>
@@ -305,12 +304,9 @@ const StaffDashboard = () => {
                   <div className={styles.checkboxGroup}>
                     <label className={styles.checkboxLabel}>
                       <input type="checkbox" name="active" checked={formData.active === 1} onChange={handleChange} />
-                      Account Active
+                       Active
                     </label>
-                    <label className={styles.checkboxLabel}>
-                      <input type="checkbox" name="isBiometricIntegration" checked={formData.isBiometricIntegration === 1} onChange={handleChange} />
-                      Biometric Integration
-                    </label>
+                   
                   </div>
                 </div>
               )}
@@ -339,18 +335,6 @@ const StaffDashboard = () => {
                     </div>
                     <div className={styles.formGroup}><label className={styles.formLabel}>UAN Number</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.uanNumber" value={formData.personnelJoiningDetails.uanNumber} onChange={handleChange} /></div>
                     <div className={styles.formGroup}><label className={styles.formLabel}>Standard Working Hours</label><input type="number" className={styles.formInput} name="personnelJoiningDetails.workingHours" value={formData.personnelJoiningDetails.workingHours} onChange={handleChange} /></div>
-                  </div>
-
-                  <h3 className={styles.sectionTitleBorder}>Roster Settings</h3>
-                  <div className={styles.checkboxGroup}>
-                    {/* <label className={styles.checkboxLabel}>
-                      <input type="checkbox" name="enableAppointments" checked={formData.enableAppointments === 1} onChange={handleChange} />
-                      Enable Appointments
-                    </label> */}
-                    <label className={styles.checkboxLabel}>
-                      <input type="checkbox" name="allStaffAppointmentDashboard" checked={formData.allStaffAppointmentDashboard === 1} onChange={handleChange} />
-                      Show in All-Staff Dashboard
-                    </label>
                   </div>
 
                   <label className={styles.weeklyOffLabel}>Weekly Off Days</label>

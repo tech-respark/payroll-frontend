@@ -99,29 +99,28 @@ const RoleManagement = () => {
 
   return (
     <div className={styles.dashboardLayout}>
-      <div className={styles.pageHeader} style={{ justifyContent: 'flex-end' }}>
-        <button 
-
-          className={styles.createBtn}
-          onClick={() => {
-            setEditingRoleId(null);
-            setNewRoleName('');
-            setNewRoleDesc('');
-            setSelectedPermissions([]);
-            setIsModalOpen(true);
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          CREATE NEW ROLE
-        </button>
-      </div>
-
       {/* SPLIT PANEL LAYOUT */}
       <div className={styles.mainContainer}>
 
         {/* LEFT: ROLES LIST */}
         <div className={styles.rolesListContainer}>
-          <h3 className={styles.rolesCardTitle}>Active Security Roles</h3>
+          <div className={styles.rolesListHeader}>
+            <h3 className={styles.rolesCardTitle} style={{ marginBottom: 0 }}>Active Security Roles</h3>
+            <button 
+              className={styles.createBtn}
+              onClick={() => {
+                setEditingRoleId(null);
+                setNewRoleName('');
+                setNewRoleDesc('');
+                setSelectedPermissions([]);
+                setIsModalOpen(true);
+              }}
+              style={{ padding: '6px 12px', fontSize: '12px' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              NEW ROLE
+            </button>
+          </div>
           <div className={styles.rolesList}>
 
             {loadingRoles ? (
@@ -145,16 +144,16 @@ const RoleManagement = () => {
                         setIsModalOpen(true);
                       }}
                     >
+                      {isActive ? (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#2563eb" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.roleIconActive}><circle cx="12" cy="12" r="10" fill="#2563eb" stroke="none"></circle><polyline points="8 12 11 15 16 9"></polyline></svg>
+                      ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.roleIcon}><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                      )}
                       <div>
                         <div className={styles.roleName}>{role.name}</div>
                         {role.description && <div className={styles.roleDesc}>{role.description}</div>}
                         <div className={styles.rolePermsCount}>{perms.length} permission{perms.length !== 1 ? 's' : ''}</div>
                       </div>
-                      {isActive ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={styles.roleIconActive} strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                      ) : (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={styles.roleIcon} strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                      )}
                     </div>
                   );
                 })}
@@ -215,7 +214,6 @@ const RoleManagement = () => {
                   {PERMISSION_GROUPS.map((group, idx) => (
                     <div key={idx} className={styles.moduleCard}>
                       <div className={styles.moduleHeader}>
-                        <div className={styles.moduleIcon} dangerouslySetInnerHTML={{ __html: group.iconHtml }} />
                         <div className={styles.moduleTitle}>{group.category}</div>
                       </div>
                       <div className={styles.moduleBody}>
@@ -223,7 +221,6 @@ const RoleManagement = () => {
                           const isSelected = selectedPermissions.includes(perm.id);
                           return (
                             <div key={perm.id} className={styles.permissionRow}>
-                              <span className={styles.permissionLabel}>{perm.label}</span>
                               <label className={styles.toggleSwitch}>
                                 <input 
                                   type="checkbox" 
@@ -235,6 +232,7 @@ const RoleManagement = () => {
                                   <span className={isSelected ? styles.toggleThumbSelected : styles.toggleThumb}></span>
                                 </span>
                               </label>
+                              <span className={styles.permissionLabel}>{perm.label}</span>
                             </div>
                           );
                         })}

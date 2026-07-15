@@ -154,7 +154,6 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.titleSection}>
-          <h1>Manager Approval Portal</h1>
           <p>Review and process pending leave/regularization requests for your team.</p>
         </div>
       </div>
@@ -183,7 +182,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                   checked={requests.length > 0 && selectedIds.length === requests.length} 
                 />
               </th>
-              <th>STAFF ID & NAME</th>
+              <th>STAFF NAME</th>
               <th>LEAVE TYPE</th>
               <th>DATES</th>
               <th>TOTAL DAYS</th>
@@ -208,7 +207,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                     <div className={styles.avatar}>{getInitials(staffName)}</div>
                     <div className={styles.empInfo}>
                       <span className={styles.empName}>{staffName}</span>
-                      <span className={styles.empDept}>REQ-{8900 + req.id} • Staff ID: {req.staffId}</span>
+                      <span className={styles.empDept}>Leave Application</span>
                     </div>
                   </div>
                 </td>
@@ -254,8 +253,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                 <div className={styles.modalAvatar}>{getInitials(selectedReq.staffName)}</div>
                 <div className={styles.modalUserInfo}>
                   <h2>{selectedReq.staffName || "Unknown Staff"}</h2>
-                  <p className={styles.modalMeta}>Staff ID: {selectedReq.staffId} • Applied {new Date(selectedReq.createdAt).toLocaleDateString() || 'Recently'}</p>
-                  <p className={styles.modalTxId}>TRANSACTION ID: REQ-{8900 + selectedReq.id}</p>
+                  <p className={styles.modalMeta}>Applied {new Date(selectedReq.createdAt).toLocaleDateString() || 'Recently'}</p>
                 </div>
               </div>
               <button className={styles.closeBtn} onClick={closeDetails}>×</button>

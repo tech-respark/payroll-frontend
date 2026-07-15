@@ -7,3 +7,4 @@ export { usePermissionModules }           from './usePermissionModules';
 export { useShiftSlots }                  from './useShiftSlots';
 export { useSalaryComponentDefinitions }  from './useSalaryComponentDefinitions';
 export { usePersonnelSalaryComponents }   from './usePersonnelSalaryComponents';
+export { useWeeklyShifts }                from './useWeeklyShifts';

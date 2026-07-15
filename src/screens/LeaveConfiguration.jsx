@@ -39,14 +39,12 @@ const LeaveConfiguration = () => {
       {/* Page Header */}
       <div className={styles.pageHeader}>
         <div>
-          <h1 className={styles.pageTitle}>Leave Configuration</h1>
           <p className={styles.pageSubtitle}>
             {activeTab === 'types' && 'Manage leave categories, policy plans, and staff enrollment with surgical precision.'}
             {activeTab === 'plans' && 'Manage leave categories, policy plans, and staff enrollment with granular rule mapping.'}
             {activeTab === 'enrollment' && 'Assign leave plans to staff members, manage specific policy overrides, and monitor individual enrollment statuses across the enterprise.'}
           </p>
         </div>
-        <button className={styles.exportBtn}>Export Configuration</button>
       </div>
 
       {/* Tabs */}
@@ -779,7 +777,6 @@ const EnrollmentTab = ({ plans }) => {
           <div className={styles.kpiLeft}>
             <div className={styles.kpiLabel}>TOTAL ENROLLMENT</div>
             <div className={styles.kpiValue}>{directory.length}</div>
-            <div className={styles.kpiTrend}>↗ +12% from last month</div>
           </div>
           <div className={styles.kpiRight}>
             <svg viewBox="0 0 36 36" className={styles.donut}>

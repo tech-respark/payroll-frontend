@@ -38,7 +38,7 @@ const NavGroup = ({ title, icon: Icon, children, isOpen, onToggleGroup, isCollap
 const Navigation = ({ isCollapsed, onToggle }) => {
   const { logout, hasAccess } = useAuth();
   const { storeConfig } = useStoreConfig();
-  const [openGroup, setOpenGroup] = useState('Core Management');
+  const [openGroup, setOpenGroup] = useState('Staff Management');
 
   const handleGroupToggle = (title) => {
     setOpenGroup(prev => prev === title ? null : title);
@@ -71,11 +71,11 @@ const Navigation = ({ isCollapsed, onToggle }) => {
       <ul className={styles.navLinks}>
         
         <NavGroup 
-          title="Core Management" 
+          title="Staff Management" 
           icon={PeopleIcon} 
           isCollapsed={isCollapsed}
-          isOpen={openGroup === 'Core Management'}
-          onToggleGroup={() => handleGroupToggle('Core Management')}
+          isOpen={openGroup === 'Staff Management'}
+          onToggleGroup={() => handleGroupToggle('Staff Management')}
         >
           <li>
             <NavLink to="/staff" activeClassName={styles.activeLink}>
@@ -160,6 +160,13 @@ const Navigation = ({ isCollapsed, onToggle }) => {
             <li>
               <NavLink to="/leave-configuration" activeClassName={styles.activeLink}>
                 Leave Config
+              </NavLink>
+            </li>
+          )}
+          {hasAccess(['MANAGE_LEAVES']) && (
+            <li>
+              <NavLink to="/settings/holidays" activeClassName={styles.activeLink}>
+                Holiday Calendar
               </NavLink>
             </li>
           )}
