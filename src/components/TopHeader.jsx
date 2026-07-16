@@ -14,23 +14,41 @@ const TopHeader = ({ onMenuClick, isCollapsed }) => {
   // Simple breadcrumb logic based on route
   const getBreadcrumbs = () => {
     const path = location.pathname;
-    if (path.includes('staff')) return 'Admin > Staff Management > Dashboard Overview';
-    if (path.includes('attendance') || path.includes('approvals')) return 'Admin > Attendance Module > Overview';
-    if (path.includes('leave')) return 'Admin > Leave Management > Overview';
-    if (path.includes('shift')) return 'Admin > Shift & Roster Management > Schedules';
-    if (path.includes('salary') || path.includes('payslip')) return 'Admin > Salary Management > Overview';
-    return 'Admin > Overview';
+    if (path.includes('reports/detailed')) return 'Report > Staff Detailed Report';
+    if (path.includes('report')) return 'Report > Attendance Summary';
+    if (path.includes('staff')) return 'Staff Management > Dashboard Overview';
+    
+    if (path.includes('leave-dashboard')) return 'Leave Management > Dashboard';
+    if (path.includes('submit-leave')) return 'Leave Management > Request Leave';
+    if (path.includes('leave-approvals')) return 'Leave Management > Approvals';
+    if (path.includes('leave-configuration')) return 'Leave Management > Configuration';
+    if (path.includes('leave')) return 'Leave Management > Overview';
+
+    if (path.includes('holidays')) return 'Settings > Holiday Calendar';
+
+    if (path.includes('attendance') || path.endsWith('/approvals') || path.includes('/approvals')) return 'Attendance Module > Overview';
+    
+    if (path.includes('shift')) return 'Shift & Roster Management > Schedules';
+    if (path.includes('salary') || path.includes('payslip')) return 'Salary Management > Overview';
+    return 'Overview';
   };
 
   const getPageTitle = () => {
     const path = location.pathname;
+    if (path.includes('reports/detailed')) return 'Staff Detailed Report';
+    if (path.includes('report')) return 'Attendance Summary';
     if (path.includes('staff')) return 'Staff Dashboard';
-    if (path.includes('attendance')) return 'Attendance Dashboard';
-    if (path.includes('approvals')) return 'Regularization Approvals';
+    
     if (path.includes('leave-dashboard')) return 'Leave Dashboard';
     if (path.includes('submit-leave')) return 'Request Leave';
     if (path.includes('leave-approvals')) return 'Leave Approvals';
     if (path.includes('leave-configuration')) return 'Leave Configuration';
+
+    if (path.includes('holidays')) return 'Holiday Calendar';
+
+    if (path.includes('attendance')) return 'Attendance Dashboard';
+    if (path.endsWith('/approvals') || path.includes('/approvals')) return 'Regularization Approvals';
+    
     if (path.includes('shifts')) return 'Shift Management';
     if (path.includes('salary')) return 'Salary Management';
     if (path.includes('payslip')) return 'Payslips';

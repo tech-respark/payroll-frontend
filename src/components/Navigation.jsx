@@ -15,6 +15,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 const NavGroup = ({ title, icon: Icon, children, isOpen, onToggleGroup, isCollapsed }) => {
   // If no children (meaning permissions hid all sub-items), don't render group
@@ -144,6 +145,27 @@ const Navigation = ({ isCollapsed, onToggle }) => {
             <li>
               <NavLink to="/payslips" activeClassName={styles.activeLink}>
                 Payslips
+              </NavLink>
+            </li>
+          </NavGroup>
+        )}
+
+        {hasAccess(['MANAGE_ATTENDANCE', 'MANAGE_SALARY']) && (
+          <NavGroup 
+            title="Reports & Analytics" 
+            icon={AssessmentIcon} 
+            isCollapsed={isCollapsed}
+            isOpen={openGroup === 'Reports & Analytics'}
+            onToggleGroup={() => handleGroupToggle('Reports & Analytics')}
+          >
+            <li>
+              <NavLink to="/reports" activeClassName={styles.activeLink} exact>
+                Attendance Summary
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/reports/detailed" activeClassName={styles.activeLink}>
+                Staff Detailed Report
               </NavLink>
             </li>
           </NavGroup>

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
+import { useStoreConfig } from '../hooks/queries';
+import { formatDateByConfig } from '../helpers/dateUtils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useStaffList, useShiftSlots, useStoreSettings, useWeeklyShifts } from '../hooks/queries';
 import styles from './ShiftsDashboard.module.scss';
@@ -9,6 +11,7 @@ import '../styles/main.scss';
 
 const ShiftsDashboard = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
+  const { storeConfig } = useStoreConfig();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   
@@ -671,7 +674,7 @@ const ShiftsDashboard = () => {
                 <div className={styles.dateBox}>
                   <button type="button" onClick={() => handleDateShift(-1)} className={styles.arrowBtn}>&lt;</button>
                   <div className={styles.dateText}>
-                    {new Date(assignStartDate).toLocaleDateString('en-GB').replace(/\//g, '-')}
+                    {formatDateByConfig(assignStartDate, storeConfig?.dateFormat)}
                   </div>
                   <button type="button" onClick={() => handleDateShift(1)} className={styles.arrowBtn}>&gt;</button>
                 </div>
@@ -867,7 +870,7 @@ const ShiftsDashboard = () => {
                 date.setDate(date.getDate() + i);
                 return (
                   <div key={i} className={styles.headerLabel}>
-                    {date.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    {formatDateByConfig(date, storeConfig?.dateFormat)}
                   </div>
                 );
               })}

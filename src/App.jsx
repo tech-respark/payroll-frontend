@@ -21,12 +21,14 @@ const SalaryDashboard      = lazy(() => import('./screens/SalaryDashboard'));
 const RoleManagement       = lazy(() => import('./screens/RoleManagement'));
 const RegularizationApprovals = lazy(() => import('./screens/RegularizationApprovals'));
 const PayslipsDashboard    = lazy(() => import('./screens/PayslipsDashboard'));
+const ReportsDashboard     = lazy(() => import('./screens/ReportsDashboard'));
 
 // Leave Management Screens
 const EmployeeDashboard       = lazy(() => import('./screens/EmployeeDashboard'));
 const ManagerApprovalPortal   = lazy(() => import('./screens/ManagerApprovalPortal'));
 const LeaveConfiguration      = lazy(() => import('./screens/LeaveConfiguration'));
 const HolidayCalendarScreen   = lazy(() => import('./screens/HolidayCalendarScreen'));
+const StaffDetailedReport     = lazy(() => import('./screens/StaffDetailedReport'));
 
 // ─── Route-level loading fallback ────────────────────────────────────────────
 const PageLoader = () => (
@@ -84,6 +86,8 @@ const AppContent = () => {
             {hasAccess(['MANAGE_ATTENDANCE'])                  && <Route path="/approvals" component={RegularizationApprovals} />}
             {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY'])       && <Route path="/salary"    component={SalaryDashboard} />}
             {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY'])       && <Route path="/payslips"  component={PayslipsDashboard} />}
+            {hasAccess(['MANAGE_ATTENDANCE', 'MANAGE_SALARY'])     && <Route path="/reports/detailed" component={StaffDetailedReport} />}
+            {hasAccess(['MANAGE_ATTENDANCE', 'MANAGE_SALARY'])     && <Route path="/reports"   component={ReportsDashboard} />}
             {hasAccess(['MANAGE_ROLES'])       && <Route path="/roles"     component={RoleManagement} />}
 
             <Redirect from="/login" to="/staff" />

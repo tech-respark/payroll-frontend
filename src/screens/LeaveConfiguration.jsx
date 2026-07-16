@@ -37,7 +37,7 @@ const LeaveConfiguration = () => {
   return (
     <div className={styles.page}>
       {/* Page Header */}
-      <div className={styles.pageHeader}>
+      {/* <div className={styles.pageHeader}>
         <div>
           <p className={styles.pageSubtitle}>
             {activeTab === 'types' && 'Manage leave categories, policy plans, and staff enrollment with surgical precision.'}
@@ -45,7 +45,7 @@ const LeaveConfiguration = () => {
             {activeTab === 'enrollment' && 'Assign leave plans to staff members, manage specific policy overrides, and monitor individual enrollment statuses across the enterprise.'}
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* Tabs */}
       <div className={styles.tabBar}>

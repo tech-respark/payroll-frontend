@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getStoreHolidays, createStoreHoliday, deleteStoreHoliday } from '../api/holidayApi';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useStoreConfig } from '../hooks/queries';
+import { formatDateByConfig } from '../helpers/dateUtils';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
@@ -13,6 +15,7 @@ import styles from './HolidayCalendarScreen.module.scss';
 
 export default function HolidayCalendarScreen() {
   const { tenantId, storeId } = useAuth();
+  const { storeConfig } = useStoreConfig();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   
@@ -81,13 +84,7 @@ export default function HolidayCalendarScreen() {
   });
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const d = new Date(dateString);
-    return d.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    return formatDateByConfig(dateString, storeConfig?.dateFormat);
   };
 
   return (

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
-import { useStaffList } from '../hooks/queries';
+import { useStaffList, useStoreConfig } from '../hooks/queries';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import AttendanceRegularizeModal from '../components/AttendanceRegularizeModal';
+import { formatDateByConfig } from '../helpers/dateUtils';
 import styles from './AttendanceDashboard.module.scss';
 import { Badge } from '../components/ui';
 import '../styles/main.scss';
@@ -63,6 +64,7 @@ const formatDateStr = (dateStr) => {
 const AttendanceDashboard = () => {
   const history = useHistory();
   const { tenantId, storeId, user, hasAccess } = useAuth();
+  const { storeConfig } = useStoreConfig();
   const { showToast } = useToast();
   
   const currentMonthIndex = new Date().getMonth();
@@ -328,7 +330,7 @@ const AttendanceDashboard = () => {
     );
     
     const dObj = new Date(selectedDateObj.dateStr);
-    const dateFormatted = dObj.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    const dateFormatted = formatDateByConfig(dObj, storeConfig?.dateFormat);
     
     return (
       <div className={styles.detailsCard}>

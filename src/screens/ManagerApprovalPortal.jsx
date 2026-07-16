@@ -4,6 +4,8 @@ import styles from './ManagerApprovalPortal.module.scss';
 import { apiService } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useStoreConfig } from '../hooks/queries';
+import { formatDateByConfig } from '../helpers/dateUtils';
 
 const ManagerApprovalPortal = ({ managerId = 1 }) => {
   const [selectedReq, setSelectedReq] = useState(null);
@@ -14,6 +16,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
   const [selectedIds, setSelectedIds] = useState([]);
   
   const { tenantId, storeId } = useAuth();
+  const { storeConfig } = useStoreConfig();
   const { showToast } = useToast();
 
   const queryClient = useQueryClient();
@@ -253,7 +256,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                 <div className={styles.modalAvatar}>{getInitials(selectedReq.staffName)}</div>
                 <div className={styles.modalUserInfo}>
                   <h2>{selectedReq.staffName || "Unknown Staff"}</h2>
-                  <p className={styles.modalMeta}>Applied {new Date(selectedReq.createdAt).toLocaleDateString() || 'Recently'}</p>
+                  <p className={styles.modalMeta}>Applied {formatDateByConfig(selectedReq.createdAt, storeConfig?.dateFormat) || 'Recently'}</p>
                 </div>
               </div>
               <button className={styles.closeBtn} onClick={closeDetails}>×</button>
@@ -274,7 +277,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                     </div>
                     <div className={styles.detailItem + " " + styles.fullWidth}>
                       <label>DATES</label>
-                      <p className={styles.val}>{new Date(selectedReq.startDate).toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'})} — {new Date(selectedReq.endDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</p>
+                      <p className={styles.val}>{formatDateByConfig(selectedReq.startDate, storeConfig?.dateFormat)} - {formatDateByConfig(selectedReq.endDate, storeConfig?.dateFormat)}</p>
                     </div>
                     <div className={styles.detailItem + " " + styles.fullWidth}>
                       <label>REASON</label>
@@ -328,7 +331,7 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                       <tbody>
                         {leaveHistory.slice(0, 3).map(h => (
                           <tr key={h.id}>
-                            <td>{new Date(h.startDate).toLocaleDateString('en-US', {month: 'short', day: '2-digit'})} - {new Date(h.endDate).toLocaleDateString('en-US', {day: '2-digit'})}</td>
+                            <td>{formatDateByConfig(h.startDate, storeConfig?.dateFormat)} - {formatDateByConfig(h.endDate, storeConfig?.dateFormat)}</td>
                             <td>{h.leaveType?.leaveName || 'Leave'}</td>
                             <td>
                               <span style={{

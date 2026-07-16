@@ -7,9 +7,12 @@ import { apiService } from '../api/apiService';
 import { getStoreHolidays } from '../api/holidayApi';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useStoreConfig } from '../hooks/queries';
+import { formatDateByConfig } from '../helpers/dateUtils';
 
 const EmployeeDashboard = () => {
   const { user, tenantId, storeId } = useAuth();
+  const { storeConfig } = useStoreConfig();
   const staffId = user?.staffId || user?.id || 1;
   const { showToast } = useToast();
 
@@ -364,7 +367,7 @@ const EmployeeDashboard = () => {
             <div key={i} className={styles.historyCard}>
               <div className={styles.historyCardHeader}>
                 <span className={styles.historyCardDate}>
-                  {new Date(req.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  {formatDateByConfig(req.startDate, storeConfig?.dateFormat)}
                 </span>
                 <StatusBadge status={req.status} />
               </div>

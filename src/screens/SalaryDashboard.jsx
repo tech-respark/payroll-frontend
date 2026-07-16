@@ -188,7 +188,6 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
           <p className={styles.headerSubtitle}>Define core earnings and recurring deductions for staff roles.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnExport}><DownloadIcon style={{fontSize: 16, marginRight: 6, verticalAlign: 'text-bottom'}} /> Export PDF</button>
           <button 
             className={styles.btnSave} 
             onClick={handleSave} 
