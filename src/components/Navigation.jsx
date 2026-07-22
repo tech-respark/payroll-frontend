@@ -60,7 +60,6 @@ const Navigation = ({ isCollapsed, onToggle }) => {
           <>
             <div className={styles.brandText}>
               <h1>Relfor <span>Payroll</span></h1>
-              <p>Enterprise Suite</p>
             </div>
             <button className={styles.collapseBtn} onClick={onToggle} title="Collapse Menu">
               <ChevronLeftIcon fontSize="small" />

@@ -17,7 +17,7 @@ export const ThemeProvider = ({ children }) => {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
-    return 'dark'; // Force default to dark for the Enterprise Suite feel
+    return 'dark'; 
   });
 
   useEffect(() => {

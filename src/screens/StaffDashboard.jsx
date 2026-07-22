@@ -18,6 +18,8 @@ const StaffDashboard = () => {
   const [isNew, setIsNew] = useState(false);
   const [activeTab, setActiveTab] = useState('personal'); 
   
+
+
   const emptyJoiningDetailsObj = { staffId: "", employeeCode: "", reportingTo: "", uanNumber: "", workingHours: 0, storeId: storeId };
   const emptyBankAccountDetailsObj = { bankName: '', bankBranch: '', ifscCode: '', accountNumber: '' };
   
@@ -63,6 +65,8 @@ const StaffDashboard = () => {
     }
   }, [canViewOtherStaff, staffList, user, selectedStaff]);
 
+
+
   const fetchStaffRole = async (staffId) => {
     try {
       const res = await apiService.get(`/roles/staff/${staffId}`);
@@ -90,6 +94,7 @@ const StaffDashboard = () => {
     });
     setIsNew(false);
     setActiveTab('personal');
+    
   };
 
   const handleCreateNew = () => {
@@ -151,6 +156,7 @@ const StaffDashboard = () => {
 
   const { saveStaff, isSaving } = useSaveStaff({
     onSuccess: (savedData) => {
+      const savedStaffId = savedData?.id || formData.id;
       setIsNew(false);
       if (savedData) setSelectedStaff(savedData);
     }
@@ -265,7 +271,7 @@ const StaffDashboard = () => {
 
               {/* Tab 1: Personal & Access */}
               {activeTab === 'personal' && (
-                <div className={styles.tabPanel}>
+                <fieldset disabled={!canManageStaff} className={styles.tabPanel} style={{ border: 'none' }}>
                   <h3 className={styles.sectionTitle}>Personal Details</h3>
                   <div className={styles.formGrid}>
                     <div className={styles.formGroup}><label className={styles.formLabel}>First Name *</label><input type="text" className={styles.formInput} name="firstName" value={formData.firstName} onChange={handleChange} required /></div>
@@ -308,12 +314,12 @@ const StaffDashboard = () => {
                     </label>
                    
                   </div>
-                </div>
+                </fieldset>
               )}
 
               {/* Tab 2: Joining & Employment */}
               {activeTab === 'employment' && (
-                <div className={styles.tabPanel}>
+                <fieldset disabled={!canManageStaff} className={styles.tabPanel} style={{ border: 'none' }}>
                   <h3 className={styles.sectionTitle}>Employment Details</h3>
                   <div className={styles.formGrid}>
                     <div className={styles.formGroup}><label className={styles.formLabel}>Employee Code</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.employeeCode" value={formData.personnelJoiningDetails.employeeCode} onChange={handleChange} /></div>
@@ -349,12 +355,12 @@ const StaffDashboard = () => {
                       </button>
                     ))}
                   </div>
-                </div>
+                </fieldset>
               )}
 
               {/* Tab 3: Banking & Documents */}
               {activeTab === 'banking' && (
-                <div className={styles.tabPanel}>
+                <fieldset disabled={!canManageStaff} className={styles.tabPanel} style={{ border: 'none' }}>
                   <h3 className={styles.sectionTitle}>Bank Account Details</h3>
                   <div className={styles.formGrid}>
                     <div className={styles.formGroup}><label className={styles.formLabel}>Bank Name</label><input type="text" className={styles.formInput} name="personnelBankAccountDetails.bankName" value={formData.personnelBankAccountDetails.bankName} onChange={handleChange} /></div>
@@ -381,12 +387,12 @@ const StaffDashboard = () => {
                       ))}
                     </div>
                   )}
-                </div>
+                </fieldset>
               )}
 
               {/* Tab 4: Work Experience */}
               {activeTab === 'experience' && (
-                <div className={styles.tabPanel}>
+                <fieldset disabled={!canManageStaff} className={styles.tabPanel} style={{ border: 'none' }}>
                   <h3 className={styles.sectionTitleBorderFlex} style={{ borderTop: 'none', paddingTop: 0 }}>
                     Previous Experience
                     <button type="button" onClick={() => handleAddArrayItem('personnelWorkExperienceDetailsList', { companyName: '', designation: '', fromDate: '', toDate: '' })} className={styles.addBtn}>+ Add Experience</button>
@@ -412,8 +418,10 @@ const StaffDashboard = () => {
                       ))}
                     </div>
                   )}
-                </div>
+                </fieldset>
               )}
+              
+
 
               {/* Form Actions Footer */}
               <div className={styles.actionsRow}>
