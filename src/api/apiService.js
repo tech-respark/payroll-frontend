@@ -85,14 +85,3 @@ export const apiService = {
   }
 };
 
-export const getStoreHolidays = async (tenantId, storeId) => {
-  return await apiService.get(`/holidays?tenantId=${tenantId}&storeId=${storeId}`);
-};
-
-export const createStoreHoliday = async (holidayData) => {
-  return await apiService.post(`/holidays`, holidayData);
-};
-
-export const deleteStoreHoliday = async (id) => {
-  return await apiService.delete(`/holidays/${id}`);
-};

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStoreHolidays, createStoreHoliday, deleteStoreHoliday } from '../api/apiService';
+import { apiService } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
@@ -28,12 +28,12 @@ export default function HolidayCalendarScreen() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['holidays', tenantId, storeId],
-    queryFn: () => getStoreHolidays(tenantId, storeId),
+    queryFn: () => apiService.get(`/holidays?tenantId=${tenantId}&storeId=${storeId}`),
     enabled: !!tenantId && !!storeId
   });
 
   const createMutation = useMutation({
-    mutationFn: createStoreHoliday,
+    mutationFn: (holidayData) => apiService.post('/holidays', holidayData),
     onSuccess: () => {
       queryClient.invalidateQueries(['holidays']);
       showToast('Holiday created successfully!', 'success');
@@ -45,7 +45,7 @@ export default function HolidayCalendarScreen() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteStoreHoliday,
+    mutationFn: (id) => apiService.delete(`/holidays/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['holidays']);
       showToast('Holiday deleted successfully!', 'success');
