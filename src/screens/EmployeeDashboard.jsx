@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import styles from './EmployeeDashboard.module.scss';
 import StatusBadge from '../components/StatusBadge';
 import { apiService } from '../api/apiService';
-import { getStoreHolidays } from '../api/holidayApi';
+import { getStoreHolidays } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';

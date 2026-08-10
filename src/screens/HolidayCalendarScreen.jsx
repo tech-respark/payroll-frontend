@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStoreHolidays, createStoreHoliday, deleteStoreHoliday } from '../api/holidayApi';
+import { getStoreHolidays, createStoreHoliday, deleteStoreHoliday } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';

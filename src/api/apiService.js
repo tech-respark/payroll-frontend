@@ -61,5 +61,38 @@ export const apiService = {
     } finally {
       window.dispatchEvent(new Event('api_call_end'));
     }
+  },
+
+  async delete(endpoint, headers = {}) {
+    window.dispatchEvent(new Event('api_call_start'));
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...headers
+        }
+      });
+      return await handleResponse(response, endpoint);
+    } catch (error) {
+      console.error('DELETE Error:', error);
+      throw error;
+    } finally {
+      window.dispatchEvent(new Event('api_call_end'));
+    }
   }
+};
+
+export const getStoreHolidays = async (tenantId, storeId) => {
+  return await apiService.get(`/holidays?tenantId=${tenantId}&storeId=${storeId}`);
+};
+
+export const createStoreHoliday = async (holidayData) => {
+  return await apiService.post(`/holidays`, holidayData);
+};
+
+export const deleteStoreHoliday = async (id) => {
+  return await apiService.delete(`/holidays/${id}`);
 };
