@@ -155,11 +155,11 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      {/* <div className={styles.header}>
         <div className={styles.titleSection}>
           <p>Review and process pending leave/regularization requests for your team.</p>
         </div>
-      </div>
+      </div> */}
 
       <div className={styles.tableCard}>
         <div className={styles.tableHeaderSection}>

@@ -87,7 +87,7 @@ const AppContent = () => {
             {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY'])       && <Route path="/salary"    component={SalaryDashboard} />}
             {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY'])       && <Route path="/payslips"  component={PayslipsDashboard} />}
             {hasAccess(['MANAGE_ATTENDANCE', 'MANAGE_SALARY'])     && <Route path="/reports/detailed" component={StaffDetailedReport} />}
-            {hasAccess(['MANAGE_ATTENDANCE', 'MANAGE_SALARY'])     && <Route path="/reports"   component={ReportsDashboard} />}
+            {hasAccess(['VIEW_REPORTS'])     && <Route path="/reports"   component={ReportsDashboard} />}
             {hasAccess(['MANAGE_ROLES'])       && <Route path="/roles"     component={RoleManagement} />}
 
             <Redirect from="/login" to="/staff" />
