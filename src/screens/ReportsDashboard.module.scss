@@ -278,3 +278,4 @@
   & .badgeAbsent { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
   & .badgeTime { background: rgba(2, 132, 199, 0.2); color: #38bdf8; }
 }
+:global([data-theme='dark']) { & .filterCard .filterGroup select option { background: #0f172a; color: #f1f5f9; } }
