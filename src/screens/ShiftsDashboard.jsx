@@ -44,7 +44,7 @@ const ShiftsDashboard = () => {
 
   // Roster Data
   const [assignStartDate, setAssignStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [assignNoOfDays, setAssignNoOfDays] = useState('1');
+  const [assignNoOfDays, setAssignNoOfDays] = useState(1);
   const [globalShiftId, setGlobalShiftId] = useState('');
   const [bulkAssignments, setBulkAssignments] = useState({});
 
@@ -643,9 +643,9 @@ const ShiftsDashboard = () => {
               <label>Apply For (Days)</label>
               <input 
                 type="number" 
-                min="1"
+                min={1}
                 value={assignNoOfDays} 
-                onChange={(e) => setAssignNoOfDays(e.target.value)} 
+                onChange={(e) => setAssignNoOfDays(parseInt(e.target.value) || 1)} 
                 className={styles.filterInput}
               />
             </div>

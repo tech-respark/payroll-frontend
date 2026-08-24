@@ -218,3 +218,63 @@
     color: #64748b;
   }
 }
+
+/* Dark Mode Overrides */
+:global([data-theme='dark']) {
+  & .pageHeader h2 { color: #f1f5f9; }
+  & .pageHeader .breadcrumbs { color: #94a3b8; }
+  
+  & .filterCard {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  & .filterCard .filterGroup label { color: #94a3b8; }
+  & .filterCard .filterGroup input, & .filterCard .filterGroup select {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  & .tableCard {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  & .tableCard .dataTable th {
+    background: #0f172a;
+    border-bottom-color: #334155;
+    color: #94a3b8;
+  }
+  & .tableCard .dataTable td {
+    border-bottom-color: #334155;
+    color: #cbd5e1;
+  }
+  & .tableCard .dataTable td.nameCol {
+    color: #f1f5f9;
+  }
+  
+  & .emptyCell { color: #94a3b8; }
+  & .emptyCell h3 { color: #cbd5e1; }
+  
+  & .pagination {
+    background: #0f172a;
+    border-top-color: #334155;
+  }
+  & .pagination .pageBtn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+  & .pagination .pageBtn:hover:not(:disabled) {
+    background: #334155;
+  }
+  & .pagination .pageInfo { color: #cbd5e1; }
+
+  & .badge.blueBadge { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+  & .badge.greyBadge { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
+  
+  & .badgePresent { background: rgba(22, 163, 74, 0.2); color: #4ade80; }
+  & .badgeLeave { background: rgba(220, 38, 38, 0.2); color: #f87171; }
+  & .badgeHoliday { background: rgba(217, 119, 6, 0.2); color: #fbbf24; }
+  & .badgeAbsent { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
+  & .badgeTime { background: rgba(2, 132, 199, 0.2); color: #38bdf8; }
+}
