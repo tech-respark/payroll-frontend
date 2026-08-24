@@ -96,7 +96,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
       const savedRes = await apiService.get(`/personnelSalaryComponents?staffId=${staffId}`);
       const savedStructure = savedRes.data || { earningsList: [], deductionsList: [] };
 
-      const fixedDefs = availableComponents.filter(c => !c.isCalculatedMonthly);
+      const fixedDefs = availableComponents.filter(c => !c.isCalculatedMonthly && (!c.formula || c.formula.trim() === ''));
 
       const merged = fixedDefs.map(comp => {
         let savedAnnualValue = 0;
@@ -419,8 +419,8 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
       const savedRes = await apiService.get(`/personnelSalaryComponents?staffId=${staffId}`);
       const savedStructure = savedRes.data || { earningsList: [], deductionsList: [] };
 
-      // Filter to only variables (isCalculatedMonthly = true)
-      const varDefs = availableComponents.filter(c => c.isCalculatedMonthly);
+      // Filter to only variables (isCalculatedMonthly = true) and exclude those with formulas
+      const varDefs = availableComponents.filter(c => c.isCalculatedMonthly && (!c.formula || c.formula.trim() === ''));
 
       const merged = varDefs.map(comp => {
         let savedAnnualValue = 0;
