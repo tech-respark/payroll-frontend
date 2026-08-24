@@ -1,1 +1,0 @@
-import{u as n,d as o,c as u}from"./index-6a476fe5.js";const d=()=>{const{tenantId:e}=n(),{data:r=[],isLoading:t,error:a}=o({queryKey:["roles",e],queryFn:async()=>{const s=await u.get(`/roles?tenantId=${e}`);return s&&s.success?s.data||[]:[]},enabled:!!e});return{roles:r,isLoading:t,error:a}};export{d as u};

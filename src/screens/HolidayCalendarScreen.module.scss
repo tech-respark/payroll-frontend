@@ -479,3 +479,88 @@ input:checked + .slider:before {
     background-color: #f8fafc;
   }
 }
+
+/* Dark Mode Overrides */
+:global([data-theme='dark']) {
+  & .pageContainer {
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+  }
+  
+  & .pageTitle { color: var(--text-dark); }
+  
+  & .metricCard {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+  }
+  
+  & .metricLabel { color: var(--text-muted); }
+  & .metricValueLarge { color: var(--primary-color); }
+  & .metricValueSub { color: var(--text-muted); }
+  & .metricTextValue { color: var(--text-dark); }
+  
+  & .tableContainer {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+  }
+  
+  & .table th {
+    background-color: var(--primary-bg);
+    border-bottom-color: var(--border-color);
+    color: var(--text-muted);
+  }
+  
+  & .table td {
+    border-bottom-color: var(--border-color);
+    color: var(--text-label);
+  }
+  
+  & .tableFooter {
+    background-color: var(--primary-bg);
+    border-top-color: var(--border-color);
+    color: var(--text-muted);
+  }
+  
+  & .actionBtn {
+    &:hover { background-color: rgba(239, 68, 68, 0.1); }
+  }
+  
+  & .modalContent {
+    background: var(--bg-card);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  }
+  
+  & .modalHeader, & .modalFooter { border-color: var(--border-color); }
+  
+  & .modalIcon {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+  
+  & .modalTitleText h2 { color: var(--text-dark); }
+  & .formGroup label { color: var(--text-dark); }
+  
+  & .formGroup input {
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+    color: var(--text-dark);
+  }
+  
+  & .toggleGroup {
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+    .toggleTitle { color: var(--text-dark); }
+  }
+  
+  & .infoBanner {
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+    color: var(--text-label);
+  }
+  
+  & .cancelBtn {
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+    color: var(--text-label);
+    &:hover { background-color: var(--bg-card); }
+  }
+}
