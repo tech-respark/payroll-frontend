@@ -848,15 +848,7 @@ const EnrollmentTab = ({ plans }) => {
           </div>
         </div>
 
-        {/* Bulk Enrollment Banner */}
-        <div className={styles.bulkBanner}>
-          <span className={styles.infoIcon}>ℹ️</span>
-          <div className={styles.bulkBannerText}>
-            <strong>Bulk Enrollment available</strong>
-            <p>You can also enroll staff members in bulk using the CSV upload feature in Advanced Settings.</p>
-          </div>
-          <button className={styles.advancedBtn}>ADVANCED SETTINGS</button>
-        </div>
+
       </div>
     </div>
   );
