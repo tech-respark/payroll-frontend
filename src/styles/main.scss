@@ -70,12 +70,12 @@ $color-error: #ff003d;
 
 /* Animations */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeInUp 0.5s ease-out forwards;
+  animation: fadeInUp 0.35s ease-out forwards;
 }
 
 * {
@@ -89,6 +89,31 @@ body {
   background-color: var(--bg-color);
   color: var(--text-dark);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(63, 151, 239, 0.25);
+  color: var(--text-dark);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color-strong);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--text-muted);
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -102,35 +127,57 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 100vh;
 }
 
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-color);
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.3s ease;
+  width: calc(100% - var(--sidebar-width));
+
+  &.collapsed {
+    margin-left: 80px;
+    width: calc(100% - 80px);
+  }
+}
+
 .main-content {
   flex: 1;
-  margin-left: var(--sidebar-width);
-  padding: 40px;
+  padding: clamp(16px, 2vw, 28px);
   background-color: var(--bg-color);
   transition: var(--transition);
+  overflow-x: hidden;
 }
 
 .dashboard-content {
   background: var(--bg-white);
-  padding: 40px;
+  padding: clamp(20px, 2vw, 28px);
   border-radius: 16px;
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-color);
   min-height: 60vh;
-  animation: fadeInUp 0.4s ease-out;
+  animation: fadeInUp 0.35s ease-out;
   h2 { margin-top: 0; }
+}
+
+@media (max-width: 1280px) {
+  .dashboard-content {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .content-wrapper, .content-wrapper.collapsed {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
   .app-layout {
     flex-direction: column;
-  }
-  .main-content {
-    margin-left: 0;
-    padding: 16px;
-  }
-  .dashboard-content {
-    padding: 20px;
   }
   .form-grid {
     grid-template-columns: 1fr !important;
@@ -144,11 +191,8 @@ h1, h2, h3, h4, h5, h6 {
   }
   .filter-bar {
     flex-direction: column;
-  }
-  .attendance-table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
+    align-items: stretch;
+    .form-group { width: 100%; }
   }
   .payroll-card {
     padding: 20px !important;
@@ -230,7 +274,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 350px));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 400px));
   gap: 24px;
   margin-bottom: 24px;
   
@@ -321,6 +365,11 @@ h1, h2, h3, h4, h5, h6 {
   transition: var(--transition);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
   
   &:hover:not(:disabled) {
     transform: translateY(-2px);

@@ -51,6 +51,9 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
     }
   }, [selectedStaffData, selectedReq]);
 
+  const [rejectPromptReq, setRejectPromptReq] = useState(null);
+  const [rejectPromptRemarks, setRejectPromptRemarks] = useState('');
+
   const openDetails = (req) => {
     setSelectedReq(req);
     setRemarks('');
@@ -73,6 +76,8 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
         closeDetails();
       }
       setSelectedIds(prev => prev.filter(id => id !== variables.reqId));
+      setRejectPromptReq(null);
+      setRejectPromptRemarks('');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['pendingLeaves'] });
@@ -81,11 +86,23 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
 
   const handleAction = (action, req = selectedReq) => {
     if (!req) return;
+    
+    let finalRemarks = req === selectedReq ? remarks : '';
+    
+    if (action === 'reject' && !finalRemarks) {
+      setRejectPromptRemarks('');
+      setRejectPromptReq(req);
+      return; // Stop here, wait for modal submission
+    }
+    
+    executeAction(action, req, finalRemarks);
+  };
+
+  const executeAction = (action, req, finalRemarks) => {
     let endpoint = action === 'approve' 
       ? (req.status === 'CANCELLATION_REQUESTED' ? 'approve-cancellation' : 'approve')
       : (req.status === 'CANCELLATION_REQUESTED' ? 'reject-cancellation' : 'reject');
-    const finalRemarks = req === selectedReq ? remarks : '';
-    
+      
     actionMutation.mutate(
       { reqId: req.id, endpoint, remarks: finalRemarks },
       {
@@ -93,6 +110,14 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
         onError: (err) => showToast(err.message || "Action failed", 'error')
       }
     );
+  };
+
+  const confirmReject = () => {
+    if (!rejectPromptRemarks.trim()) {
+      showToast("Rejection remarks are mandatory.", "error");
+      return;
+    }
+    executeAction('reject', rejectPromptReq, rejectPromptRemarks);
   };
 
   const bulkActionMutation = useMutation({
@@ -364,6 +389,57 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
               </button>
               <button className={styles.approveBtn} onClick={() => handleAction('approve')} disabled={actionMutation.isPending}>
                 {actionMutation.isPending && actionMutation.variables?.endpoint !== 'reject' ? 'Processing...' : 'Approve Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rejectPromptReq && (
+        <div className={styles.modalOverlay} onClick={() => setRejectPromptReq(null)} style={{ zIndex: 1100, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className={styles.modalContent} style={{ maxWidth: '400px', padding: '24px', gap: '20px' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-main)', fontWeight: '600' }}>Reject Request</h3>
+              <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => setRejectPromptReq(null)}>✕</button>
+            </div>
+            
+            <div style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
+              Please provide a reason for rejecting this leave request. This remark will be visible to the employee.
+            </div>
+            
+            <textarea
+              value={rejectPromptRemarks}
+              onChange={e => setRejectPromptRemarks(e.target.value)}
+              placeholder="Enter rejection reason (mandatory)..."
+              style={{
+                width: '100%',
+                background: 'var(--input-bg)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                padding: '12px',
+                color: 'var(--text-main)',
+                fontFamily: 'inherit',
+                fontSize: '0.9rem',
+                minHeight: '100px',
+                resize: 'vertical',
+                boxSizing: 'border-box'
+              }}
+              autoFocus
+            />
+            
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+              <button 
+                onClick={() => setRejectPromptReq(null)}
+                style={{ padding: '10px 16px', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmReject}
+                disabled={actionMutation.isPending}
+                style={{ padding: '10px 16px', background: 'var(--red-bg)', border: '1px solid var(--red-border)', color: 'var(--red-text)', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}
+              >
+                {actionMutation.isPending ? 'Processing...' : 'Confirm Rejection'}
               </button>
             </div>
           </div>

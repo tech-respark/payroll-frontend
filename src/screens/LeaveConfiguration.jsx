@@ -76,7 +76,7 @@ const LeaveConfiguration = () => {
 const LeaveTypesTab = ({ types }) => {
   const { tenantId, storeId } = useAuth();
   const { showToast } = useToast();
-  const [formData, setFormData] = useState({ leaveCode: '', leaveName: '', description: '', paid: true });
+  const [formData, setFormData] = useState({ leaveCode: '', leaveName: '', description: '', paid: true, applicableGender: 'ALL' });
   const [editingType, setEditingType] = useState(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
@@ -94,7 +94,7 @@ const LeaveTypesTab = ({ types }) => {
     mutationFn: (payload) => apiService.post('/admin/leave-plans/leave-types', payload),
     onSuccess: () => {
       showToast('Leave Type created!', 'success');
-      setFormData({ leaveCode: '', leaveName: '', description: '', paid: true });
+      setFormData({ leaveCode: '', leaveName: '', description: '', paid: true, applicableGender: 'ALL' });
       queryClient.invalidateQueries({ queryKey: ['leaveTypes'] });
     },
     onError: (err) => showToast(err.message || 'Failed to create Leave Type', 'error')
@@ -104,7 +104,7 @@ const LeaveTypesTab = ({ types }) => {
     mutationFn: (payload) => apiService.put(`/admin/leave-plans/leave-types/${editingType.id}`, payload),
     onSuccess: () => {
       showToast('Leave Type updated!', 'success');
-      setFormData({ leaveCode: '', leaveName: '', description: '', paid: true });
+      setFormData({ leaveCode: '', leaveName: '', description: '', paid: true, applicableGender: 'ALL' });
       setEditingType(null);
       queryClient.invalidateQueries({ queryKey: ['leaveTypes'] });
     },
@@ -126,13 +126,14 @@ const LeaveTypesTab = ({ types }) => {
       leaveCode: type.leaveCode || '',
       leaveName: type.leaveName || '',
       description: type.description || '',
-      paid: type.paid !== false
+      paid: type.paid !== false,
+      applicableGender: type.applicableGender || 'ALL'
     });
   };
 
   const handleCancelEdit = () => {
     setEditingType(null);
-    setFormData({ leaveCode: '', leaveName: '', description: '', paid: true });
+    setFormData({ leaveCode: '', leaveName: '', description: '', paid: true, applicableGender: 'ALL' });
   };
 
   return (
@@ -169,15 +170,29 @@ const LeaveTypesTab = ({ types }) => {
             </div>
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>NAME (e.g. Sick Leave)</label>
-            <input
-              className={styles.input}
-              placeholder="Sick Leave"
-              value={formData.leaveName}
-              onChange={e => setFormData({ ...formData, leaveName: e.target.value })}
-              required
-            />
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>NAME (e.g. Sick Leave)</label>
+              <input
+                className={styles.input}
+                placeholder="Sick Leave"
+                value={formData.leaveName}
+                onChange={e => setFormData({ ...formData, leaveName: e.target.value })}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>GENDER APPLICABILITY</label>
+              <select
+                className={styles.select}
+                value={formData.applicableGender}
+                onChange={e => setFormData({ ...formData, applicableGender: e.target.value })}
+              >
+                <option value="ALL">All Genders</option>
+                <option value="MALE">Male Only</option>
+                <option value="FEMALE">Female Only</option>
+              </select>
+            </div>
           </div>
 
           <div className={styles.formGroup}>
@@ -228,14 +243,14 @@ const LeaveTypesTab = ({ types }) => {
               <th>CODE</th>
               <th>NAME</th>
               <th>CATEGORY</th>
-              <th>ACTIONS</th>
+              <th>GENDER</th>
             </tr>
           </thead>
           <tbody>
             {paginated.length === 0 ? (
               <tr><td colSpan="4" className={styles.emptyRow}>No leave types found.</td></tr>
             ) : paginated.map(t => (
-              <tr key={t.id}>
+              <tr key={t.id} onClick={() => handleEditClick(t)} style={{ cursor: 'pointer' }} className={styles.clickableRow}>
                 <td><strong className={styles.codeCell}>{t.leaveCode}</strong></td>
                 <td>{t.leaveName}</td>
                 <td>
@@ -244,9 +259,9 @@ const LeaveTypesTab = ({ types }) => {
                   </span>
                 </td>
                 <td>
-                  <div className={styles.actionBtns}>
-                    <button className={styles.iconBtn} title="Edit" onClick={() => handleEditClick(t)}>✏️</button>
-                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748B', backgroundColor: '#F1F5F9', padding: '4px 8px', borderRadius: '4px' }}>
+                    {t.applicableGender === 'MALE' ? 'MALE ONLY' : t.applicableGender === 'FEMALE' ? 'FEMALE ONLY' : 'ALL GENDERS'}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -272,7 +287,7 @@ const LeavePlansTab = ({ plans, types }) => {
   const { tenantId, storeId } = useAuth();
   const { showToast } = useToast();
   const [planForm, setPlanForm] = useState({ planName: '', effectiveYear: new Date().getFullYear() });
-  const [ruleForm, setRuleForm] = useState({ planId: '', leaveTypeId: '', annualAllotment: '', maxConsecutiveDays: '', proofRequiredAfterDays: '', allowNegativeBalance: false });
+  const [ruleForm, setRuleForm] = useState({ planId: '', leaveTypeId: '', annualAllotment: '', maxConsecutiveDays: '', proofRequiredAfterDays: '', allowNegativeBalance: false, accrualFrequency: 'NONE', maxCarryForward: '' });
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [editModal, setEditModal] = useState(null); // plan object
   const queryClient = useQueryClient();
@@ -300,7 +315,7 @@ const LeavePlansTab = ({ plans, types }) => {
     mutationFn: (payload) => apiService.post('/admin/leave-plans/map-rules', payload),
     onSuccess: () => {
       showToast('Rule mapped successfully!', 'success');
-      setRuleForm({ planId: ruleForm.planId, leaveTypeId: '', annualAllotment: '', maxConsecutiveDays: '', proofRequiredAfterDays: '', allowNegativeBalance: false });
+      setRuleForm({ planId: ruleForm.planId, leaveTypeId: '', annualAllotment: '', maxConsecutiveDays: '', proofRequiredAfterDays: '', allowNegativeBalance: false, accrualFrequency: 'NONE', maxCarryForward: '' });
       queryClient.invalidateQueries({ queryKey: ['leaveRules', ruleForm.planId] });
     },
     onError: (err) => showToast(err.message || 'Failed to map rule', 'error')
@@ -448,6 +463,32 @@ const LeavePlansTab = ({ plans, types }) => {
                 />
               </div>
               <div className={styles.formGroup}>
+                <label className={styles.label}>ACCRUAL FREQUENCY</label>
+                <select
+                  className={styles.select}
+                  value={ruleForm.accrualFrequency}
+                  onChange={e => setRuleForm({ ...ruleForm, accrualFrequency: e.target.value })}
+                >
+                  <option value="NONE">On-Demand / None</option>
+                  <option value="MONTHLY">Monthly</option>
+                  <option value="QUARTERLY">Quarterly</option>
+                  <option value="ANNUALLY">Annually</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>MAX CARRY FORWARD</label>
+                <input
+                  className={styles.input}
+                  type="number"
+                  placeholder="e.g. 5"
+                  value={ruleForm.maxCarryForward}
+                  onChange={e => setRuleForm({ ...ruleForm, maxCarryForward: e.target.value })}
+                />
+              </div>
+              <div className={styles.formGroup}>
                 <label className={styles.label}>MAX CONSECUTIVE DAYS (OPTIONAL)</label>
                 <input
                   className={styles.input}
@@ -480,6 +521,8 @@ const LeavePlansTab = ({ plans, types }) => {
               <tr>
                 <th>LEAVE TYPE</th>
                 <th>ALLOTMENT</th>
+                <th>ACCRUAL</th>
+                <th>MAX CF</th>
                 <th>CONSECUTIVE</th>
                 <th>PROOF AFTER</th>
                 <th>ACTIONS</th>
@@ -487,7 +530,7 @@ const LeavePlansTab = ({ plans, types }) => {
             </thead>
             <tbody>
               {mappedRules.length === 0 ? (
-                <tr><td colSpan="5" className={styles.emptyRow}>
+                <tr><td colSpan="7" className={styles.emptyRow}>
                   {ruleForm.planId ? 'No rules mapped to this plan yet.' : 'Select a plan to view mapped rules.'}
                 </td></tr>
               ) : mappedRules.map(r => (
@@ -497,6 +540,8 @@ const LeavePlansTab = ({ plans, types }) => {
                     {getTypeName(r.leaveTypeId)}
                   </td>
                   <td>{r.annualAllotment} Days</td>
+                  <td>{r.accrualFrequency}</td>
+                  <td>{r.maxCarryForward != null ? `${r.maxCarryForward} Days` : 'N/A'}</td>
                   <td>{r.maxConsecutiveDays ? `${r.maxConsecutiveDays} Days` : 'Unlimited'}</td>
                   <td>{r.proofRequiredAfterDays ? `${r.proofRequiredAfterDays} Days` : 'N/A'}</td>
                   <td>
@@ -558,7 +603,9 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
       id: rule.id,
       annualAllotment: rule.annualAllotment,
       maxConsecutiveDays: rule.maxConsecutiveDays || '',
-      proofRequiredAfterDays: rule.proofRequiredAfterDays || ''
+      proofRequiredAfterDays: rule.proofRequiredAfterDays || '',
+      accrualFrequency: rule.accrualFrequency || 'NONE',
+      maxCarryForward: rule.maxCarryForward ?? ''
     });
   };
 
@@ -617,7 +664,9 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
                   <td>{r.annualAllotment} Days</td>
                   <td>
                     {[
-                      r.proofRequiredAfterDays && `Proof after ${r.proofRequiredAfterDays} days`,
+                      r.accrualFrequency && r.accrualFrequency !== 'NONE' && `${r.accrualFrequency}`,
+                      r.maxCarryForward != null && `Max CF: ${r.maxCarryForward}`,
+                      r.proofRequiredAfterDays && `Proof > ${r.proofRequiredAfterDays} days`,
                       r.maxConsecutiveDays && `Max ${r.maxConsecutiveDays} consecutive`,
                     ].filter(Boolean).join(' · ') || '—'}
                   </td>
@@ -646,6 +695,19 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
               <div className={styles.formGroup}>
                 <label className={styles.label}>ANNUAL ALLOTMENT</label>
                 <input className={styles.input} value={editingRuleData.annualAllotment} onChange={e => setEditingRuleData({...editingRuleData, annualAllotment: e.target.value})} type="number" />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>ACCRUAL FREQUENCY</label>
+                <select className={styles.select} value={editingRuleData.accrualFrequency} onChange={e => setEditingRuleData({...editingRuleData, accrualFrequency: e.target.value})}>
+                  <option value="NONE">On-Demand / None</option>
+                  <option value="MONTHLY">Monthly</option>
+                  <option value="QUARTERLY">Quarterly</option>
+                  <option value="ANNUALLY">Annually</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>MAX CARRY FORWARD</label>
+                <input className={styles.input} value={editingRuleData.maxCarryForward} onChange={e => setEditingRuleData({...editingRuleData, maxCarryForward: e.target.value})} type="number" />
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.label}>MAX CONSECUTIVE DAYS (OPTIONAL)</label>
@@ -678,6 +740,8 @@ const EnrollmentTab = ({ plans }) => {
   const { staffList = [], isLoading } = useStaffList();
   const [enrollForm, setEnrollForm] = useState({ planId: '', staffId: '' });
   const [dirPage, setDirPage] = useState(0);
+  const [adjustModal, setAdjustModal] = useState(null);
+  const [overrideModal, setOverrideModal] = useState(null);
   const DIR_PAGE_SIZE = 4;
   const queryClient = useQueryClient();
 
@@ -833,7 +897,14 @@ const EnrollmentTab = ({ plans }) => {
                   </span>
                 </td>
                 <td>
-                  <button className={styles.iconBtn}>⋮</button>
+                  {member.status === 'ACTIVE' ? (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button className={styles.textActionBtn} onClick={() => setAdjustModal(member)}>Adjust</button>
+                      <button className={styles.textActionBtn} onClick={() => setOverrideModal(member)}>Override</button>
+                    </div>
+                  ) : (
+                    <span style={{ color: '#94A3B8', fontSize: '12px' }}>—</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -847,8 +918,158 @@ const EnrollmentTab = ({ plans }) => {
             <button className={styles.pageBtnFill} onClick={() => setDirPage(p => Math.min(totalPages - 1, p + 1))} disabled={dirPage >= totalPages - 1}>NEXT</button>
           </div>
         </div>
+      </div>
+      
+      {adjustModal && <AdjustBalanceModal member={adjustModal} onClose={() => setAdjustModal(null)} />}
+      {overrideModal && <OverrideModal member={overrideModal} plans={plans} onClose={() => setOverrideModal(null)} />}
+    </div>
+  );
+};
 
+const AdjustBalanceModal = ({ member, onClose }) => {
+  const { tenantId, storeId } = useAuth();
+  const { showToast } = useToast();
+  const [leaveTypeId, setLeaveTypeId] = useState('');
+  const [adjustmentValue, setAdjustmentValue] = useState('');
 
+  const { data: leaveTypes = [] } = useQuery({
+    queryKey: ['leaveTypes', tenantId, storeId],
+    queryFn: async () => {
+      const data = await apiService.get(`/admin/leave-plans/leave-types?tenantId=${tenantId}&storeId=${storeId}`);
+      return Array.isArray(data) ? data : [];
+    }
+  });
+
+  const adjustMutation = useMutation({
+    mutationFn: () => apiService.post('/admin/leave-plans/adjust-balance', {
+      tenantId,
+      storeId,
+      staffId: member.id,
+      leaveTypeId,
+      adjustmentValue
+    }),
+    onSuccess: () => {
+      showToast('Balance adjusted successfully!', 'success');
+      onClose();
+    },
+    onError: (err) => showToast(err.message || 'Failed to adjust balance', 'error')
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    adjustMutation.mutate();
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose} style={{ zIndex: 1100, backgroundColor: 'rgba(0,0,0,0.4)' }}>
+      <div className={styles.modal} style={{ width: '400px' }} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3 className={styles.modalTitle}>Adjust Balance for {member.name}</h3>
+          <button className={styles.modalClose} onClick={onClose}>✕</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className={styles.modalBody} style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '24px' }}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>LEAVE TYPE</label>
+              <select className={styles.select} value={leaveTypeId} onChange={e => setLeaveTypeId(e.target.value)} required>
+                <option value="">-- Select Type --</option>
+                {leaveTypes.map(t => <option key={t.id} value={t.id}>{t.leaveName}</option>)}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>ADJUSTMENT VALUE (e.g. 2 or -1.5)</label>
+              <input className={styles.input} type="number" step="0.5" value={adjustmentValue} onChange={e => setAdjustmentValue(e.target.value)} required />
+            </div>
+          </div>
+          <div className={styles.modalFooter}>
+            <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+            <button type="submit" className={styles.primaryBtn} disabled={adjustMutation.isPending}>
+              {adjustMutation.isPending ? 'Adjusting...' : 'Save Adjustment'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const OverrideModal = ({ member, onClose }) => {
+  const { tenantId, storeId } = useAuth();
+  const { showToast } = useToast();
+  const [leavePlanRuleId, setLeavePlanRuleId] = useState('');
+  const [maxCarryForwardOverride, setMaxCarryForwardOverride] = useState('');
+
+  const { data: mappedRules = [] } = useQuery({
+    queryKey: ['leaveRules', member.planId],
+    queryFn: async () => {
+      const data = await apiService.get(`/admin/leave-plans/plans/${member.planId}/rules?tenantId=${tenantId}&storeId=${storeId}`);
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!member.planId
+  });
+
+  const { data: leaveTypes = [] } = useQuery({
+    queryKey: ['leaveTypes', tenantId, storeId],
+    queryFn: async () => {
+      const data = await apiService.get(`/admin/leave-plans/leave-types?tenantId=${tenantId}&storeId=${storeId}`);
+      return Array.isArray(data) ? data : [];
+    }
+  });
+
+  const overrideMutation = useMutation({
+    mutationFn: () => apiService.post('/admin/leave-plans/overrides', {
+      tenantId,
+      storeId,
+      staffId: member.id,
+      leavePlanRuleId,
+      maxCarryForwardOverride
+    }),
+    onSuccess: () => {
+      showToast('Override saved successfully!', 'success');
+      onClose();
+    },
+    onError: (err) => showToast(err.message || 'Failed to save override', 'error')
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    overrideMutation.mutate();
+  };
+
+  const getTypeName = (id) => leaveTypes.find(t => String(t.id) === String(id))?.leaveName || 'Unknown Type';
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose} style={{ zIndex: 1100, backgroundColor: 'rgba(0,0,0,0.4)' }}>
+      <div className={styles.modal} style={{ width: '400px' }} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3 className={styles.modalTitle}>Carry Forward Override for {member.name}</h3>
+          <button className={styles.modalClose} onClick={onClose}>✕</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className={styles.modalBody} style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '24px' }}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>SELECT RULE</label>
+              <select className={styles.select} value={leavePlanRuleId} onChange={e => setLeavePlanRuleId(e.target.value)} required>
+                <option value="">-- Select Rule --</option>
+                {mappedRules.map(r => (
+                  <option key={r.id} value={r.id}>
+                    {getTypeName(r.leaveTypeId)} (Current Limit: {r.maxCarryForward ?? 'N/A'})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>NEW MAX CARRY FORWARD LIMIT</label>
+              <input className={styles.input} type="number" value={maxCarryForwardOverride} onChange={e => setMaxCarryForwardOverride(e.target.value)} placeholder="e.g. 10" required />
+            </div>
+          </div>
+          <div className={styles.modalFooter}>
+            <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+            <button type="submit" className={styles.primaryBtn} disabled={overrideMutation.isPending}>
+              {overrideMutation.isPending ? 'Saving...' : 'Save Override'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

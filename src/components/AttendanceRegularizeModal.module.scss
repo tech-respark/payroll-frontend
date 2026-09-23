@@ -4,16 +4,16 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.6);
+  background-color: rgba(15, 23, 42, 0.4);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(2px);
 }
 
 .modalContainer {
-  width: 100%;
+  width: calc(100vw - 24px);
   max-width: 500px;
   padding: 0;
   overflow: hidden;
@@ -23,25 +23,27 @@
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 20px 24px;
   border-bottom: 1px solid var(--border-color);
-  background-color: var(--bg-subtle);
+  background-color: var(--bg-card);
 }
 
 .headerTitle {
-  margin: 0;
+  margin: 0 0 4px 0;
   color: var(--text-dark);
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .headerSubtitle {
-  margin: 4px 0 0 0;
+  margin: 0;
   color: var(--text-muted);
   font-size: 13px;
 }
@@ -51,14 +53,15 @@
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 6px;
+  transition: all 0.2s;
 
   &:hover {
-    background-color: var(--bg-hover);
+    background-color: var(--bg-subtle);
     color: var(--text-dark);
   }
 }
@@ -71,117 +74,134 @@
 
 .emptyState {
   text-align: center;
-  padding: 40px 20px;
+  padding: 32px 20px;
   color: var(--text-muted);
 }
 
 .emptyIcon {
-  margin-bottom: 16px;
-  opacity: 0.5;
+  margin-bottom: 12px;
+  opacity: 0.4;
 }
 
 .emptyText {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .punchList {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .punchItem {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-start;
   padding: 16px;
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  border-left: 6px solid transparent;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-white);
+  gap: 16px;
 }
 
-.punchTypeCheckIn {
+.punchLeft, .punchRight {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.punchRight {
+  align-items: flex-end;
+}
+
+.punchType {
   font-size: 12px;
-  font-weight: bold;
-  color: #059669;
+  font-weight: 600;
+  color: var(--text-dark);
   letter-spacing: 0.5px;
-  margin-bottom: 4px;
 }
 
-.punchTypeCheckOut {
-  font-size: 12px;
-  font-weight: bold;
-  color: #d97706;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
-}
-
-.punchStatus {
-  margin-left: 8px;
-  color: var(--text-muted);
-  font-weight: 500;
-  font-size: 11px;
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
+.badgeAPPROVED { background: #ecfdf5; color: #059669; }
+.badgePENDING { background: #fffbeb; color: #d97706; }
+.badgeREJECTED { background: #fef2f2; color: #dc2626; }
+.badgeTERMINAL { background: #eff6ff; color: #2563eb; }
 
-.timeSelectContainer {
+.timeGroup {
   display: flex;
   align-items: center;
-  gap: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-white);
+  overflow: hidden;
 }
 
 .timeSelect {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--input-border, var(--border-color));
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-dark);
   outline: none;
+  cursor: pointer;
+  appearance: auto;
 }
 
-.timeSelectDisabled {
-  background-color: var(--bg-subtle);
-}
-
-.timeSelectEnabled {
-  background-color: var(--bg-white);
+.timeSelect:disabled {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  cursor: not-allowed;
 }
 
 .timeColon {
-  font-weight: bold;
+  font-weight: 600;
   color: var(--text-muted);
+  padding: 0 2px;
+  background: transparent;
 }
 
 .removeButton {
-  background: var(--bg-white);
-  border: 1px solid #fecaca;
-  color: #ef4444;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) {
+    background: #fef2f2;
+    color: #ef4444;
+  }
 }
 
 .removeButtonDisabled {
+  opacity: 0.4;
   cursor: not-allowed;
-  opacity: 0.5;
 }
 
 .addButton {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   border-radius: 8px;
-  border: 2px dashed var(--input-border, var(--border-color));
-  background-color: transparent;
-  color: var(--primary-color);
-  font-weight: 600;
-  font-size: 14px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-subtle);
+  color: var(--text-dark);
+  font-weight: 500;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -190,14 +210,14 @@
   gap: 8px;
 
   &:hover {
-    border-color: var(--primary-color);
-    background-color: rgba(63, 151, 239, 0.08);
+    background-color: var(--bg-hover);
+    border-color: var(--border-color-strong, #cbd5e1);
   }
 }
 
 .footer {
-  padding: 20px 24px;
-  background-color: var(--bg-subtle);
+  padding: 16px 24px;
+  background-color: var(--bg-card);
   border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
@@ -205,29 +225,48 @@
 }
 
 .cancelBtn {
-  padding: 10px 20px;
+  padding: 10px 16px;
   border-radius: 6px;
-  border: 1px solid var(--input-border, var(--border-color));
-  background-color: var(--bg-white);
+  border: 1px solid var(--border-color);
+  background-color: transparent;
   color: var(--text-dark);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 14px;
   cursor: pointer;
+  transition: background 0.2s;
+  
+  &:hover {
+    background: var(--bg-subtle);
+  }
 }
 
 .submitBtn {
-  padding: 10px 24px;
+  padding: 10px 16px;
   border-radius: 6px;
   border: none;
   background-color: var(--primary-color);
   color: white;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 14px;
   cursor: pointer;
-  box-shadow: var(--primary-color-shadow);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: opacity 0.2s;
+  
+  &:hover {
+    opacity: 0.9;
+  }
 }
 
 .submitBtnDisabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+@media (max-width: 480px) {
+  .footer {
+    flex-direction: column-reverse;
+  }
+  .cancelBtn, .submitBtn {
+    width: 100%;
+  }
 }

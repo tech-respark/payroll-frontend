@@ -29,6 +29,7 @@ const EmployeeDashboard = () => {
   });
   const [leaveSession, setLeaveSession] = useState('FULL_DAY');
   const [calculatedDuration, setCalculatedDuration] = useState(0);
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -351,18 +352,25 @@ const EmployeeDashboard = () => {
 
       {/* BOTTOM PANEL: Leave History Widget */}
       <div className={styles.bottomSection}>
-        <div className={styles.widgetHeaderRow}>
-          <div className={styles.widgetHeaderLeft}>
-            <span className={styles.widgetTitleIcon}>⏱️</span>
-            <span className={styles.widgetTitle}>Recent Leave Requests</span>
+          <div className={styles.widgetHeaderRow}>
+            <div className={styles.widgetHeaderLeft}>
+              <span className={styles.widgetTitleIcon}>🗓️</span>
+              <span className={styles.widgetTitle}>Recent Leave Requests</span>
+            </div>
+            {history.length > 3 && (
+              <button 
+                className={styles.viewAllLink}
+                onClick={() => setShowAllHistory(!showAllHistory)}
+              >
+                {showAllHistory ? 'View Less' : 'View All History'}
+              </button>
+            )}
           </div>
-          <button className={styles.viewAllLink}>View All History</button>
-        </div>
-        
-        <div className={styles.historyCardsContainer}>
-          {loading ? (
-            <div className={styles.emptyState}>Loading history...</div>
-          ) : history.length > 0 ? history.slice(0, 3).map((req, i) => (
+          
+          <div className={styles.historyCardsContainer}>
+            {loadingHistory ? (
+              <div className={styles.emptyState}>Loading history...</div>
+            ) : history.length > 0 ? (showAllHistory ? history : history.slice(0, 3)).map((req, i) => (
             <div key={i} className={styles.historyCard}>
               <div className={styles.historyCardHeader}>
                 <span className={styles.historyCardDate}>

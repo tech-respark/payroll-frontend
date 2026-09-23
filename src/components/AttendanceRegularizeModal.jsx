@@ -7,8 +7,6 @@ import styles from './AttendanceRegularizeModal.module.scss';
 import { useStoreConfig } from '../hooks/queries';
 
 const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId }) => {
-  if (!show || !staffData) return null;
-
   const { hasAccess } = useAuth();
   const { showToast } = useToast();
   // An admin has MANAGE_ATTENDANCE
@@ -17,17 +15,6 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
   const [punches, setPunches] = useState([]);
   const [loading, setLoading] = useState(false);
   const { storeConfig } = useStoreConfig();
-
-  const statusColor = {
-    PENDING_BORDER: '#f59e0b',
-    APPROVED_BORDER: '#10b981',
-    REJECTED_BORDER: '#ef4444',
-    APPROVED: '#ecfdf5',
-    PENDING: '#fffbeb',
-    REJECTED: '#fef2f2',
-    TERMINAL_BORDER: '#3f97ef',
-    TERMINAL: '#eff6ff'
-  };
 
   useEffect(() => {
     if (staffData && staffData.punchList) {
@@ -41,6 +28,19 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
       setPunches([]);
     }
   }, [staffData]);
+
+  if (!show || !staffData) return null;
+
+  const statusColor = {
+    PENDING_BORDER: '#f59e0b',
+    APPROVED_BORDER: '#10b981',
+    REJECTED_BORDER: '#ef4444',
+    APPROVED: '#ecfdf5',
+    PENDING: '#fffbeb',
+    REJECTED: '#fef2f2',
+    TERMINAL_BORDER: '#3f97ef',
+    TERMINAL: '#eff6ff'
+  };
 
   const handleAddPunch = () => {
     if (!storeConfig || !storeConfig.storeOpenTime || !storeConfig.storeCloseTime) {
@@ -155,26 +155,25 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
           ) : (
             <div className={styles.punchList}>
               {punches.map((punch, idx) => {
-                const borderCol = punch.uploadSource === 'TERMINAL' ? statusColor.TERMINAL_BORDER : statusColor[`${punch.currentStatus}_BORDER`] || statusColor.APPROVED_BORDER;
-                const bgCol = punch.uploadSource === 'TERMINAL' ? statusColor.TERMINAL : statusColor[punch.currentStatus] || statusColor.APPROVED;
                 const isCheckIn = idx % 2 === 0;
+                const statusStr = punch.currentStatus || 'APPROVED';
+                const uploadSrc = punch.uploadSource;
+                const finalStatus = uploadSrc === 'TERMINAL' ? 'TERMINAL' : statusStr;
 
                 return (
-                  <div key={idx} className={styles.punchItem} style={{ borderLeftColor: borderCol, backgroundColor: bgCol }}>
-                    <div>
-                      <div className={isCheckIn ? styles.punchTypeCheckIn : styles.punchTypeCheckOut}>
+                  <div key={idx} className={styles.punchItem}>
+                    
+                    <div className={styles.punchLeft}>
+                      <span className={styles.punchType}>
                         {isCheckIn ? 'CHECK-IN' : 'CHECK-OUT'}
-                        <span className={styles.punchStatus}>
-                          ({punch.currentStatus || 'APPROVED'})
-                        </span>
-                      </div>
+                      </span>
                       
-                      <div className={styles.timeSelectContainer}>
+                      <div className={styles.timeGroup}>
                         <select
                           value={punch.punchTime.substring(0, 2) || '09'}
                           onChange={(e) => handleTimeChange(idx, `${e.target.value}:${punch.punchTime.substring(3, 5) || '00'}`)}
                           disabled={!punch.isNew && !canManage}
-                          className={`${styles.timeSelect} ${(!punch.isNew && !canManage) ? styles.timeSelectDisabled : styles.timeSelectEnabled}`}
+                          className={styles.timeSelect}
                         >
                           {hours.map(h => <option key={`h-${h}`} value={h}>{h}</option>)}
                         </select>
@@ -183,20 +182,27 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
                           value={punch.punchTime.substring(3, 5) || '00'}
                           onChange={(e) => handleTimeChange(idx, `${punch.punchTime.substring(0, 2) || '09'}:${e.target.value}`)}
                           disabled={!punch.isNew && !canManage}
-                          className={`${styles.timeSelect} ${(!punch.isNew && !canManage) ? styles.timeSelectDisabled : styles.timeSelectEnabled}`}
+                          className={styles.timeSelect}
                         >
                           {minutes.map(m => <option key={`m-${m}`} value={m}>{m}</option>)}
                         </select>
                       </div>
                     </div>
 
-                    <button 
-                      onClick={() => handleRemovePunch(idx)} 
-                      disabled={!punch.isNew && !canManage}
-                      className={`${styles.removeButton} ${(!punch.isNew && !canManage) ? styles.removeButtonDisabled : ''}`}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
+                    <div className={styles.punchRight}>
+                      <span className={`${styles.badge} ${styles[`badge${finalStatus}`] || styles.badgeAPPROVED}`}>
+                        {finalStatus}
+                      </span>
+                      <button 
+                        onClick={() => handleRemovePunch(idx)} 
+                        disabled={!punch.isNew && !canManage}
+                        className={`${styles.removeButton} ${(!punch.isNew && !canManage) ? styles.removeButtonDisabled : ''}`}
+                        aria-label="Remove punch"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </button>
+                    </div>
+
                   </div>
                 );
               })}

@@ -13,8 +13,10 @@ $text-light: #ffffff;
   flex-direction: column;
   border-right: 1px solid var(--border-color);
   color: var(--sidebar-text);
-  z-index: 1000;
+  z-index: 2000;
   font-family: var(--primary-font);
+  transition: width 0.3s ease, transform 0.3s ease;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
 
   .navBrand {
     padding: 24px 20px;
@@ -27,12 +29,15 @@ $text-light: #ffffff;
     .brandLogo {
       width: 40px;
       height: 40px;
-      background: var(--primary-color);
-      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary-color), #6366f1);
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: var(--shadow-sm);
+      color: white;
+      flex-shrink: 0;
+
       .logoIcon {
         font-size: 20px;
       }
@@ -159,7 +164,7 @@ $text-light: #ffffff;
             }
 
             &.activeLink {
-              background: rgba(63, 151, 239, 0.1);
+              background: rgba(63, 151, 239, 0.12);
               color: var(--primary-color);
               font-weight: 600;
 
@@ -169,9 +174,10 @@ $text-light: #ffffff;
                 left: -15px;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 2px;
-                height: 16px;
+                width: 3px;
+                height: 18px;
                 background: var(--primary-color);
+                border-radius: 0 2px 2px 0;
               }
             }
           }
@@ -247,38 +253,19 @@ $text-light: #ffffff;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .mainNavigation {
-    position: relative;
-    width: 100%;
-    height: auto;
-    padding: 20px 16px;
-    
-    .navBrand {
-      margin-bottom: 20px;
-    }
-    
-    .navLinks {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      
-      li {
-        margin-bottom: 0;
-        flex: 1 1 calc(50% - 8px);
-        
-        a {
-          padding: 10px;
-          text-align: center;
-          font-size: 13px;
-        }
-      }
-    }
-    
-    .navFooter {
-      margin: 20px -16px -20px -16px;
-      padding: 16px;
-    }
+    position: fixed;
+    height: 100vh;
+    transform: translateX(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2000;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .mainNavigation.collapsed {
+    transform: translateX(-100%);
+    width: var(--sidebar-width);
   }
 }
 

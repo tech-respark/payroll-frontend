@@ -8,6 +8,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import WorkOutlinedIcon from '@mui/icons-material/WorkOutlined';
 
 // Menu Icons
 import PeopleIcon from '@mui/icons-material/People';
@@ -17,7 +18,7 @@ import PaymentsIcon from '@mui/icons-material/Payments';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 
-const NavGroup = ({ title, icon: Icon, children, isOpen, onToggleGroup, isCollapsed }) => {
+const NavGroup = ({ title, icon: Icon, children, isOpen, onToggleGroup, isCollapsed, onNavigate }) => {
   // If no children (meaning permissions hid all sub-items), don't render group
   const hasChildren = React.Children.toArray(children).some(child => child !== false);
   if (!hasChildren) return null;
@@ -36,7 +37,7 @@ const NavGroup = ({ title, icon: Icon, children, isOpen, onToggleGroup, isCollap
   );
 };
 
-const Navigation = ({ isCollapsed, onToggle }) => {
+const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
   const { logout, hasAccess } = useAuth();
   const { storeConfig } = useStoreConfig();
   const [openGroup, setOpenGroup] = useState('Staff Management');
@@ -44,6 +45,8 @@ const Navigation = ({ isCollapsed, onToggle }) => {
   const handleGroupToggle = (title) => {
     setOpenGroup(prev => prev === title ? null : title);
   };
+
+  const handleNavClick = () => onNavigate?.();
 
   return (
     <nav className={`${styles.mainNavigation} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -54,7 +57,7 @@ const Navigation = ({ isCollapsed, onToggle }) => {
           style={{ cursor: isCollapsed ? 'pointer' : 'default' }}
           title={isCollapsed ? "Expand Menu" : ""}
         >
-          <span className={styles.logoIcon}>💼</span>
+          <WorkOutlinedIcon className={styles.logoIcon} fontSize="small" />
         </div>
         {!isCollapsed && (
           <>
@@ -76,15 +79,16 @@ const Navigation = ({ isCollapsed, onToggle }) => {
           isCollapsed={isCollapsed}
           isOpen={openGroup === 'Staff Management'}
           onToggleGroup={() => handleGroupToggle('Staff Management')}
+          onNavigate={handleNavClick}
         >
           <li>
-            <NavLink to="/staff" activeClassName={styles.activeLink}>
+            <NavLink to="/staff" activeClassName={styles.activeLink} onClick={handleNavClick}>
               Staff Details
             </NavLink>
           </li>
           {hasAccess(['MANAGE_ROLES']) && (
             <li>
-              <NavLink to="/roles" activeClassName={styles.activeLink}>
+              <NavLink to="/roles" activeClassName={styles.activeLink} onClick={handleNavClick}>
                 Roles & Permissions
               </NavLink>
             </li>
@@ -100,7 +104,7 @@ const Navigation = ({ isCollapsed, onToggle }) => {
             onToggleGroup={() => handleGroupToggle('Shift & Roster Mgmt')}
           >
             <li>
-              <NavLink to="/shifts" activeClassName={styles.activeLink}>
+              <NavLink to="/shifts" activeClassName={styles.activeLink} onClick={handleNavClick}>
                 Shift Management
               </NavLink>
             </li>
@@ -115,13 +119,13 @@ const Navigation = ({ isCollapsed, onToggle }) => {
           onToggleGroup={() => handleGroupToggle('Attendance Module')}
         >
           <li>
-            <NavLink to="/attendance" activeClassName={styles.activeLink}>
+            <NavLink to="/attendance" activeClassName={styles.activeLink} onClick={handleNavClick}>
               Attendance
             </NavLink>
           </li>
           {hasAccess(['MANAGE_ATTENDANCE']) && (
             <li>
-              <NavLink to="/approvals" activeClassName={styles.activeLink}>
+              <NavLink to="/approvals" activeClassName={styles.activeLink} onClick={handleNavClick}>
                 Regularization Approvals
               </NavLink>
             </li>
@@ -137,12 +141,12 @@ const Navigation = ({ isCollapsed, onToggle }) => {
             onToggleGroup={() => handleGroupToggle('Salary Mgmt')}
           >
             <li>
-              <NavLink to="/salary" activeClassName={styles.activeLink}>
+              <NavLink to="/salary" activeClassName={styles.activeLink} onClick={handleNavClick}>
                 Salary Management
               </NavLink>
             </li>
             <li>
-              <NavLink to="/payslips" activeClassName={styles.activeLink}>
+              <NavLink to="/payslips" activeClassName={styles.activeLink} onClick={handleNavClick}>
                 Payslips
               </NavLink>
             </li>
@@ -158,17 +162,33 @@ const Navigation = ({ isCollapsed, onToggle }) => {
             onToggleGroup={() => handleGroupToggle('Reports & Analytics')}
           >
             <li>
-              <NavLink to="/reports" activeClassName={styles.activeLink} exact>
+              <NavLink to="/reports" activeClassName={styles.activeLink} onClick={handleNavClick} exact>
                 Attendance Summary
               </NavLink>
             </li>
             <li>
-              <NavLink to="/reports/detailed" activeClassName={styles.activeLink}>
+              <NavLink to="/reports/detailed" activeClassName={styles.activeLink} onClick={handleNavClick}>
                 Staff Detailed Report
               </NavLink>
             </li>
           </NavGroup>
         )}
+
+        <NavGroup 
+          title="Executive Overview" 
+          icon={AssessmentIcon} 
+          isCollapsed={isCollapsed}
+          isOpen={openGroup === 'Executive Overview'}
+          onToggleGroup={() => handleGroupToggle('Executive Overview')}
+        >
+          {hasAccess(['VIEW_HR_DASHBOARD']) && (
+            <li>
+              <NavLink to="/hr-dashboard" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                HR Dashboard
+              </NavLink>
+            </li>
+          )}
+        </NavGroup>
 
         <NavGroup 
           title="Leave Management" 
@@ -179,26 +199,26 @@ const Navigation = ({ isCollapsed, onToggle }) => {
         >
           {hasAccess(['MANAGE_LEAVES']) && (
             <li>
-              <NavLink to="/leave-configuration" activeClassName={styles.activeLink}>
+              <NavLink to="/leave-configuration" activeClassName={styles.activeLink} onClick={handleNavClick}>
                 Leave Config
               </NavLink>
             </li>
           )}
           {hasAccess(['MANAGE_LEAVES']) && (
             <li>
-              <NavLink to="/settings/holidays" activeClassName={styles.activeLink}>
+              <NavLink to="/settings/holidays" activeClassName={styles.activeLink} onClick={handleNavClick}>
                 Holiday Calendar
               </NavLink>
             </li>
           )}
           <li>
-            <NavLink to="/leave-dashboard" activeClassName={styles.activeLink}>
+            <NavLink to="/leave-dashboard" activeClassName={styles.activeLink} onClick={handleNavClick}>
               My Leaves
             </NavLink>
           </li>
           {hasAccess(['MANAGE_LEAVES']) && (
             <li>
-              <NavLink to="/leave-approvals" activeClassName={styles.activeLink}>
+              <NavLink to="/leave-approvals" activeClassName={styles.activeLink} onClick={handleNavClick}>
                 Leave Approvals
               </NavLink>
             </li>

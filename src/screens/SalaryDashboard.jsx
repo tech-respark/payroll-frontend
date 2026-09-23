@@ -184,9 +184,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
   return (
     <div className={styles.mainContainer}>
       <div className={styles.headerContainer}>
-        <div>
-          <p className={styles.headerSubtitle}>Define core earnings and recurring deductions for staff roles.</p>
-        </div>
+        
         <div className={styles.headerActions}>
           <button 
             className={styles.btnSave} 

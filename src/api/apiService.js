@@ -63,6 +63,28 @@ export const apiService = {
     }
   },
 
+  async put(endpoint, body, headers = {}) {
+    window.dispatchEvent(new Event('api_call_start'));
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...headers
+        },
+        body: JSON.stringify(body)
+      });
+      return await handleResponse(response, endpoint);
+    } catch (error) {
+      console.error('PUT Error:', error);
+      throw error;
+    } finally {
+      window.dispatchEvent(new Event('api_call_end'));
+    }
+  },
+
   async delete(endpoint, headers = {}) {
     window.dispatchEvent(new Event('api_call_start'));
     try {

@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -24,6 +24,7 @@ const PayslipsDashboard    = lazy(() => import('./screens/PayslipsDashboard'));
 const ReportsDashboard     = lazy(() => import('./screens/ReportsDashboard'));
 
 // Leave Management Screens
+const HRDashboard             = lazy(() => import('./screens/HRDashboard'));
 const EmployeeDashboard       = lazy(() => import('./screens/EmployeeDashboard'));
 const ManagerApprovalPortal   = lazy(() => import('./screens/ManagerApprovalPortal'));
 const LeaveConfiguration      = lazy(() => import('./screens/LeaveConfiguration'));
@@ -40,9 +41,26 @@ const PageLoader = () => (
   </div>
 );
 
+const MOBILE_BREAKPOINT = 1024;
+
 const AppContent = () => {
   const { isAuthenticated, hasAccess } = useAuth();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT
+  );
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= MOBILE_BREAKPOINT;
+      setIsMobile(mobile);
+      if (mobile) setIsSidebarCollapsed(true);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (!isAuthenticated) {
     return (
@@ -53,29 +71,33 @@ const AppContent = () => {
     );
   }
 
+  const toggleSidebar = () => setIsSidebarCollapsed(prev => !prev);
+  const closeSidebar = () => { if (isMobile) setIsSidebarCollapsed(true); };
+
   return (
     <div className="app-layout">
-      <Navigation isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-      <div 
-        className="content-wrapper" 
-        style={{ 
-          flex: 1, 
-          marginLeft: isSidebarCollapsed ? '80px' : 'var(--sidebar-width)', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          minHeight: '100vh', 
-          background: 'var(--bg-color)',
-          transition: 'margin-left 0.3s ease'
-        }}
-      >
-        <TopHeader onMenuClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} isCollapsed={isSidebarCollapsed} />
-        <main className="main-content" style={{ flex: 1, padding: '30px', margin: 0 }}>
+      {isMobile && !isSidebarCollapsed && (
+        <div className={styles.sidebarOverlay} onClick={closeSidebar} aria-hidden="true" />
+      )}
+      <Navigation
+        isCollapsed={isSidebarCollapsed}
+        onToggle={toggleSidebar}
+        onNavigate={closeSidebar}
+      />
+      <div className={`content-wrapper ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+        <TopHeader
+          onMenuClick={toggleSidebar}
+          isCollapsed={isSidebarCollapsed}
+          isMobile={isMobile}
+        />
+        <main className="main-content animate-fade-in">
           <Suspense fallback={<PageLoader />}>
             <Switch>
               <Route path="/staff"      component={StaffDashboard} />
             <Route path="/attendance" component={AttendanceDashboard} />
 
             {/* Leave Management Routes */}
+            {hasAccess(['VIEW_HR_DASHBOARD']) && <Route path="/hr-dashboard" component={HRDashboard} />}
             <Route path="/leave-dashboard" component={EmployeeDashboard} />
             {hasAccess(['MANAGE_LEAVES']) && <Route path="/leave-approvals" component={ManagerApprovalPortal} />}
             {hasAccess(['MANAGE_LEAVES']) && <Route path="/leave-configuration" component={LeaveConfiguration} />}

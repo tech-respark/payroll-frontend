@@ -2,7 +2,6 @@
   min-height: calc(100vh - var(--header-height));
   display: flex;
   flex-direction: column;
-  padding: 30px;
   box-sizing: border-box;
 }
 
@@ -31,6 +30,7 @@
 
 .filterBar {
   display: flex;
+  flex-wrap: wrap;
   background: var(--bg-card);
   border-radius: 12px;
   border: 1px solid var(--border-color-strong, var(--border-color));
@@ -206,14 +206,7 @@
   transition: background-color 0.2s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.02);
-  }
-  
-  /* For light mode hover */
-  @media (prefers-color-scheme: light) {
-    &:hover {
-      background: #f8fafc;
-    }
+    background: var(--bg-hover);
   }
 }
 
@@ -270,7 +263,7 @@
 }
 
 .detailsHeader {
-  background: #1e293b;
+  background: var(--primary-bg);
   color: white;
   padding: 20px;
   text-align: center;

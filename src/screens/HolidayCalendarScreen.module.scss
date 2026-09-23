@@ -1,9 +1,7 @@
 .pageContainer {
-  padding: 32px;
-  background-color: #f8fafc;
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  color: #1e293b;
+  font-family: var(--primary-font);
+  color: var(--text-dark);
+  animation: fadeInUp 0.35s ease-out;
 }
 
 .header {
@@ -22,7 +20,7 @@
 .blueBar {
   width: 4px;
   height: 24px;
-  background-color: #0f4db2;
+  background-color: var(--primary-color);
   border-radius: 4px;
 }
 
@@ -30,11 +28,11 @@
   font-size: 24px;
   font-weight: 600;
   margin: 0;
-  color: #0f172a;
+  color: var(--text-dark);
 }
 
 .primaryBtn {
-  background-color: #0f4db2;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 8px;
@@ -45,10 +43,11 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: var(--transition);
+  box-shadow: var(--primary-color-shadow);
 
-  &:hover {
-    background-color: #0d4299;
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
   }
 
   &:disabled {
@@ -65,20 +64,25 @@
 }
 
 .metricCard {
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
   padding: 20px 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  transition: var(--transition);
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+  }
 }
 
 .metricLabel {
   font-size: 11px;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -93,19 +97,19 @@
 .metricValueLarge {
   font-size: 32px;
   font-weight: 600;
-  color: #0f4db2;
+  color: var(--primary-color);
   line-height: 1;
 }
 
 .metricValueSub {
   font-size: 14px;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 400;
 }
 
 .badgeMandatorySquare {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: rgba(63, 151, 239, 0.12);
+  color: var(--primary-color);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 11px;
@@ -115,7 +119,7 @@
 
 .metricTextValue {
   font-size: 16px;
-  color: #1e293b;
+  color: var(--text-dark);
   font-weight: 500;
 }
 
@@ -134,11 +138,11 @@
 }
 
 .tableContainer {
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  overflow-x: auto;
 }
 
 .table {
@@ -148,21 +152,21 @@
 }
 
 .table th {
-  background-color: #f8fafc;
+  background-color: var(--bg-subtle);
   padding: 16px 24px;
   font-size: 11px;
   font-weight: 600;
-  color: #475569;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .table td {
   padding: 20px 24px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-color);
   font-size: 14px;
-  color: #334155;
+  color: var(--text-label);
 }
 
 .tableRow:last-child td {
@@ -174,17 +178,6 @@
   align-items: center;
   gap: 12px;
   font-weight: 500;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #0f4db2;
-}
-
-.dot.optional {
-  background-color: #64748b;
 }
 
 .badge {
@@ -199,40 +192,51 @@
   letter-spacing: 0.5px;
 }
 
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+
+  &.optional {
+    background-color: var(--text-muted);
+  }
+}
+
 .badgeMandatory {
-  background-color: #2563eb;
+  background-color: var(--primary-color);
   color: white;
 }
 
 .badgeOptional {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: rgba(63, 151, 239, 0.12);
+  color: var(--primary-color);
 }
 
 .actionBtn {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
+  border-radius: 6px;
+  transition: var(--transition);
 
   &:hover {
     color: #ef4444;
-    background-color: #fef2f2;
+    background-color: rgba(239, 68, 68, 0.08);
   }
 }
 
 .tableFooter {
-  background-color: #f8fafc;
+  background-color: var(--bg-subtle);
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-color);
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -244,10 +248,10 @@
     background: none;
     border: none;
     cursor: pointer;
-    color: #64748b;
+    color: var(--text-muted);
 
     &:hover {
-      color: #0f172a;
+      color: var(--text-dark);
     }
   }
 }
@@ -255,7 +259,7 @@
 .emptyState {
   padding: 40px;
   text-align: center;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -275,17 +279,18 @@
 }
 
 .modalContent {
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 .modalHeader {
   padding: 24px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -300,12 +305,12 @@
 .modalIcon {
   width: 40px;
   height: 40px;
-  background-color: #eff6ff;
+  background-color: rgba(63, 151, 239, 0.1);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2563eb;
+  color: var(--primary-color);
 }
 
 .modalTitleText {
@@ -313,24 +318,27 @@
     margin: 0 0 4px 0;
     font-size: 18px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-dark);
   }
   p {
     margin: 0;
     font-size: 13px;
-    color: #64748b;
+    color: var(--text-muted);
   }
 }
 
 .closeBtn {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 4px;
+  border-radius: 6px;
+  transition: var(--transition);
 
   &:hover {
-    color: #0f172a;
+    color: var(--text-dark);
+    background: var(--bg-hover);
   }
 }
 
@@ -349,21 +357,23 @@
   label {
     font-size: 12px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-label);
   }
 
   input {
     padding: 12px 16px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--input-border, var(--border-color));
     border-radius: 8px;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s;
+    transition: var(--transition);
     font-family: inherit;
+    background: var(--bg-white);
+    color: var(--text-dark);
 
     &:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(63, 151, 239, 0.15);
     }
   }
 }
@@ -373,8 +383,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 
   .toggleText {
@@ -385,27 +395,26 @@
     .toggleTitle {
       font-size: 14px;
       font-weight: 500;
-      color: #0f172a;
+      color: var(--text-dark);
     }
     .toggleSub {
       font-size: 12px;
-      color: #64748b;
+      color: var(--text-muted);
     }
   }
 }
 
-/* Custom Toggle Switch */
 .switch {
   position: relative;
   display: inline-block;
   width: 44px;
   height: 24px;
-}
 
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
 }
 
 .slider {
@@ -415,7 +424,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #cbd5e1;
+  background-color: var(--border-color-strong);
   transition: .3s;
   border-radius: 34px;
 }
@@ -434,7 +443,7 @@
 }
 
 input:checked + .slider {
-  background-color: #2563eb;
+  background-color: var(--primary-color);
 }
 
 input:checked + .slider:before {
@@ -442,41 +451,42 @@ input:checked + .slider:before {
 }
 
 .infoBanner {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 16px;
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 13px;
-  color: #475569;
-  
+  color: var(--text-label);
+
   svg {
-    color: #2563eb;
+    color: var(--primary-color);
   }
 }
 
 .modalFooter {
   padding: 24px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
 }
 
 .cancelBtn {
-  background: white;
-  border: 1px solid #cbd5e1;
-  color: #334155;
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  color: var(--text-dark);
   border-radius: 8px;
   padding: 10px 20px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  transition: var(--transition);
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: var(--bg-hover);
   }
 }
 

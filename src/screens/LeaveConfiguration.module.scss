@@ -1,9 +1,7 @@
 .page {
-  padding: 2rem;
   color: var(--text-dark);
-  background: var(--bg-color);
-  min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--primary-font);
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .pageHeader {
@@ -290,6 +288,7 @@
 
 .tableContainer {
   flex: 1;
+  overflow-x: auto;
 }
 
 .table th {
@@ -388,6 +387,25 @@
     color: var(--text-muted);
     opacity: 0.5;
     cursor: not-allowed;
+  }
+}
+
+.textActionBtn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+
+  &:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
   }
 }
 
