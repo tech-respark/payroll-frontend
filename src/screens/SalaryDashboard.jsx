@@ -183,19 +183,6 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
 
   return (
     <div className={styles.mainContainer}>
-      <div className={styles.headerContainer}>
-        
-        <div className={styles.headerActions}>
-          <button 
-            className={styles.btnSave} 
-            onClick={handleSave} 
-            disabled={loading || saving || !canManage}
-          >
-            <SaveIcon style={{fontSize: 16}} /> {saving ? 'Saving...' : 'Save Configuration'}
-          </button>
-        </div>
-      </div>
-
       <div className={styles.mainLayout}>
         <div className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
@@ -325,7 +312,16 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                   <div className={styles.complianceChip}>
                     <CheckCircleIcon style={{fontSize: 16}} /> Compliance Check Passed
                   </div>
-                  <span className={styles.effectiveDate}>Effective from Oct 01, 2024</span>
+                  {canManage && (
+                    <button 
+                      className={styles.btnSave} 
+                      onClick={handleSave} 
+                      disabled={loading || saving}
+                      style={{ marginTop: '8px', padding: '10px 24px' }}
+                    >
+                      <SaveIcon style={{fontSize: 16}} /> {saving ? 'Saving...' : 'Save Configuration'}
+                    </button>
+                  )}
                 </div>
               </div>
             </>
@@ -643,31 +639,33 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
                   <span className={styles.footerLabel}>Total Deduction</span>
                   <span className={styles.footerAmountDeduction}>{currencySymbol} {totals.deduction.toLocaleString()}</span>
                 </div>
-                <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                  <span className={styles.footerLabel} style={{color: 'var(--text-dark)', fontWeight: 'bold'}}>Net Salary</span>
-                  <span className={styles.footerAmount} style={{fontSize: '20px'}}>{currencySymbol} {totals.net.toLocaleString()}</span>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <div>
+                    <span className={styles.footerLabel} style={{color: 'var(--text-dark)', fontWeight: 'bold'}}>Net Salary</span>
+                  </div>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+                    <span className={styles.footerAmount} style={{fontSize: '20px'}}>{currencySymbol} {totals.net.toLocaleString()}</span>
+                    {(() => {
+                      const selMonthIndex = MONTHS.indexOf(selectedMonth) + 1;
+                      const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
+                      let isLocked = false;
+                      if (selectedYear < currentYear) isLocked = true;
+                      else if (selectedYear === currentYear && selMonthIndex <= recentMonth) isLocked = true;
+        
+                      return canManage && (
+                        <button 
+                          className={styles.btnSave} 
+                          onClick={handleSave} 
+                          disabled={loading || saving || isLocked}
+                          style={{ padding: '8px 20px' }}
+                        >
+                          <SaveIcon style={{fontSize: 16}} /> {saving ? 'Saving...' : 'Save Variables'}
+                        </button>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '20px'}}>
-              {(() => {
-                const selMonthIndex = MONTHS.indexOf(selectedMonth) + 1;
-                const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
-                let isLocked = false;
-                if (selectedYear < currentYear) isLocked = true;
-                else if (selectedYear === currentYear && selMonthIndex <= recentMonth) isLocked = true;
-  
-                return canManage && (
-                  <button 
-                    className={styles.btnSave} 
-                    onClick={handleSave} 
-                    disabled={loading || saving || isLocked}
-                  >
-                    <SaveIcon style={{fontSize: 16}} /> {saving ? 'Saving...' : 'Save Variables'}
-                  </button>
-                );
-              })()}
             </div>
           </>
         )}
