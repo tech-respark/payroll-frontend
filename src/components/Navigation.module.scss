@@ -1,8 +1,5 @@
-$sidebar-width: 260px;
-$bg-glass: rgba(255, 255, 255, 0.7);
-$text-light: #ffffff;
-
 .mainNavigation {
+  --nav-motion: var(--sidebar-motion);
   width: var(--sidebar-width);
   height: 100vh;
   background: var(--sidebar-bg);
@@ -13,316 +10,755 @@ $text-light: #ffffff;
   flex-direction: column;
   border-right: 1px solid var(--border-color);
   color: var(--sidebar-text);
-  z-index: 2000;
+  z-index: 1201;
   font-family: var(--primary-font);
-  transition: width 0.3s ease, transform 0.3s ease;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
+  overflow: visible;
+  transition:
+    width var(--nav-motion),
+    transform var(--nav-motion);
 
-  .navBrand {
-    padding: 24px 20px;
+  @media (prefers-reduced-motion: reduce) {
+    --nav-motion: 0ms;
+    transition: none;
+
+    .brandText,
+    .collapseBtn,
+    .expandRailBtn,
+    .sectionLabel,
+    .miniDivider,
+    .navGroupHeader,
+    .navGroupTitle,
+    .chevronWrap,
+    .navSubList,
+    .navSubListOpen,
+    .storeCard,
+    .storeDetails,
+    .logoutButton,
+    .logoutLabel,
+    .navBrand,
+    .navScroll,
+    .navFooter {
+      transition: none !important;
+    }
+  }
+}
+
+.navBrand {
+  height: var(--header-height);
+  padding: 0 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  position: relative;
+  transition: padding var(--nav-motion), gap var(--nav-motion);
+}
+
+.brandLogo {
+  width: 40px;
+  height: 40px;
+  background: var(--primary-color);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  cursor: default;
+  transition: transform var(--nav-motion);
+}
+
+.brandLogoInteractive {
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.brandText {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  opacity: 1;
+  max-width: 160px;
+  transition:
+    opacity 160ms ease,
+    max-width var(--nav-motion),
+    flex var(--nav-motion);
+
+  h1 {
+    font-family: var(--display-font);
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0;
+    color: var(--sidebar-text);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+
+    span {
+      font-weight: 600;
+      color: var(--sidebar-text-muted);
+    }
+  }
+}
+
+.collapseBtn {
+  margin-left: auto;
+  margin-right: 16px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--sidebar-text-muted);
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    visibility 160ms ease;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 1;
+  visibility: visible;
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-dark);
+  }
+}
+
+.expandRailBtn {
+  position: absolute;
+  top: 50%;
+  right: -13px;
+  transform: translateY(-50%) scale(0.85);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  z-index: 2;
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 200ms ease,
+    visibility 200ms ease,
+    transform 200ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+
+  &:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color-alpha);
+    background: var(--nav-active-bg);
+  }
+}
+
+.navScroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 16px 16px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  transition: padding var(--nav-motion);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.sectionLabel {
+  margin: 12px 0 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-transform: uppercase;
+  color: var(--text-disabled);
+  letter-spacing: 0.04em;
+  min-height: 16px;
+  max-height: 24px;
+  opacity: 0.85;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    opacity 160ms ease,
+    max-height var(--nav-motion),
+    margin var(--nav-motion),
+    min-height var(--nav-motion);
+}
+
+.sectionLabelSecond {
+  margin-top: 20px;
+}
+
+.miniDivider {
+  height: 0;
+  margin: 0 8px;
+  background: var(--border-color);
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    height var(--nav-motion),
+    margin var(--nav-motion),
+    opacity 160ms ease;
+}
+
+
+.navLinks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: align-items var(--nav-motion);
+}
+
+.navGroup {
+  margin: 0;
+  width: 100%;
+  transition: width var(--nav-motion);
+}
+
+.navGroupHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 8px 2px 10px;
+  height: 48px;
+  cursor: pointer;
+  color: var(--sidebar-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  transition:
+    width var(--nav-motion),
+    padding var(--nav-motion),
+    border-radius var(--nav-motion),
+    background 160ms ease,
+    color 160ms ease,
+    justify-content var(--nav-motion);
+  font-family: var(--primary-font);
+
+  &:hover {
+    color: var(--sidebar-text);
+    background: var(--bg-hover);
+  }
+}
+
+.navGroupHeaderActive {
+  background: var(--nav-active-bg);
+  color: var(--nav-active-color);
+
+  &:hover {
+    background: var(--nav-active-bg);
+    color: var(--nav-active-color);
+  }
+}
+
+.navGroupHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  transition: gap var(--nav-motion), justify-content var(--nav-motion);
+}
+
+.navIcon {
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.navGroupTitle {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+  opacity: 1;
+  transition:
+    opacity 140ms ease,
+    max-width var(--nav-motion);
+}
+
+.chevronWrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  opacity: 1;
+  overflow: hidden;
+  transition:
+    opacity 140ms ease,
+    width var(--nav-motion);
+}
+
+.chevron {
+  color: var(--text-disabled);
+}
+
+.navSubList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition:
+    max-height 240ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 160ms ease,
+    margin 200ms ease,
+    padding 200ms ease,
+    visibility 0ms linear 160ms;
+
+  li {
+    margin: 0;
+  }
+
+  a {
     display: flex;
     align-items: center;
-    gap: 12px;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 10px;
+    padding: 8px 10px 8px 44px;
+    min-height: 36px;
+    color: var(--sidebar-text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: background 160ms ease, color 160ms ease;
+    line-height: 1.4;
+    white-space: nowrap;
 
-    .brandLogo {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--primary-color), #6366f1);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: var(--shadow-sm);
-      color: white;
-      flex-shrink: 0;
-
-      .logoIcon {
-        font-size: 20px;
-      }
+    &:hover {
+      color: var(--sidebar-text);
+      background: var(--bg-hover);
     }
 
-    .brandText {
-      h1 {
-        font-size: 18px;
-        font-weight: 700;
-        margin: 0 0 2px 0;
-        color: var(--sidebar-text);
-        letter-spacing: 0.5px;
-        
-        span {
-          font-weight: 400;
-        }
-      }
-      p {
-        margin: 0;
-        font-size: 11px;
-        color: var(--sidebar-text-muted);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-weight: 600;
-      }
+    &.activeLink {
+      background: var(--nav-active-bg);
+      color: var(--nav-active-color);
+      font-weight: 600;
     }
+  }
+}
 
-    .collapseBtn {
-      margin-left: auto;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--sidebar-text-muted);
-      cursor: pointer;
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      padding: 0;
+.navSubListOpen {
+  max-height: 320px;
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  /* Clear separation from the group header — avoids cramped “fused” rows */
+  padding: 4px 0 8px;
+  margin: 0;
+  transition:
+    max-height 240ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 160ms ease,
+    margin 200ms ease,
+    padding 200ms ease,
+    visibility 0ms linear 0ms;
+}
 
-      &:hover {
-        background: rgba(255, 255, 255, 0.15);
-        color: var(--text-light);
-        border-color: rgba(255, 255, 255, 0.25);
-      }
-    }
+.navFooter {
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  transition: padding var(--nav-motion), align-items var(--nav-motion);
+}
+
+.storeCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  transition:
+    padding var(--nav-motion),
+    gap var(--nav-motion),
+    background var(--nav-motion),
+    justify-content var(--nav-motion);
+}
+
+.storeIconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--nav-active-bg);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.storeDetails {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  opacity: 1;
+  max-width: 180px;
+  overflow: hidden;
+  transition:
+    opacity 160ms ease,
+    max-width var(--nav-motion);
+}
+
+.storeName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sidebar-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.storeLabel {
+  font-size: 12px;
+  color: var(--sidebar-text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.logoutButton {
+  width: 100%;
+  padding: 10px 12px;
+  height: 40px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--sidebar-text-muted);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--primary-font);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  transition:
+    width var(--nav-motion),
+    height var(--nav-motion),
+    padding var(--nav-motion),
+    border-radius var(--nav-motion),
+    gap var(--nav-motion),
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+
+  &:hover {
+    background: rgba(255, 86, 48, 0.08);
+    color: var(--error-color);
+    border-color: rgba(255, 86, 48, 0.24);
+  }
+}
+
+.logoutLabel {
+  white-space: nowrap;
+  opacity: 1;
+  max-width: 80px;
+  overflow: hidden;
+  transition:
+    opacity 140ms ease,
+    max-width var(--nav-motion);
+}
+
+/* —— Collapsed mini rail (88px) —— */
+.mainNavigation.collapsed {
+  width: var(--sidebar-mini-width);
+
+  .navBrand {
+    justify-content: center;
+    padding: 0;
+    gap: 0;
+  }
+
+  .brandLogo {
+    cursor: pointer;
+  }
+
+  .brandText {
+    opacity: 0;
+    max-width: 0;
+    flex: 0;
+    pointer-events: none;
+  }
+
+  .collapseBtn {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    width: 0;
+    margin: 0;
+    border: none;
+    overflow: hidden;
+  }
+
+  .expandRailBtn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+  }
+
+  .navScroll {
+    /* (88 - 48) / 2 = 20 → icon buttons sit on the rail center line */
+    padding: 8px 20px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sectionLabel {
+    display: none;
+  }
+
+  .miniDivider {
+    height: 1px;
+    width: 100%;
+    margin: 8px 0;
+    opacity: 1;
   }
 
   .navLinks {
-    list-style: none;
-    padding: 0 16px;
-    margin: 0;
-    flex-grow: 1;
-    overflow-y: auto;
-    
-    /* Hide scrollbar */
-    -ms-overflow-style: none;  
-    scrollbar-width: none;  
-    &::-webkit-scrollbar {
-      display: none; 
-    }
+    width: 100%;
+    align-items: center;
+    gap: 4px;
+  }
 
-    .navGroupContainer {
-      margin-bottom: 8px;
+  .navGroup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
 
-      .navGroupHeader {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 14px;
-        cursor: pointer;
-        color: var(--sidebar-text-muted);
-        transition: var(--transition);
-        border-radius: 8px;
+  .navGroupHeader {
+    width: 48px;
+    min-width: 48px;
+    max-width: 48px;
+    flex: 0 0 48px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 10px;
 
-        &:hover {
-          color: var(--sidebar-text);
-          background: rgba(255, 255, 255, 0.05);
-        }
-
-        .navGroupHeaderLeft {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          font-size: 14px;
-          font-weight: 600;
-        }
-      }
-
-      .navGroupSubList {
-        list-style: none;
-        padding: 0 0 0 34px;
-        margin: 4px 0 8px 0;
-        position: relative;
-
-        &::before {
-          content: '';
-          position: absolute;
-          left: 19px;
-          top: 0;
-          bottom: 10px;
-          width: 1px;
-          background: var(--border-color);
-        }
-
-        li {
-          margin-bottom: 4px;
-
-          a {
-            display: block;
-            padding: 10px 14px;
-            color: var(--sidebar-text-muted);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: var(--transition);
-            position: relative;
-
-            &:hover {
-              color: var(--sidebar-text);
-            }
-
-            &.activeLink {
-              background: rgba(63, 151, 239, 0.12);
-              color: var(--primary-color);
-              font-weight: 600;
-
-              &::before {
-                content: '';
-                position: absolute;
-                left: -15px;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 3px;
-                height: 18px;
-                background: var(--primary-color);
-                border-radius: 0 2px 2px 0;
-              }
-            }
-          }
-        }
-      }
+    .navGroupHeaderLeft {
+      justify-content: center;
+      gap: 0;
+      width: auto;
     }
   }
 
+  .navGroupTitle {
+    display: none;
+  }
+
+  .chevronWrap {
+    display: none;
+  }
+
+  .navSubList,
+  .navSubListOpen {
+    display: none !important;
+  }
+
   .navFooter {
-    padding: 16px;
-    border-top: 1px solid var(--border-color);
+    padding: 12px 20px 16px;
+    align-items: center;
+  }
+
+  .storeCard {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    gap: 0;
     background: transparent;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+  }
 
-    .storeCard {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border-color);
+  .storeIconWrap {
+    width: 40px;
+    height: 40px;
+  }
 
-      .storeIcon {
-        color: var(--primary-color);
-      }
+  .storeDetails {
+    display: none;
+  }
 
-      .storeDetails {
-        display: flex;
-        flex-direction: column;
+  .logoutButton {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    padding: 0;
+    border-radius: 10px;
+    gap: 0;
+  }
 
-        .storeName {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--sidebar-text);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 150px;
-        }
+  .miniDividerSecond {
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
 
-        .storeLabel {
-          font-size: 10px;
-          color: var(--sidebar-text-muted);
-          font-weight: 600;
-          margin-top: 2px;
-        }
-      }
-    }
-
-    .logoutButton {
-      width: 100%;
-      padding: 12px;
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--sidebar-text-muted);
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: var(--transition);
-
-      &:hover {
-        background: rgba(255, 0, 61, 0.1);
-        color: var(--color-error, #ff003d);
-        border-color: rgba(255, 0, 61, 0.3);
-      }
-    }
+  .logoutLabel {
+    opacity: 0;
+    max-width: 0;
   }
 }
 
 @media (max-width: 1024px) {
   .mainNavigation {
-    position: fixed;
-    height: 100vh;
     transform: translateX(0);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 2000;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md);
   }
 
   .mainNavigation.collapsed {
     transform: translateX(-100%);
     width: var(--sidebar-width);
-  }
-}
 
-.mainNavigation.collapsed {
-  width: 80px;
-  
-  .navBrand {
-    justify-content: center;
-    padding: 24px 0;
-    
-    .brandText {
-      display: none;
+    /* Off-canvas mobile drawer keeps full expanded chrome (not mini-rail) */
+    .brandText,
+    .collapseBtn,
+    .navGroupTitle,
+    .chevronWrap,
+    .storeDetails,
+    .logoutLabel,
+    .sectionLabel {
+      display: revert;
+      opacity: 1;
+      max-width: none;
+      max-height: none;
+      min-height: 16px;
+      width: auto;
+      pointer-events: auto;
+      visibility: visible;
+      flex: initial;
+      margin: initial;
     }
-  }
 
-  .navLinks {
-    padding: 0 8px;
-    
-    .navGroupContainer {
-      .navGroupHeader {
-        justify-content: center;
-        padding: 12px 0;
-        
-        .navGroupHeaderLeft span {
-          display: none;
-        }
-      }
-      
-      .navGroupSubList {
-        display: none; // sublists aren't great in collapsed mode, or we can just hide them
-      }
+    .collapseBtn {
+      width: 26px;
+      margin-left: auto;
+      margin-right: 16px;
+      border: 1px solid var(--border-color);
     }
-  }
 
-  .navFooter {
-    .storeCard {
-      justify-content: center;
-      padding: 12px 0;
-      
-      .storeDetails {
-        display: none;
-      }
+    .sectionLabel {
+      display: block;
+      margin: 12px 0 6px 12px;
+      opacity: 0.85;
     }
-    
-    .logoutWrapper {
+
+    .navGroupTitle {
+      display: inline;
+    }
+
+    .chevronWrap {
       display: flex;
-      justify-content: center;
     }
-    
-    .logoutButton.collapsedBtn {
-      padding: 12px 0;
+
+    .navSubList,
+    .navSubListOpen {
+      display: flex !important;
+    }
+
+    .miniDivider {
+      height: 0;
+      margin: 0;
+      opacity: 0;
+    }
+
+    .navBrand {
+      justify-content: flex-start;
+      padding: 0 0 0 20px;
+      gap: 12px;
+    }
+
+    .navScroll {
+      padding: 0 16px 16px;
+      align-items: stretch;
+    }
+
+    .navGroup {
+      align-items: stretch;
+    }
+
+    .navGroupHeader {
       width: 100%;
-      display: flex;
-      justify-content: center;
-      span {
-        display: none;
-      }
+      min-width: 0;
+      max-width: none;
+      flex: none;
+      padding: 2px 8px 2px 10px;
+      justify-content: space-between;
+      border-radius: 8px;
     }
+
+    .navGroupHeaderLeft {
+      gap: 12px;
+      justify-content: flex-start;
+    }
+
+    .storeCard {
+      padding: 12px;
+      gap: 12px;
+      background: var(--bg-subtle);
+      justify-content: flex-start;
+    }
+
+    .logoutButton {
+      width: 100%;
+      height: 40px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      gap: 8px;
+    }
+
+    .navFooter {
+      padding: 16px;
+      align-items: stretch;
+    }
+  }
+
+  .expandRailBtn {
+    display: none;
   }
 }

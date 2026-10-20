@@ -1,5 +1,5 @@
 .dashboardLayout {
-  min-height: calc(100vh - var(--header-height) - 60px);
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--bg-card);
@@ -20,8 +20,8 @@
 /* Tabs */
 .tabContainer {
   display: flex;
-  gap: 16px;
-  padding: 20px 30px;
+  gap: 24px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--border-color);
   width: 100%;
   margin-bottom: 0;
@@ -29,13 +29,15 @@
 }
 
 .tabBtn {
-  padding: 10px 24px;
+  padding: 16px 2px 14px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-size: 14px;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
   cursor: pointer;
   transition: var(--transition);
 
@@ -45,11 +47,12 @@
 }
 
 .tabBtnActive {
-  background: var(--primary-color);
-  color: white;
-  
+  background: transparent;
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+
   &:hover {
-    color: white;
+    color: var(--primary-color);
   }
 }
 
@@ -64,17 +67,18 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 30px;
+  padding: 24px;
   border-right: 1px solid var(--border-color);
   box-sizing: border-box;
 
   .createShiftBtn {
     width: 100%;
-    padding: 14px;
+    padding: 10px 14px;
+    min-height: 40px;
     background: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -84,10 +88,10 @@
     gap: 8px;
     transition: var(--transition);
     margin-bottom: 12px;
-    box-shadow: var(--primary-color-shadow);
+    box-shadow: none;
 
     &:hover {
-      transform: translateY(-2px);
+      background: var(--primary-color-dark);
     }
   }
 
@@ -103,30 +107,32 @@
   .shiftCard {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 20px;
+    border-radius: 8px;
+    padding: 12px 14px;
     cursor: pointer;
     transition: var(--transition);
 
     &:hover {
-      border-color: var(--primary-color);
+      border-color: var(--border-color-strong);
+      background: var(--bg-hover);
     }
 
     &.active {
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 1px var(--primary-color);
+      background: var(--primary-color-alpha);
+      box-shadow: none;
     }
 
     .cardHeader {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 6px;
 
       h4 {
         margin: 0;
-        font-size: 16px;
-        font-weight: 700;
+        font-size: 14px;
+        font-weight: 600;
         color: var(--text-dark);
       }
 
@@ -144,44 +150,54 @@
     .cardTime {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 13px;
+      gap: 6px;
+      font-size: 12px;
       color: var(--text-muted);
       font-weight: 500;
+      line-height: 1.4;
+
+      svg {
+        flex-shrink: 0;
+        opacity: 0.72;
+      }
     }
   }
 }
 
 .formPanel {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 
   .panelHeader {
-    padding: 30px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border-color);
 
     h3 {
-      margin: 0 0 8px 0;
-      font-size: 20px;
-      font-weight: 700;
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      font-weight: 600;
       color: var(--text-dark);
     }
 
     p {
       margin: 0;
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-muted);
+      line-height: 1.5;
+      white-space: normal;
     }
   }
 
   .panelBody {
-    padding: 30px;
+    padding: 20px 24px 24px;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 20px;
     flex: 1;
+    min-width: 0;
   }
 
   .formRow {
@@ -192,24 +208,26 @@
   .formGroup {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
     flex: 1;
 
     label {
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      text-transform: none;
+      letter-spacing: normal;
     }
 
     input, select {
-      padding: 14px 16px;
+      min-height: 40px;
+      padding: 8px 12px;
+      box-sizing: border-box;
       background: transparent;
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 8px;
       color: var(--text-dark);
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
       transition: var(--transition);
       appearance: none; /* For custom select */
@@ -217,6 +235,7 @@
       &:focus {
         outline: none;
         border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-color-alpha);
       }
     }
 
@@ -225,11 +244,12 @@
       
       select {
         width: 100%;
+        padding-right: 36px;
       }
 
       .selectIcon {
         position: absolute;
-        right: 16px;
+        right: 12px;
         top: 50%;
         transform: translateY(-50%);
         pointer-events: none;
@@ -261,38 +281,49 @@
   }
 
   .panelFooter {
-    padding: 30px;
+    padding: 16px 24px;
     border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: flex-end;
-    gap: 16px;
+    gap: 12px;
 
     .cancelBtn {
-      padding: 12px 24px;
+      padding: 8px 16px;
+      min-height: 40px;
       background: transparent;
       border: 1px solid var(--border-color);
       color: var(--text-dark);
-      border-radius: 12px;
+      border-radius: 8px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      transition: var(--transition);
 
       &:hover {
-        background: rgba(255,255,255,0.05);
+        background: var(--bg-hover);
       }
     }
 
     .saveBtn {
-      padding: 12px 32px;
+      padding: 8px 20px;
+      min-height: 40px;
       background: var(--primary-color);
       color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: 8px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: var(--primary-color-shadow);
+      box-shadow: none;
+      transition: var(--transition);
 
       &:hover {
-        transform: translateY(-2px);
+        background: var(--primary-color-dark);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
       }
     }
   }
@@ -312,7 +343,7 @@
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 30px;
-  padding-bottom: 30px;
+  padding-bottom: 24px;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 0;
   
@@ -454,13 +485,13 @@
     .toggleKnob {
       width: 16px;
       height: 16px;
-      background: white;
+      background: #fff;
       border-radius: 50%;
       position: absolute;
       top: 1px;
       left: 1px;
       transition: transform 0.3s;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      box-shadow: var(--shadow-sm);
     }
 
     .dateBox {
@@ -495,7 +526,7 @@
       }
 
       .todayBtn {
-        background: rgba(63, 151, 239, 0.1);
+        background: rgba(0, 167, 111, 0.08);
         color: var(--primary-color);
         height: 100%;
       }
@@ -642,7 +673,7 @@
         height: 32px;
         border-radius: 4px;
         border: 1px solid var(--border-color);
-        background: white;
+        background: var(--bg-card);
         color: var(--text-dark);
         display: flex;
         align-items: center;
@@ -720,7 +751,11 @@
     border-radius: 12px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: var(--primary-color-shadow);
+    box-shadow: none;
+
+    &:hover {
+      box-shadow: var(--primary-color-shadow);
+    }
   }
 }
 
@@ -742,7 +777,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 30px;
+    padding: 24px;
     border-bottom: 1px solid var(--border-color);
 
     .icon {
@@ -758,7 +793,7 @@
   }
 
   .settingsBody {
-    padding: 30px;
+    padding: 24px;
     flex: 1;
   }
 
@@ -802,7 +837,7 @@
   }
 
   .settingsFooter {
-    padding: 30px;
+    padding: 24px;
     display: flex;
     justify-content: flex-end;
   }
@@ -814,7 +849,7 @@
   border-radius: 16px;
   border: 1px solid var(--border-color);
   border-left: 4px solid var(--primary-color);
-  padding: 30px;
+  padding: 24px;
   height: fit-content;
 
   .infoHeader {
@@ -877,7 +912,7 @@
   background: var(--bg-card);
   border-radius: 16px;
   border: 1px solid var(--border-color);
-  padding: 30px;
+  padding: 24px;
   width: 400px;
   display: flex;
   flex-direction: column;
@@ -1060,33 +1095,36 @@
 }
 
 .dayWiseContainer {
-  margin-top: 16px;
+  margin-top: 0;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   overflow: hidden;
   background: var(--bg-card);
 
   .dayWiseHeader {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: var(--bg-body);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+    padding: 14px 16px;
+    background: var(--table-head-bg);
     border-bottom: 1px solid var(--border-color);
 
     .sameForAllDays {
+      grid-column: 1 / -1;
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row;
+      align-items: center;
       gap: 8px;
-      margin-right: 16px;
+      margin-right: 0;
+      min-width: 0;
 
       label {
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        color: var(--text-dark);
+        text-transform: none;
+        letter-spacing: normal;
+        white-space: normal;
       }
 
       .dayCheckbox {
@@ -1096,6 +1134,11 @@
         accent-color: var(--primary-color);
       }
     }
+
+    > .formGroup {
+      min-width: 0;
+      margin: 0;
+    }
   }
 
   .dayRows {
@@ -1104,10 +1147,10 @@
 
     .dayRow {
       display: grid;
-      grid-template-columns: 100px 1fr 1fr;
+      grid-template-columns: 72px minmax(0, 1fr) minmax(0, 1fr);
       align-items: center;
-      gap: 16px;
-      padding: 12px 16px;
+      gap: 12px;
+      padding: 10px 16px;
       border-bottom: 1px solid var(--border-color);
 
       &:last-child {
@@ -1115,9 +1158,10 @@
       }
 
       .dayLabel {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
-        color: var(--text-dark);
+        color: var(--text-muted);
+        letter-spacing: 0.02em;
       }
     }
   }
@@ -1125,11 +1169,13 @@
   .selectWrapper {
     position: relative;
     width: 100%;
-    max-width: 160px;
+    max-width: none;
 
     select {
       width: 100%;
-      padding: 10px 32px 10px 16px;
+      min-height: 40px;
+      padding: 8px 32px 8px 12px;
+      box-sizing: border-box;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 8px;
@@ -1143,7 +1189,7 @@
       
       &:focus {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        box-shadow: 0 0 0 2px var(--primary-color-alpha);
       }
       
       &:disabled {

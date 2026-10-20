@@ -42,25 +42,48 @@ const PageLoader = () => (
 );
 
 const MOBILE_BREAKPOINT = 1024;
+const SIDEBAR_PREF_KEY = 'payroll.sidebarCollapsed';
+
+const readDesktopSidebarPref = () => {
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem(SIDEBAR_PREF_KEY) === 'true';
+};
 
 const AppContent = () => {
   const { isAuthenticated, hasAccess } = useAuth();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT
-  );
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT
   );
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (window.innerWidth <= MOBILE_BREAKPOINT) return true;
+    return readDesktopSidebarPref();
+  });
 
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= MOBILE_BREAKPOINT;
-      setIsMobile(mobile);
-      if (mobile) setIsSidebarCollapsed(true);
+      setIsMobile((wasMobile) => {
+        if (!wasMobile && mobile) {
+          setIsSidebarCollapsed(true);
+        } else if (wasMobile && !mobile) {
+          setIsSidebarCollapsed(readDesktopSidebarPref());
+        }
+        return mobile;
+      });
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!isMobile || isSidebarCollapsed) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setIsSidebarCollapsed(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isMobile, isSidebarCollapsed]);
 
   if (!isAuthenticated) {
     return (
@@ -71,7 +94,15 @@ const AppContent = () => {
     );
   }
 
-  const toggleSidebar = () => setIsSidebarCollapsed(prev => !prev);
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      if (!isMobile) {
+        window.localStorage.setItem(SIDEBAR_PREF_KEY, String(next));
+      }
+      return next;
+    });
+  };
   const closeSidebar = () => { if (isMobile) setIsSidebarCollapsed(true); };
 
   return (

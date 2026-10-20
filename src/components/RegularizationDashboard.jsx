@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
+import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
+import { Checkbox } from './ui';
 import styles from './RegularizationDashboard.module.scss';
 
 const formatTime = (timeStr) => {
@@ -186,12 +188,12 @@ const RegularizationDashboard = ({ staffList }) => {
       </div>
 
       {activeTab === 'PENDING' && selectedRequests.length > 0 && (
-        <div className={styles.actionsCell} style={{ marginBottom: '16px' }}>
-          <button className={`${styles.neonBtn} ${styles.btnApprove}`} onClick={() => handleAction('APPROVED', selectedRequests)}>
-            Approve Selected ({selectedRequests.length})
+        <div className={styles.bulkBar}>
+          <button type="button" className={`${styles.actionBtn} ${styles.btnApprove}`} onClick={() => handleAction('APPROVED', selectedRequests)}>
+            Approve selected ({selectedRequests.length})
           </button>
-          <button className={`${styles.neonBtn} ${styles.btnReject}`} onClick={() => handleAction('REJECTED', selectedRequests)}>
-            Reject Selected ({selectedRequests.length})
+          <button type="button" className={`${styles.actionBtn} ${styles.btnReject}`} onClick={() => handleAction('REJECTED', selectedRequests)}>
+            Reject selected ({selectedRequests.length})
           </button>
         </div>
       )}
@@ -203,12 +205,11 @@ const RegularizationDashboard = ({ staffList }) => {
             <thead>
               <tr>
                 {activeTab === 'PENDING' && (
-                  <th className={styles.th} style={{ width: '40px' }}>
-                    <input 
-                      type="checkbox"
-                      className={styles.checkbox}
+                  <th className={`${styles.th} ${styles.thCheckbox}`}>
+                    <Checkbox
                       checked={requests.length > 0 && selectedRequests.length === requests.length}
                       onChange={handleSelectAll}
+                      aria-label="Select all requests"
                     />
                   </th>
                 )}
@@ -217,20 +218,20 @@ const RegularizationDashboard = ({ staffList }) => {
                 <th className={styles.th}>Punch Time</th>
                 <th className={styles.th}>Status</th>
                 <th className={styles.th}>Attendance Data</th>
-                {activeTab === 'PENDING' && <th className={styles.th} style={{ textAlign: 'right' }}>Actions</th>}
+                {activeTab === 'PENDING' && <th className={`${styles.th} ${styles.thActions}`}>Actions</th>}
               </tr>
             </thead>
             <tbody>
               {loading && requests.length === 0 ? (
                 <tr>
-                  <td colSpan={activeTab === 'PENDING' ? 7 : 6} className={styles.td} style={{ textAlign: 'center', padding: '40px' }}>
-                    Loading requests...
+                  <td colSpan={activeTab === 'PENDING' ? 7 : 6} className={`${styles.td} ${styles.tableLoading}`}>
+                    Loading requests…
                   </td>
                 </tr>
               ) : requests.length === 0 ? (
                 <tr>
-                  <td colSpan={activeTab === 'PENDING' ? 7 : 6} className={styles.td} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                    No {activeTab.toLowerCase()} requests available.
+                  <td colSpan={activeTab === 'PENDING' ? 7 : 6} className={`${styles.td} ${styles.tableEmpty}`}>
+                    No {activeTab.toLowerCase()} requests in this date range.
                   </td>
                 </tr>
               ) : (
@@ -243,11 +244,10 @@ const RegularizationDashboard = ({ staffList }) => {
                     <tr key={row.personnelAttendanceId} className={styles.tr}>
                       {activeTab === 'PENDING' && (
                         <td className={styles.td}>
-                          <input 
-                            type="checkbox"
-                            className={styles.checkbox}
+                          <Checkbox
                             checked={selectedRequests.includes(row.personnelAttendanceId)}
                             onChange={() => handleSelectOne(row.personnelAttendanceId)}
+                            aria-label={`Select request for ${row.personnelName}`}
                           />
                         </td>
                       )}
@@ -272,17 +272,19 @@ const RegularizationDashboard = ({ staffList }) => {
                         {renderPunches(row.individualPunchesList)}
                       </td>
                       {activeTab === 'PENDING' && (
-                        <td className={styles.td} style={{ textAlign: 'right' }}>
-                          <div className={styles.actionsCell} style={{ justifyContent: 'flex-end' }}>
-                            <button 
-                              className={`${styles.neonBtn} ${styles.btnApprove}`}
+                        <td className={`${styles.td} ${styles.tdActions}`}>
+                          <div className={`${styles.actionsCell} ${styles.actionsCellEnd}`}>
+                            <button
+                              type="button"
+                              className={`${styles.actionBtn} ${styles.btnApprove}`}
                               onClick={() => handleAction('APPROVED', [row.personnelAttendanceId])}
                               disabled={isMutating}
                             >
                               Approve
                             </button>
-                            <button 
-                              className={`${styles.neonBtn} ${styles.btnReject}`}
+                            <button
+                              type="button"
+                              className={`${styles.actionBtn} ${styles.btnReject}`}
                               onClick={() => handleAction('REJECTED', [row.personnelAttendanceId])}
                               disabled={isMutating}
                             >
@@ -303,9 +305,8 @@ const RegularizationDashboard = ({ staffList }) => {
         <div className={styles.pagination}>
           <div className={styles.pageControls}>
             <span>Rows per page:</span>
-            <select 
-              className={styles.inputField} 
-              style={{ padding: '4px 8px', fontSize: '13px' }}
+            <select
+              className={`${styles.inputField} ${styles.inputFieldCompact}`}
               value={rowsPerPage}
               onChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(0); }}
             >
@@ -315,26 +316,28 @@ const RegularizationDashboard = ({ staffList }) => {
             </select>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          <div className={styles.pageSummary}>
             <span>
-              {totalCount === 0 ? 0 : (page * rowsPerPage) + 1} - {Math.min((page + 1) * rowsPerPage, totalCount)} of {totalCount}
+              {totalCount === 0 ? 0 : (page * rowsPerPage) + 1}–{Math.min((page + 1) * rowsPerPage, totalCount)} of {totalCount}
             </span>
             <div className={styles.pageArrows}>
-              <button 
+              <button
+                type="button"
                 className={styles.arrowBtn}
                 onClick={() => setPage(Math.max(0, page - 1))}
                 disabled={page === 0}
-                style={{ opacity: page === 0 ? 0.3 : 1, cursor: page === 0 ? 'default' : 'pointer' }}
+                aria-label="Previous page"
               >
-                &lsaquo;
+                <LuChevronLeft size={18} aria-hidden="true" />
               </button>
-              <button 
+              <button
+                type="button"
                 className={styles.arrowBtn}
                 onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                 disabled={page >= totalPages - 1}
-                style={{ opacity: page >= totalPages - 1 ? 0.3 : 1, cursor: page >= totalPages - 1 ? 'default' : 'pointer' }}
+                aria-label="Next page"
               >
-                &rsaquo;
+                <LuChevronRight size={18} aria-hidden="true" />
               </button>
             </div>
           </div>

@@ -1,35 +1,70 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig } from '../helpers/dateUtils';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
-import AddIcon from '@mui/icons-material/Add';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import CloseIcon from '@mui/icons-material/Close';
-import EventNoteIcon from '@mui/icons-material/EventNote';
+import { Drawer, Button, Switch } from '../components/ui';
+import {
+  LuPlus,
+  LuTrash2,
+  LuChevronLeft,
+  LuChevronRight,
+  LuCalendarDays,
+  LuList,
+  LuInfo,
+} from 'react-icons/lu';
 import styles from './HolidayCalendarScreen.module.scss';
+
+const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const toDateKey = (value) => {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value).slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const startOfMonthGrid = (year, monthIndex) => {
+  // Monday-first grid
+  const first = new Date(year, monthIndex, 1);
+  const day = (first.getDay() + 6) % 7; // Mon=0
+  const start = new Date(first);
+  start.setDate(first.getDate() - day);
+  return start;
+};
 
 export default function HolidayCalendarScreen() {
   const { tenantId, storeId } = useAuth();
   const { storeConfig } = useStoreConfig();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
-  
-  const [open, setOpen] = useState(false);
+
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+  const todayKey = toDateKey(today);
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [viewMode, setViewMode] = useState('month'); // month | list
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [newHoliday, setNewHoliday] = useState({
     holidayName: '',
     holidayDate: '',
-    isOptional: false
+    isOptional: false,
   });
 
   const { data, isLoading } = useQuery({
     queryKey: ['holidays', tenantId, storeId],
     queryFn: () => apiService.get(`/holidays?tenantId=${tenantId}&storeId=${storeId}`),
-    enabled: !!tenantId && !!storeId
+    enabled: !!tenantId && !!storeId,
   });
 
   const createMutation = useMutation({
@@ -37,11 +72,11 @@ export default function HolidayCalendarScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries(['holidays']);
       showToast('Holiday created successfully!', 'success');
-      handleClose();
+      closeDrawer();
     },
     onError: (error) => {
       showToast(error.response?.data?.message || 'Failed to create holiday', 'error');
-    }
+    },
   });
 
   const deleteMutation = useMutation({
@@ -49,11 +84,71 @@ export default function HolidayCalendarScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries(['holidays']);
       showToast('Holiday deleted successfully!', 'success');
-    }
+    },
   });
 
-  const handleClose = () => {
-    setOpen(false);
+  const holidaysList = data?.data || [];
+
+  const holidaysByDate = useMemo(() => {
+    const map = {};
+    holidaysList.forEach((h) => {
+      const key = toDateKey(h.holidayDate);
+      if (!map[key]) map[key] = [];
+      map[key].push(h);
+    });
+    return map;
+  }, [holidaysList]);
+
+  const monthLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const calendarCells = useMemo(() => {
+    const start = startOfMonthGrid(viewYear, viewMonth);
+    return Array.from({ length: 42 }, (_, i) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      const key = toDateKey(date);
+      return {
+        date,
+        key,
+        inMonth: date.getMonth() === viewMonth,
+        isToday: key === todayKey,
+        holidays: holidaysByDate[key] || [],
+      };
+    });
+  }, [viewYear, viewMonth, holidaysByDate, todayKey]);
+
+  const nextUpHoliday = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    let next = null;
+    let minDiff = Infinity;
+    holidaysList.forEach((h) => {
+      const hDate = new Date(h.holidayDate);
+      const diff = hDate.getTime() - now.getTime();
+      if (diff >= 0 && diff < minDiff) {
+        minDiff = diff;
+        next = h;
+      }
+    });
+    return next;
+  }, [holidaysList]);
+
+  const openCreate = (dateKey) => {
+    setSelectedDate(dateKey || null);
+    setNewHoliday({
+      holidayName: '',
+      holidayDate: dateKey || toDateKey(today),
+      isOptional: false,
+    });
+    setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    setSelectedDate(null);
     setNewHoliday({ holidayName: '', holidayDate: '', isOptional: false });
   };
 
@@ -61,202 +156,282 @@ export default function HolidayCalendarScreen() {
     createMutation.mutate({
       ...newHoliday,
       tenantId,
-      storeId
+      storeId,
     });
   };
 
-  const holidaysList = data?.data || [];
-  
-  // Calculate next up
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  let nextUpHoliday = null;
-  let minDiff = Infinity;
-  
-  holidaysList.forEach(h => {
-    const hDate = new Date(h.holidayDate);
-    const diff = hDate.getTime() - today.getTime();
-    if (diff >= 0 && diff < minDiff) {
-      minDiff = diff;
-      nextUpHoliday = h;
-    }
-  });
-
-  const formatDate = (dateString) => {
-    return formatDateByConfig(dateString, storeConfig?.dateFormat);
+  const goToday = () => {
+    setViewYear(today.getFullYear());
+    setViewMonth(today.getMonth());
   };
+
+  const shiftMonth = (delta) => {
+    const d = new Date(viewYear, viewMonth + delta, 1);
+    setViewYear(d.getFullYear());
+    setViewMonth(d.getMonth());
+  };
+
+  const formatDate = (dateString) => formatDateByConfig(dateString, storeConfig?.dateFormat);
 
   return (
     <div className={styles.pageContainer}>
-      <div className={styles.header}>
-        <div className={styles.pageTitleContainer}>
-          <div className={styles.blueBar}></div>
-          <h1 className={styles.pageTitle}>Holiday Calendar</h1>
-        </div>
-        <button className={styles.primaryBtn} onClick={() => setOpen(true)}>
-          <AddIcon sx={{ fontSize: 20 }} /> Add Holiday
+      <div className={styles.pageActions}>
+        <button type="button" className={styles.primaryBtn} onClick={() => openCreate()}>
+          <LuPlus size={18} /> Add holiday
         </button>
       </div>
 
       <div className={styles.metricsRow}>
         <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Total Holidays</span>
+          <span className={styles.metricLabel}>Total holidays</span>
           <div className={styles.metricValueContainer}>
             <span className={styles.metricValueLarge}>{holidaysList.length}</span>
-            <span className={styles.metricValueSub}>this year</span>
+            <span className={styles.metricValueSub}>configured</span>
           </div>
         </div>
         <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Next Up</span>
+          <span className={styles.metricLabel}>Next up</span>
           {nextUpHoliday ? (
-            <div className={styles.metricValueContainer} style={{ alignItems: 'center' }}>
-              <span className={styles.badgeMandatorySquare} style={{ backgroundColor: nextUpHoliday.isOptional ? '#dbeafe' : '#e0f2fe', color: nextUpHoliday.isOptional ? '#1e40af' : '#0369a1' }}>
-                {nextUpHoliday.isOptional ? 'OPTIONAL' : 'MANDATORY'}
+            <div className={styles.nextUp}>
+              <span className={`${styles.chip} ${nextUpHoliday.isOptional ? styles.chipOptional : styles.chipMandatory}`}>
+                {nextUpHoliday.isOptional ? 'Optional' : 'Mandatory'}
               </span>
               <span className={styles.metricTextValue}>{nextUpHoliday.holidayName}</span>
             </div>
           ) : (
-            <span className={styles.metricTextValue} style={{ color: '#64748b' }}>No upcoming holidays</span>
+            <span className={styles.muted}>No upcoming holidays</span>
           )}
         </div>
         <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Policy Status</span>
-          <div className={styles.statusGood}>
-            <CheckCircleOutlineIcon /> Compliant with Local Law
+          <span className={styles.metricLabel}>This month</span>
+          <div className={styles.metricValueContainer}>
+            <span className={styles.metricValueLarge}>
+              {Object.keys(holidaysByDate).filter((k) => {
+                const d = new Date(k);
+                return d.getFullYear() === viewYear && d.getMonth() === viewMonth;
+              }).length}
+            </span>
+            <span className={styles.metricValueSub}>in {monthLabel.split(' ')[0]}</span>
           </div>
         </div>
       </div>
 
-      <div className={styles.tableContainer}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Date (DD/MM/YYYY)</th>
-              <th>Holiday Name</th>
-              <th>Type</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className={styles.calendarShell}>
+        <div className={styles.calToolbar}>
+          <div className={styles.viewToggle} role="group" aria-label="Calendar view">
+            <button
+              type="button"
+              className={viewMode === 'month' ? styles.toggleActive : undefined}
+              onClick={() => setViewMode('month')}
+              title="Month view"
+              aria-pressed={viewMode === 'month'}
+            >
+              <LuCalendarDays size={18} />
+            </button>
+            <button
+              type="button"
+              className={viewMode === 'list' ? styles.toggleActive : undefined}
+              onClick={() => setViewMode('list')}
+              title="List view"
+              aria-pressed={viewMode === 'list'}
+            >
+              <LuList size={18} />
+            </button>
+          </div>
+
+          <div className={styles.monthNav}>
+            <button type="button" className={styles.navIconBtn} onClick={() => shiftMonth(-1)} aria-label="Previous month">
+              <LuChevronLeft size={18} />
+            </button>
+            <h2 className={styles.monthLabel}>{monthLabel}</h2>
+            <button type="button" className={styles.navIconBtn} onClick={() => shiftMonth(1)} aria-label="Next month">
+              <LuChevronRight size={18} />
+            </button>
+          </div>
+
+          <div className={styles.calToolbarEnd}>
+            <button type="button" className={styles.todayBtn} onClick={goToday}>
+              Today
+            </button>
+          </div>
+        </div>
+
+        {viewMode === 'month' ? (
+          <div className={styles.monthGrid}>
+            <div className={styles.weekdayRow}>
+              {WEEKDAYS.map((d) => (
+                <div key={d} className={styles.weekday}>{d}</div>
+              ))}
+            </div>
+            <div className={styles.daysGrid}>
+              {calendarCells.map((cell) => (
+                <button
+                  type="button"
+                  key={cell.key}
+                  className={[
+                    styles.dayCell,
+                    !cell.inMonth && styles.outsideMonth,
+                    cell.isToday && styles.todayCell,
+                    selectedDate === cell.key && styles.selectedCell,
+                  ].filter(Boolean).join(' ')}
+                  onClick={() => openCreate(cell.key)}
+                >
+                  <span className={styles.dayNumber}>{cell.date.getDate()}</span>
+                  <div className={styles.eventStack}>
+                    {cell.holidays.slice(0, 3).map((h) => (
+                      <span
+                        key={h.id}
+                        className={`${styles.eventPill} ${h.isOptional ? styles.pillOptional : styles.pillMandatory}`}
+                        title={h.holidayName}
+                      >
+                        {h.holidayName}
+                      </span>
+                    ))}
+                    {cell.holidays.length > 3 && (
+                      <span className={styles.moreCount}>+{cell.holidays.length - 3} more</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className={styles.listView}>
             {isLoading ? (
-              <tr>
-                <td colSpan={4} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td>
-              </tr>
+              <div className={styles.emptyState}>Loading holidays…</div>
             ) : holidaysList.length === 0 ? (
-              <tr>
-                <td colSpan={4} className={styles.emptyState}>No holidays configured yet.</td>
-              </tr>
+              <div className={styles.emptyState}>No holidays configured yet. Click Add holiday to create one.</div>
             ) : (
-              holidaysList.map(holiday => (
-                <tr key={holiday.id} className={styles.tableRow}>
-                  <td>{formatDate(holiday.holidayDate)}</td>
-                  <td>
-                    <div className={styles.holidayNameCell}>
-                      <span className={`${styles.dot} ${holiday.isOptional ? styles.optional : ''}`}></span>
-                      {holiday.holidayName}
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`${styles.badge} ${holiday.isOptional ? styles.badgeOptional : styles.badgeMandatory}`}>
-                      {holiday.isOptional ? 'Optional' : 'Mandatory'}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button 
-                      className={styles.actionBtn} 
-                      onClick={() => deleteMutation.mutate(holiday.id)}
-                      title="Delete Holiday"
-                    >
-                      <DeleteOutlineIcon sx={{ fontSize: 20 }} />
-                    </button>
-                  </td>
-                </tr>
-              ))
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Holiday</th>
+                    <th>Type</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...holidaysList]
+                    .sort((a, b) => String(a.holidayDate).localeCompare(String(b.holidayDate)))
+                    .map((holiday) => (
+                      <tr key={holiday.id}>
+                        <td>{formatDate(holiday.holidayDate)}</td>
+                        <td>
+                          <div className={styles.holidayNameCell}>
+                            <span className={`${styles.dot} ${holiday.isOptional ? styles.optional : ''}`} />
+                            {holiday.holidayName}
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`${styles.chip} ${holiday.isOptional ? styles.chipOptional : styles.chipMandatory}`}>
+                            {holiday.isOptional ? 'Optional' : 'Mandatory'}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            className={styles.actionBtn}
+                            onClick={() => {
+                              if (window.confirm(`Delete “${holiday.holidayName}”?`)) {
+                                deleteMutation.mutate(holiday.id);
+                              }
+                            }}
+                            title="Delete holiday"
+                          >
+                            <LuTrash2 size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             )}
-          </tbody>
-        </table>
-        <div className={styles.tableFooter}>
-          <span>SHOWING {holidaysList.length} OF {holidaysList.length} RESULTS</span>
-          <div className={styles.paginationControls}>
-            <button disabled>&lt;</button>
-            <button disabled>&gt;</button>
           </div>
-        </div>
+        )}
       </div>
 
-      {open && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <div className={styles.modalHeader}>
-              <div className={styles.modalTitleWrap}>
-                <div className={styles.modalIcon}>
-                  <EventNoteIcon />
-                </div>
-                <div className={styles.modalTitleText}>
-                  <h2>Add New Holiday</h2>
-                  <p>Schedule a company-wide or optional holiday.</p>
-                </div>
-              </div>
-              <button className={styles.closeBtn} onClick={handleClose}>
-                <CloseIcon />
-              </button>
-            </div>
-            
-            <div className={styles.modalBody}>
-              <div className={styles.formGroup}>
-                <label>Holiday Name</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Founder's Day Celebration" 
-                  value={newHoliday.holidayName}
-                  onChange={(e) => setNewHoliday({ ...newHoliday, holidayName: e.target.value })}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Date</label>
-                <input 
-                  type="date" 
-                  value={newHoliday.holidayDate}
-                  onChange={(e) => setNewHoliday({ ...newHoliday, holidayDate: e.target.value })}
-                />
-              </div>
-
-              <div className={styles.toggleGroup}>
-                <div className={styles.toggleText}>
-                  <span className={styles.toggleTitle}>Is Optional Holiday?</span>
-                  <span className={styles.toggleSub}>Optional holidays are chosen by employees from a restricted list of dates.</span>
-                </div>
-                <label className={styles.switch}>
-                  <input 
-                    type="checkbox" 
-                    checked={newHoliday.isOptional}
-                    onChange={(e) => setNewHoliday({ ...newHoliday, isOptional: e.target.checked })}
-                  />
-                  <span className={styles.slider}></span>
-                </label>
-              </div>
-
-              <div className={styles.infoBanner}>
-                <InfoOutlinedIcon />
-                <span>Changes will be broadcasted to all active employees.</span>
-              </div>
-            </div>
-
-            <div className={styles.modalFooter}>
-              <button className={styles.cancelBtn} onClick={handleClose}>Cancel</button>
-              <button 
-                className={styles.primaryBtn} 
-                onClick={handleSave}
-                disabled={!newHoliday.holidayName || !newHoliday.holidayDate || createMutation.isPending}
-              >
-                {createMutation.isPending ? 'Saving...' : 'Save Holiday'}
-              </button>
-            </div>
+      <Drawer
+        open={drawerOpen}
+        onClose={closeDrawer}
+        title="Add holiday"
+        subtitle="Schedule a company-wide or optional holiday"
+        width={420}
+        footer={(
+          <>
+            <Button variant="outline" onClick={closeDrawer}>Cancel</Button>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              disabled={!newHoliday.holidayName || !newHoliday.holidayDate || createMutation.isPending}
+            >
+              {createMutation.isPending ? 'Saving…' : 'Save holiday'}
+            </Button>
+          </>
+        )}
+      >
+        <div className={styles.drawerForm}>
+          <div className={styles.formGroup}>
+            <label htmlFor="holiday-name">Holiday name</label>
+            <input
+              id="holiday-name"
+              type="text"
+              placeholder="e.g. Founder's Day"
+              value={newHoliday.holidayName}
+              onChange={(e) => setNewHoliday({ ...newHoliday, holidayName: e.target.value })}
+              autoFocus
+            />
           </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="holiday-date">Date</label>
+            <input
+              id="holiday-date"
+              type="date"
+              value={newHoliday.holidayDate}
+              onChange={(e) => setNewHoliday({ ...newHoliday, holidayDate: e.target.value })}
+            />
+          </div>
+
+          <Switch
+            row
+            id="holiday-optional"
+            label="Optional holiday"
+            hint="Employees choose from a restricted list of dates."
+            checked={newHoliday.isOptional}
+            onChange={(e) => setNewHoliday({ ...newHoliday, isOptional: e.target.checked })}
+          />
+
+          <div className={styles.infoBanner}>
+            <LuInfo size={16} />
+            <span>Changes apply for all active employees in this store.</span>
+          </div>
+
+          {selectedDate && holidaysByDate[selectedDate]?.length > 0 && (
+            <div className={styles.existingBlock}>
+              <h4>Already on this day</h4>
+              <ul>
+                {holidaysByDate[selectedDate].map((h) => (
+                  <li key={h.id}>
+                    <span>{h.holidayName}</span>
+                    <button
+                      type="button"
+                      className={styles.actionBtn}
+                      onClick={() => {
+                        if (window.confirm(`Delete “${h.holidayName}”?`)) {
+                          deleteMutation.mutate(h.id);
+                        }
+                      }}
+                    >
+                      <LuTrash2 size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      )}
+      </Drawer>
     </div>
   );
 }

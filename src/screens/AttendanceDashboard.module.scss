@@ -1,8 +1,9 @@
 .dashboardLayout {
-  min-height: calc(100vh - var(--header-height));
+  min-height: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  font-family: var(--primary-font);
 }
 
 .pageHeader {
@@ -32,12 +33,12 @@
   display: flex;
   flex-wrap: wrap;
   background: var(--bg-card);
-  border-radius: 12px;
-  border: 1px solid var(--border-color-strong, var(--border-color));
-  padding: 16px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 20px 24px;
   gap: 24px;
-  align-items: center;
-  box-shadow: var(--shadow-sm);
+  align-items: flex-end;
+  box-shadow: var(--shadow-card);
 }
 
 .filterGroup {
@@ -54,27 +55,28 @@
 }
 
 .filterLabel {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-label);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .filterSelect {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--bg-card);
+  min-height: 42px;
+  padding: 0 2rem 0 12px;
+  background: var(--bg-white, var(--bg-card));
   border: 1px solid var(--input-border, var(--border-color));
   border-radius: 8px;
   color: var(--text-dark);
   font-size: 14px;
   font-weight: 500;
+  font-family: inherit;
   appearance: none;
   cursor: pointer;
   transition: var(--transition);
 
-  /* Force option colors so they don't inherit OS defaults that clash */
   option {
     background-color: var(--bg-card);
     color: var(--text-dark);
@@ -83,6 +85,7 @@
   &:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-color-alpha);
   }
 }
 
@@ -125,7 +128,8 @@
   gap: 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
   padding: 24px;
 }
 
@@ -140,6 +144,7 @@
   background: var(--bg-card);
   border-radius: 16px;
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -225,17 +230,41 @@
 }
 
 .calendarDayNum {
-  font-size: 14px;
+  align-self: flex-end;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-dark);
+  border-radius: 50%;
+}
+
+.calendarDayToday {
+  background: #FF5630;
+  color: #fff;
 }
 
 .calendarStatus {
   margin-top: auto;
-  text-align: center;
-  font-size: 14px;
+  display: inline-flex;
+  align-self: stretch;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 700;
+  background: rgba(145, 158, 171, 0.12);
 }
+
+.calendarStatusP { background: rgba(34, 197, 94, 0.16); color: #118D57; }
+.calendarStatusA { background: rgba(255, 86, 48, 0.16); color: #B71D18; }
+.calendarStatusHD { background: rgba(255, 171, 0, 0.16); color: #B76E00; }
+.calendarStatusL { background: rgba(0, 184, 217, 0.16); color: #006C9C; }
+.calendarStatusWO { background: rgba(145, 158, 171, 0.16); color: #637381; }
+.calendarStatusPH { background: rgba(142, 51, 255, 0.14); color: #5119B7; }
 
 .legendContainer {
   padding: 20px 24px;
@@ -252,10 +281,12 @@
 
 /* Right Panel */
 .detailsCard {
-  width: 440px;
+  width: 100%;
+  max-width: 440px;
   background: var(--bg-card);
   border-radius: 16px;
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -263,8 +294,8 @@
 }
 
 .detailsHeader {
-  background: var(--primary-bg);
-  color: white;
+  background: var(--primary-color);
+  color: #fff;
   padding: 20px;
   text-align: center;
   font-size: 16px;
@@ -327,7 +358,7 @@
 }
 
 .metricLabelPrimary {
-  color: #3b82f6;
+  color: var(--primary-color);
 }
 
 .punchIn {
@@ -358,35 +389,39 @@
 
 .btnRegularize {
   flex: 1;
-  padding: 12px;
+  min-height: 44px;
+  padding: 0 12px;
   background: var(--primary-color);
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   transition: var(--transition);
-  box-shadow: var(--primary-color-shadow);
+  box-shadow: none;
 
-  &:hover {
-    transform: translateY(-2px);
+  &:hover:not(:disabled) {
+    background: var(--primary-color-dark);
   }
 }
 
 .btnLeave {
   flex: 1;
-  padding: 12px;
+  min-height: 44px;
+  padding: 0 12px;
   background: transparent;
   color: var(--text-dark);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -394,8 +429,8 @@
   gap: 8px;
   transition: var(--transition);
 
-  &:hover {
-    background: rgba(255,255,255,0.05);
+  &:hover:not(:disabled) {
+    background: var(--bg-hover);
   }
 }
 
@@ -405,47 +440,78 @@
 
 .balanceTabs {
   display: flex;
-  gap: 30px;
+  gap: 24px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .tabActive {
-  color: var(--primary-color);
-  font-size: 12px;
+  color: var(--text-dark);
+  font-size: 13px;
   font-weight: 600;
-  padding-bottom: 12px;
+  padding: 0 0 12px;
+  margin-bottom: -1px;
+  border: none;
+  background: none;
   border-bottom: 2px solid var(--primary-color);
   cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .tabInactive {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  padding-bottom: 12px;
+  padding: 0 0 12px;
+  margin-bottom: -1px;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
-  
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+
   &:hover {
     color: var(--text-dark);
   }
 }
 
+.pendingBadge {
+  background: var(--error-color, #ff5630);
+  color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 .leaveTable {
   width: 100%;
   border-collapse: collapse;
-  
+
   th {
     text-align: left;
-    padding: 12px 8px;
+    padding: 10px 8px;
     font-size: 11px;
     font-weight: 600;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border-color);
+    background: var(--bg-subtle);
   }
 
   td {
-    padding: 16px 8px;
-    font-size: 11px;
+    padding: 14px 8px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text-dark);
     border-bottom: 1px solid var(--border-color);
@@ -455,4 +521,59 @@
     color: var(--primary-color);
     font-weight: 600;
   }
+}
+
+.leaveTableHeader {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.leaveTableRow:last-child td {
+  border-bottom: none;
+}
+
+.leaveType {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.leaveValue {
+  color: var(--text-dark);
+}
+
+.leaveAppLink {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.emptyTableCell {
+  text-align: center;
+  padding: 1.25rem 8px !important;
+  color: var(--text-muted) !important;
+  font-size: 13px;
+}
+
+.loadingState {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.emptyDetails {
+  width: 100%;
+  max-width: 440px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
 }

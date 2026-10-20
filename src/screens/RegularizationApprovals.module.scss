@@ -1,5 +1,12 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 .staffContent {
-  padding: 24px;
+  padding: 0;
   background-color: transparent;
-  border-radius: 8px;
 }

@@ -5,6 +5,7 @@ import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useStaffList, useStoreConfig } from '../hooks/queries';
 import PayslipBill from '../components/PayslipBill';
+import { LuFileText } from 'react-icons/lu';
 import styles from './PayslipsDashboard.module.scss';
 import '../styles/main.scss';
 
@@ -111,7 +112,7 @@ const PayslipsDashboard = () => {
   return (
     <div className="dashboard">
       
-      <div className="payroll-card no-print">
+      <div className={`no-print ${styles.payrollCard}`}>
         <div className={`filter-bar ${styles.filterBar}`}>
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>Payroll Month</label>
@@ -155,11 +156,17 @@ const PayslipsDashboard = () => {
 
 
 
-        {payslipData && (
+        {payslipData ? (
           <div className={styles.payslipWrapper}>
             <PayslipBill payslipData={payslipData} payslipMonth={selectedMonth} storeConfig={storeConfig} />
           </div>
-        )}
+        ) : !loading ? (
+          <div className={styles.emptyState}>
+            <LuFileText size={32} aria-hidden="true" />
+            <p className={styles.emptyStateTitle}>No payslip yet</p>
+            <p className={styles.emptyStateHint}>Choose month, year, and staff, then click Generate Payslip to preview it here.</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig } from '../helpers/dateUtils';
+import { Radio } from '../components/ui';
+import { LuPlane, LuClock, LuCalendarDays } from 'react-icons/lu';
 
 const EmployeeDashboard = () => {
   const { user, tenantId, storeId } = useAuth();
@@ -155,18 +157,11 @@ const EmployeeDashboard = () => {
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.pageTitle}>My Leaves</h1>
-          <p className={styles.pageSubtitle}>Submit leave requests and monitor your balances from a single hub.</p>
-        </div>
-      </div>
-
       <div className={styles.splitLayout}>
         {/* LEFT PANEL: Leave Application Form */}
         <div className={styles.formCard}>
           <div className={styles.formCardHeader}>
-            <span className={styles.formCardIcon}>✈️</span>
+            <span className={styles.formCardIcon}><LuPlane size={18} strokeWidth={2} /></span>
             <span className={styles.formCardTitle}>Request Time Off</span>
           </div>
 
@@ -188,7 +183,7 @@ const EmployeeDashboard = () => {
 
             <div className={styles.formRow}>
               {isOptionalHolidaySelected ? (
-                <div className={styles.formGroup} style={{ width: '100%' }}>
+                <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
                   <label className={styles.label}>SELECT OPTIONAL HOLIDAY</label>
                   {optionalHolidays.length > 0 ? (
                     <select
@@ -208,7 +203,7 @@ const EmployeeDashboard = () => {
                       ))}
                     </select>
                   ) : (
-                    <div style={{ color: '#d32f2f', padding: '10px 0', fontSize: '14px', fontWeight: '500' }}>
+                    <div className={styles.formHintError}>
                       No optional holidays available to choose from.
                     </div>
                   )}
@@ -249,42 +244,15 @@ const EmployeeDashboard = () => {
               <div className={styles.formGroup}>
                 <label className={styles.label}>LEAVE SESSION</label>
                 <div className={styles.radioGroup}>
-                  <label className={styles.radioLabel}>
-                    <input 
-                      type="radio" 
-                      name="leaveSession" 
-                      value="FIRST_HALF" 
-                      checked={leaveSession === 'FIRST_HALF'} 
-                      onChange={e => setLeaveSession(e.target.value)} 
-                    />
-                    First Half
-                  </label>
-                  <label className={styles.radioLabel}>
-                    <input 
-                      type="radio" 
-                      name="leaveSession" 
-                      value="SECOND_HALF" 
-                      checked={leaveSession === 'SECOND_HALF'}
-                      onChange={e => setLeaveSession(e.target.value)} 
-                    />
-                    Second Half
-                  </label>
-                  <label className={styles.radioLabel}>
-                    <input 
-                      type="radio" 
-                      name="leaveSession" 
-                      value="FULL_DAY" 
-                      checked={leaveSession === 'FULL_DAY'}
-                      onChange={e => setLeaveSession(e.target.value)} 
-                    />
-                    Full Day
-                  </label>
+                  <Radio card name="leaveSession" value="FIRST_HALF" label="First Half" checked={leaveSession === 'FIRST_HALF'} onChange={e => setLeaveSession(e.target.value)} />
+                  <Radio card name="leaveSession" value="SECOND_HALF" label="Second Half" checked={leaveSession === 'SECOND_HALF'} onChange={e => setLeaveSession(e.target.value)} />
+                  <Radio card name="leaveSession" value="FULL_DAY" label="Full Day" checked={leaveSession === 'FULL_DAY'} onChange={e => setLeaveSession(e.target.value)} />
                 </div>
               </div>
             )}
 
             <div className={styles.calculationRow}>
-              <span className={styles.calcIcon}>🕒</span>
+              <span className={styles.calcIcon}><LuClock size={18} strokeWidth={2} /></span>
               <div className={styles.calcText}>
                 <span className={styles.calcLabel}>Calculated Duration</span>
                 <span className={styles.calcDays}>{calculatedDuration.toFixed(1)} Days</span>
@@ -354,7 +322,7 @@ const EmployeeDashboard = () => {
       <div className={styles.bottomSection}>
           <div className={styles.widgetHeaderRow}>
             <div className={styles.widgetHeaderLeft}>
-              <span className={styles.widgetTitleIcon}>🗓️</span>
+              <span className={styles.widgetTitleIcon}><LuCalendarDays size={18} strokeWidth={2} /></span>
               <span className={styles.widgetTitle}>Recent Leave Requests</span>
             </div>
             {history.length > 3 && (

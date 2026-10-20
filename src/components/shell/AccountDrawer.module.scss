@@ -1,0 +1,126 @@
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 8px 20px;
+  border-bottom: 1px dashed var(--border-color);
+  margin-bottom: 8px;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display-font);
+  font-weight: 700;
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.name {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.01em;
+}
+
+.email {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.sectionLabel {
+  margin: 16px 0 6px;
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-disabled);
+
+  &:first-of-type {
+    margin-top: 4px;
+  }
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menuBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-dark);
+  font-family: var(--primary-font);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--bg-hover);
+  }
+
+  svg {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+}
+
+.menuBtnDanger {
+  color: var(--error-color);
+
+  svg {
+    color: var(--error-color);
+  }
+
+  &:hover {
+    background: rgba(255, 86, 48, 0.08);
+  }
+}
+

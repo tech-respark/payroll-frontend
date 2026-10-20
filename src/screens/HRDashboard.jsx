@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useHistory } from 'react-router-dom';
 import { apiService } from '../api/apiService';
 import styles from './HRDashboard.module.scss';
-import { useAuth } from '../context/AuthContext';
+import { LuX } from 'react-icons/lu';
 
 const getInitials = (name = '') =>
   name
@@ -25,14 +25,7 @@ const formatMissingDate = (dateStr) => {
   };
 };
 
-const CloseIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-  </svg>
-);
-
 const HRDashboard = () => {
-  const { user } = useAuth();
   const history = useHistory();
   const leaveCardRef = useRef(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -95,18 +88,6 @@ const HRDashboard = () => {
 
   return (
     <div className={styles.dashboardContainer}>
-      <div className={styles.header}>
-        <div>
-          <h1>Executive HR Overview</h1>
-          <p>Workforce headcount analytics and live attendance availability.</p>
-        </div>
-        {user?.name && (
-          <div className={styles.headerMeta}>
-            Signed in as <strong>{user.name}</strong>
-          </div>
-        )}
-      </div>
-
       <div className={styles.metricsGrid}>
         <div className={styles.metricCard}>
           <div className={styles.metricContent}>
@@ -158,7 +139,7 @@ const HRDashboard = () => {
                   <p>{leaveCount} {leaveCount === 1 ? 'employee' : 'employees'} away</p>
                 </div>
                 <button type="button" className={styles.iconButton} onClick={() => setShowLeaveModal(false)} aria-label="Close">
-                  <CloseIcon />
+                  <LuX size={14} aria-hidden="true" />
                 </button>
               </div>
               {leaveNames.length > 0 ? (
@@ -247,7 +228,7 @@ const HRDashboard = () => {
                     <p>{selectedDayBreakdown.date.split('|')[1]} · {dayTotal} recorded</p>
                   </div>
                   <button type="button" className={styles.iconButton} onClick={() => setSelectedDayBreakdown(null)} aria-label="Close breakdown">
-                    <CloseIcon />
+                    <LuX size={14} aria-hidden="true" />
                   </button>
                 </div>
                 <div className={styles.stackedBar}>

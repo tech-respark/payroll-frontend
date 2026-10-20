@@ -6,6 +6,8 @@ import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig } from '../helpers/dateUtils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useStaffList, useShiftSlots, useStoreSettings, useWeeklyShifts } from '../hooks/queries';
+import { Checkbox } from '../components/ui';
+import { LuClock, LuInfo, LuPlus, LuChevronDown, LuCheck, LuX } from 'react-icons/lu';
 import styles from './ShiftsDashboard.module.scss';
 import '../styles/main.scss';
 
@@ -30,7 +32,7 @@ const ShiftsDashboard = () => {
   const [slotName, setSlotName] = useState('');
   const [slotStartTime, setSlotStartTime] = useState('09:00');
   const [slotEndTime, setSlotEndTime] = useState('18:00');
-  const [slotColor, setSlotColor] = useState('#3f97ef');
+  const [slotColor, setSlotColor] = useState('#00A76F');
   const [sameForAllDays, setSameForAllDays] = useState(true);
   const [dayWiseTimings, setDayWiseTimings] = useState({
     SUN: { startTime: '09:00', closureTime: '18:00' },
@@ -145,7 +147,7 @@ const ShiftsDashboard = () => {
       setSlotName(slot.shiftName);
       setSlotStartTime(slot.startTime);
       setSlotEndTime(slot.endTime);
-      setSlotColor(slot.color || '#3f97ef');
+      setSlotColor(slot.color || '#00A76F');
       
       if (slot.dayWiseShiftsTiming && slot.dayWiseShiftsTiming.length > 0) {
         setSameForAllDays(false);
@@ -165,7 +167,7 @@ const ShiftsDashboard = () => {
       setSlotName('');
       setSlotStartTime('09:00');
       setSlotEndTime('18:00');
-      setSlotColor('#3f97ef');
+      setSlotColor('#00A76F');
       setSameForAllDays(true);
       setDayWiseTimings(defaultDayWise);
     }
@@ -444,7 +446,7 @@ const ShiftsDashboard = () => {
         <div className={styles.settingsLayout}>
           <div className={styles.settingsPanel}>
             <div className={styles.settingsHeader}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <LuClock size={24} className={styles.icon} />
               <h3>Store Operating Hours</h3>
             </div>
             
@@ -488,7 +490,7 @@ const ShiftsDashboard = () => {
 
           <div className={styles.infoPanel}>
             <div className={styles.infoHeader}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.icon}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <LuInfo size={20} className={styles.icon} />
               <h4>About Store Hours</h4>
             </div>
             <p className={styles.infoText}>
@@ -509,8 +511,8 @@ const ShiftsDashboard = () => {
           <div className={styles.shiftSidebar}>
             {canManage && (
               <button className={styles.createShiftBtn} onClick={() => handleSelectSlot(null)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                CREATE NEW SHIFT
+                <LuPlus size={16} />
+                Create new shift
               </button>
             )}
             <h3 className={styles.sidebarHeader}>Shift Templates</h3>
@@ -527,7 +529,7 @@ const ShiftsDashboard = () => {
                     <h4>{slot.shiftName}</h4>
                   </div>
                   <div className={styles.cardTime}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <LuClock size={14} />
                     {slot.startTime} - {slot.endTime}
                   </div>
                 </div>
@@ -538,7 +540,7 @@ const ShiftsDashboard = () => {
           <div className={styles.formPanel}>
             <div className={styles.panelHeader}>
               <h3>{selectedSlotId ? 'Update Shift' : 'Create New Shift'}</h3>
-              <p>Create new shift will bun a shift management dashboard.</p>
+              <p>Define working hours for this shift template.</p>
             </div>
             
             <form onSubmit={handleAddShiftSlot} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -557,32 +559,31 @@ const ShiftsDashboard = () => {
                 <div className={styles.dayWiseContainer}>
                   <div className={styles.dayWiseHeader}>
                     <div className={styles.sameForAllDays}>
-                      <label>Same For All Days</label>
-                      <input 
-                        type="checkbox" 
-                        checked={sameForAllDays} 
-                        onChange={(e) => setSameForAllDays(e.target.checked)} 
-                        className={styles.dayCheckbox}
+                      <Checkbox
+                        id="same-for-all-days"
+                        label="Same For All Days"
+                        checked={sameForAllDays}
+                        onChange={(e) => setSameForAllDays(e.target.checked)}
                       />
                     </div>
                     
-                    <div className={styles.formGroup} style={{flex: 1}}>
+                    <div className={styles.formGroup}>
                       <label>Start Time</label>
                       <div className={styles.selectWrapper}>
                         <select value={slotStartTime} onChange={(e) => setSlotStartTime(e.target.value)} disabled={!sameForAllDays}>
                           {timeOptions.map(t => <option key={`start-${t}`} value={t}>{t}</option>)}
                         </select>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <LuChevronDown size={16} className={styles.selectIcon} />
                       </div>
                     </div>
 
-                    <div className={styles.formGroup} style={{flex: 1}}>
+                    <div className={styles.formGroup}>
                       <label>End Time</label>
                       <div className={styles.selectWrapper}>
                         <select value={slotEndTime} onChange={(e) => setSlotEndTime(e.target.value)} disabled={!sameForAllDays}>
                           {timeOptions.map(t => <option key={`end-${t}`} value={t}>{t}</option>)}
                         </select>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <LuChevronDown size={16} className={styles.selectIcon} />
                       </div>
                     </div>
                   </div>
@@ -600,7 +601,7 @@ const ShiftsDashboard = () => {
                             >
                               {timeOptions.map(t => <option key={`${day}-start-${t}`} value={t}>{t}</option>)}
                             </select>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <LuChevronDown size={16} className={styles.selectIcon} />
                           </div>
 
                           <div className={styles.selectWrapper}>
@@ -610,7 +611,7 @@ const ShiftsDashboard = () => {
                             >
                               {timeOptions.map(t => <option key={`${day}-end-${t}`} value={t}>{t}</option>)}
                             </select>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <LuChevronDown size={16} className={styles.selectIcon} />
                           </div>
                         </div>
                       ))}
@@ -621,11 +622,11 @@ const ShiftsDashboard = () => {
 
               <div className={styles.panelFooter}>
                 <button type="button" className={styles.cancelBtn} onClick={() => handleSelectSlot(null)}>
-                  CANCEL
+                  Cancel
                 </button>
                 {canManage && (
                   <button type="submit" className={styles.saveBtn} disabled={saveSlotMutation.isPending}>
-                    {saveSlotMutation.isPending ? 'SAVING...' : 'SAVE SHIFT'}
+                    {saveSlotMutation.isPending ? 'Saving…' : 'Save shift'}
                   </button>
                 )}
               </div>
@@ -662,7 +663,7 @@ const ShiftsDashboard = () => {
                     <option key={s.id} value={s.id}>{s.shiftName} ({s.startTime} - {s.endTime})</option>
                   ))}
                 </select>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <LuChevronDown size={16} className={styles.selectIcon} />
               </div>
             </div>
 
@@ -684,10 +685,13 @@ const ShiftsDashboard = () => {
 
           <div className={styles.rosterTable}>
             <div className={styles.tableHeader}>
-              <div className={styles.center} onClick={() => handleSelectAllStaff({ target: { checked: !allSelected } })} style={{ cursor: 'pointer' }}>
-                <div className={`${styles.checkbox} ${allSelected ? styles.checked : ''}`}>
-                  {allSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-                </div>
+              <div className={styles.center}>
+                <Checkbox
+                  id="roster-select-all"
+                  checked={allSelected}
+                  onChange={handleSelectAllStaff}
+                  aria-label="Select all staff"
+                />
               </div>
               <div className={styles.headerLabel}>STAFF NAME</div>
               <div className={styles.headerLabel}>FROM TIME</div>
@@ -705,12 +709,12 @@ const ShiftsDashboard = () => {
                 return (
                   <div key={staff.id} className={styles.tableRow}>
                     <div className={styles.center}>
-                      <div 
-                        className={`${styles.checkbox} ${isSelected ? styles.checked : ''}`}
-                        onClick={() => handleBulkAssignmentChange(staff.id, 'selected', !isSelected)}
-                      >
-                        {isSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-                      </div>
+                      <Checkbox
+                        id={`roster-staff-${staff.id}`}
+                        checked={isSelected}
+                        onChange={(e) => handleBulkAssignmentChange(staff.id, 'selected', e.target.checked)}
+                        aria-label={`Select ${staff.firstName} ${staff.lastName}`}
+                      />
                     </div>
                     
                     <div className={styles.staffInfo}>
@@ -726,7 +730,7 @@ const ShiftsDashboard = () => {
                       >
                         {timeOptions.map(t => <option key={`from-${t}`} value={t}>{t}</option>)}
                       </select>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <LuChevronDown size={16} className={styles.selectIcon} />
                     </div>
 
                     <div className={styles.selectWrapper}>
@@ -737,14 +741,14 @@ const ShiftsDashboard = () => {
                       >
                         {timeOptions.map(t => <option key={`to-${t}`} value={t}>{t}</option>)}
                       </select>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.selectIcon}><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <LuChevronDown size={16} className={styles.selectIcon} />
                     </div>
 
                     <div className={styles.center} style={{ cursor: 'pointer' }} onClick={() => handleBulkAssignmentChange(staff.id, 'isWorking', !isWorking)}>
                       <div className={isWorking ? styles.statusCircle : styles.statusCircleOff}>
                         {isWorking ? 
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : 
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                          <LuCheck size={14} strokeWidth={3} /> : 
+                          <LuX size={14} strokeWidth={3} />
                         }
                       </div>
                     </div>
@@ -756,7 +760,7 @@ const ShiftsDashboard = () => {
                         className={styles.actionBtn}
                         title={(assignData.breaks && assignData.breaks.length > 0) ? 'Edit Break' : 'Add Break'}
                       >
-                        +
+                        <LuPlus size={16} />
                       </button>
                     </div>
                   </div>

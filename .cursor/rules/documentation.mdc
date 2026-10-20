@@ -1,0 +1,20 @@
+---
+description: Keep payroll documentation synchronized with product and technical changes
+alwaysApply: true
+---
+
+# Documentation maintenance
+
+The maintained documentation portal is `README.md` plus `docs/`.
+
+When changing frontend routes, navigation, permissions, workflows, API calls, backend endpoints, authorization, entities, schema, configuration, integrations, schedulers, or operational procedures:
+
+1. Update the affected documentation in the same change.
+2. Treat current executable code as authoritative; label intended behavior and known gaps explicitly.
+3. Preserve the page metadata: Audience, Purpose, Last verified, Source of truth.
+4. Update `docs/operations/known-limitations.md` when a gap is found or resolved.
+5. Never add credentials, tokens, private keys, personal data, salary data, production endpoints, or raw database rows.
+6. Use synthetic examples and relative links.
+7. Run `npm run docs:check` before completion.
+
+The historical PDF/text documents are research inputs, not maintained sources of truth.

@@ -6,7 +6,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useStaffList, useRoles } from '../hooks/queries';
 import { useSaveStaff } from '../hooks/mutations';
 import styles from './StaffDashboard.module.scss';
-import { Button } from '../components/ui';
+import { Button, Switch } from '../components/ui';
+import { LuUser } from 'react-icons/lu';
 import '../styles/main.scss';
 
 const StaffDashboard = () => {
@@ -239,10 +240,7 @@ const StaffDashboard = () => {
         {(!selectedStaff && !isNew) ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
+              <LuUser size={40} strokeWidth={1.5} />
             </div>
             <p>Select a staff member from the directory to view their profile.</p>
           </div>
@@ -307,13 +305,15 @@ const StaffDashboard = () => {
                     </div>
                   </div>
                   
-                  <div className={styles.checkboxGroup}>
-                    <label className={styles.checkboxLabel}>
-                      <input type="checkbox" name="active" checked={formData.active === 1} onChange={handleChange} />
-                       Active
-                    </label>
-                   
-                  </div>
+                  <Switch
+                    row
+                    id="staff-active"
+                    name="active"
+                    label="Active employee"
+                    hint="Inactive staff cannot sign in."
+                    checked={formData.active === 1}
+                    onChange={handleChange}
+                  />
                 </fieldset>
               )}
 

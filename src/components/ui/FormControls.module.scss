@@ -1,0 +1,251 @@
+.field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.fieldGrow {
+  flex: 1;
+  min-width: 0;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Checkbox */
+.checkbox {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+  }
+}
+
+.checkboxBox {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border-color-strong);
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: var(--transition);
+  pointer-events: none;
+
+  svg {
+    opacity: 0;
+    transform: scale(0.6);
+    transition: var(--transition);
+  }
+}
+
+.checkbox input:hover + .checkboxBox {
+  border-color: var(--primary-color);
+}
+
+.checkbox input:focus-visible + .checkboxBox {
+  box-shadow: 0 0 0 3px var(--primary-color-alpha);
+}
+
+.checkbox input:checked + .checkboxBox {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+
+  svg {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.checkbox input:disabled + .checkboxBox {
+  opacity: 0.48;
+}
+
+.checkbox input:disabled {
+  cursor: not-allowed;
+}
+
+/* Radio */
+.radio {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+  }
+}
+
+.radioDot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-color-strong);
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  pointer-events: none;
+
+  &::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: transparent;
+    transition: var(--transition);
+  }
+}
+
+.radio input:hover + .radioDot {
+  border-color: var(--primary-color);
+}
+
+.radio input:focus-visible + .radioDot {
+  box-shadow: 0 0 0 3px var(--primary-color-alpha);
+}
+
+.radio input:checked + .radioDot {
+  border-color: var(--primary-color);
+
+  &::after {
+    background: var(--primary-color);
+  }
+}
+
+.radio input:disabled + .radioDot {
+  opacity: 0.48;
+}
+
+.radioCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover {
+    background: var(--bg-hover);
+  }
+}
+
+.radioCardActive {
+  border-color: var(--primary-color);
+  background: var(--nav-active-bg);
+}
+
+/* Switch */
+.switchWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 24px;
+}
+
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: rgba(145, 158, 171, 0.32);
+  transition: 0.2s;
+  border-radius: 24px;
+
+  &::before {
+    position: absolute;
+    content: '';
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    transition: 0.2s;
+    border-radius: 50%;
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.switch input:checked + .slider {
+  background: var(--primary-color);
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+.switch input:focus-visible + .slider {
+  box-shadow: 0 0 0 3px var(--primary-color-alpha);
+}
+
+.switch input:disabled + .slider {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-subtle);
+  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  align-self: stretch;
+  min-height: 0;
+  height: auto;
+}

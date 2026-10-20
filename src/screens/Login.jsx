@@ -3,6 +3,8 @@ import { useHistory } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
+import { LuBriefcase, LuEye, LuEyeOff } from 'react-icons/lu';
+import { Modal, Button } from '../components/ui';
 import styles from './Login.module.scss';
 
 const Login = () => {
@@ -22,6 +24,9 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [resetToken, setResetToken] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -130,14 +135,19 @@ const Login = () => {
     setNewPassword('');
     setConfirmPassword('');
     setResetToken('');
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.loginCard}>
         <div className={styles.header}>
+          <div className={styles.logoMark} aria-hidden="true">
+            <LuBriefcase size={24} strokeWidth={1.75} />
+          </div>
           <h1 className={styles.brand}>Relfor <span className={styles.brandAccent}>Payroll</span></h1>
-          <p className={styles.subtitle}>Welcome back! Please login to your account.</p>
+          <p className={styles.subtitle}>Hi, welcome back. Sign in to continue.</p>
         </div>
 
         <form onSubmit={handleLogin} className={styles.form}>
@@ -155,13 +165,23 @@ const Login = () => {
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
-              placeholder="••••••••"
-            />
+            <div className={styles.passwordWrap}>
+              <input
+                type={showLoginPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={styles.input}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                className={styles.passwordToggle}
+                onClick={() => setShowLoginPassword((v) => !v)}
+                aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+              >
+                {showLoginPassword ? <LuEyeOff size={18} /> : <LuEye size={18} />}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className={styles.button} disabled={loading}>
@@ -174,93 +194,109 @@ const Login = () => {
         </button>
       </div>
 
-      {showForgotModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            
+      <Modal
+        open={showForgotModal}
+        onClose={closeForgotModal}
+        title={forgotStep === 1 ? 'Forgot password' : forgotStep === 2 ? 'Verify OTP' : 'Reset password'}
+        subtitle={
+          forgotStep === 1
+            ? 'Enter your username or mobile number to receive a 6-digit OTP.'
+            : forgotStep === 2
+              ? 'Enter the 6-digit OTP sent to your registered mobile number.'
+              : 'Please enter a strong new password.'
+        }
+        size="sm"
+        footer={(
+          <>
+            <Button variant="outline" onClick={closeForgotModal}>Cancel</Button>
             {forgotStep === 1 && (
-              <>
-                <h3 className={styles.modalTitle}>Forgot Password</h3>
-                <p className={styles.modalText}>Enter your username or mobile number to receive a 6-digit OTP.</p>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Username / Mobile</label>
-                  <input
-                    type="text"
-                    value={forgotUsername}
-                    onChange={(e) => setForgotUsername(e.target.value)}
-                    className={styles.input}
-                    placeholder="Enter username"
-                  />
-                </div>
-                <div className={styles.modalActions}>
-                  <button className={styles.cancelBtn} onClick={closeForgotModal}>Cancel</button>
-                  <button className={styles.button} style={{ marginTop: 0 }} onClick={handleGenerateOtp} disabled={forgotLoading}>
-                    {forgotLoading ? 'Sending...' : 'Send OTP'}
-                  </button>
-                </div>
-              </>
+              <Button variant="primary" onClick={handleGenerateOtp} disabled={forgotLoading}>
+                {forgotLoading ? 'Sending…' : 'Send OTP'}
+              </Button>
             )}
-
             {forgotStep === 2 && (
-              <>
-                <h3 className={styles.modalTitle}>Verify OTP</h3>
-                <p className={styles.modalText}>Enter the 6-digit OTP sent to your registered mobile number.</p>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Enter OTP</label>
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className={styles.input}
-                    placeholder="123456"
-                    maxLength={6}
-                  />
-                </div>
-                <div className={styles.modalActions}>
-                  <button className={styles.cancelBtn} onClick={closeForgotModal}>Cancel</button>
-                  <button className={styles.button} style={{ marginTop: 0 }} onClick={handleVerifyOtp} disabled={forgotLoading}>
-                    {forgotLoading ? 'Verifying...' : 'Verify OTP'}
-                  </button>
-                </div>
-              </>
+              <Button variant="primary" onClick={handleVerifyOtp} disabled={forgotLoading}>
+                {forgotLoading ? 'Verifying…' : 'Verify OTP'}
+              </Button>
             )}
-
             {forgotStep === 3 && (
-              <>
-                <h3 className={styles.modalTitle}>Reset Password</h3>
-                <p className={styles.modalText}>Please enter a strong new password.</p>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>New Password</label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className={styles.input}
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Confirm Password</label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={styles.input}
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div className={styles.modalActions}>
-                  <button className={styles.cancelBtn} onClick={closeForgotModal}>Cancel</button>
-                  <button className={styles.button} style={{ marginTop: 0 }} onClick={handleResetPassword} disabled={forgotLoading}>
-                    {forgotLoading ? 'Resetting...' : 'Save Password'}
-                  </button>
-                </div>
-              </>
+              <Button variant="primary" onClick={handleResetPassword} disabled={forgotLoading}>
+                {forgotLoading ? 'Resetting…' : 'Save password'}
+              </Button>
             )}
-
+          </>
+        )}
+      >
+        {forgotStep === 1 && (
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Username / Mobile</label>
+            <input
+              type="text"
+              value={forgotUsername}
+              onChange={(e) => setForgotUsername(e.target.value)}
+              className={styles.input}
+              placeholder="Enter username"
+            />
           </div>
-        </div>
-      )}
+        )}
+        {forgotStep === 2 && (
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Enter OTP</label>
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className={styles.input}
+              placeholder="123456"
+              maxLength={6}
+            />
+          </div>
+        )}
+        {forgotStep === 3 && (
+          <>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>New Password</label>
+              <div className={styles.passwordWrap}>
+                <input
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className={styles.input}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  className={styles.passwordToggle}
+                  onClick={() => setShowNewPassword((v) => !v)}
+                  aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showNewPassword ? <LuEyeOff size={18} /> : <LuEye size={18} />}
+                </button>
+              </div>
+            </div>
+            <div className={styles.formGroup} style={{ marginTop: 16 }}>
+              <label className={styles.label}>Confirm Password</label>
+              <div className={styles.passwordWrap}>
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={styles.input}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  className={styles.passwordToggle}
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? <LuEyeOff size={18} /> : <LuEye size={18} />}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </Modal>
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Backdrop from '@mui/material/Backdrop';
-import CircularProgress from '@mui/material/CircularProgress';
+import styles from './GlobalLoader.module.scss';
 
 const GlobalLoader = () => {
   const [activeRequests, setActiveRequests] = useState(0);
@@ -18,13 +17,12 @@ const GlobalLoader = () => {
     };
   }, []);
 
+  if (activeRequests <= 0) return null;
+
   return (
-    <Backdrop
-      sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 9999 }}
-      open={activeRequests > 0}
-    >
-      <CircularProgress color="inherit" />
-    </Backdrop>
+    <div className={styles.backdrop} role="status" aria-live="polite" aria-label="Loading">
+      <div className={styles.spinner} />
+    </div>
   );
 };
 

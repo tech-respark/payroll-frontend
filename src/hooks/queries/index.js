@@ -8,3 +8,4 @@ export { useShiftSlots }                  from './useShiftSlots';
 export { useSalaryComponentDefinitions }  from './useSalaryComponentDefinitions';
 export { usePersonnelSalaryComponents }   from './usePersonnelSalaryComponents';
 export { useWeeklyShifts }                from './useWeeklyShifts';
+export { useHeaderNotifications }         from './useHeaderNotifications';

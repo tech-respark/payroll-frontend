@@ -5,6 +5,17 @@ import { apiService } from '../api/apiService';
 import { useStaffList } from '../hooks/queries';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import {
+  LuPencil,
+  LuPlus,
+  LuSearch,
+  LuLayoutGrid,
+  LuList,
+  LuArrowLeftRight,
+  LuUserPlus,
+  LuTrash2,
+  LuSettings,
+} from 'react-icons/lu';
 
 const LeaveConfiguration = () => {
   const [activeTab, setActiveTab] = useState('types');
@@ -141,7 +152,9 @@ const LeaveTypesTab = ({ types }) => {
       {/* LEFT — Create Form */}
       <div className={styles.formCard}>
         <div className={styles.formCardHeader}>
-          <span className={styles.formCardIcon}>{editingType ? '✏️' : '⊕'}</span>
+          <span className={styles.formCardIcon}>
+            {editingType ? <LuPencil size={20} /> : <LuPlus size={20} />}
+          </span>
           <span className={styles.formCardTitle}>{editingType ? 'Edit Leave Type' : 'Create New Leave Type'}</span>
         </div>
 
@@ -206,12 +219,12 @@ const LeaveTypesTab = ({ types }) => {
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button type="submit" className={styles.primaryBtn} disabled={createTypeMutation.isPending || editTypeMutation.isPending} style={{ flex: 1 }}>
+          <div className={styles.formBtnRow}>
+            <button type="submit" className={styles.primaryBtn} disabled={createTypeMutation.isPending || editTypeMutation.isPending}>
               {createTypeMutation.isPending || editTypeMutation.isPending ? 'Saving...' : editingType ? 'Update Type' : 'Save Type'}
             </button>
             {editingType && (
-              <button type="button" className={styles.secondaryBtn} onClick={handleCancelEdit} style={{ flex: 1, border: '1px solid #E2E8F0', background: 'transparent', color: '#64748B', borderRadius: '8px', fontWeight: '500', cursor: 'pointer' }}>
+              <button type="button" className={styles.secondaryBtn} onClick={handleCancelEdit}>
                 Cancel
               </button>
             )}
@@ -227,7 +240,7 @@ const LeaveTypesTab = ({ types }) => {
             <span className={styles.countBadge}>{String(types.length).padStart(2, '0')} Total</span>
           </div>
           <div className={styles.searchBox}>
-            <span className={styles.searchIcon}>🔍</span>
+            <LuSearch size={16} className={styles.searchIcon} aria-hidden />
             <input
               className={styles.searchInput}
               placeholder="Quick Search..."
@@ -250,7 +263,7 @@ const LeaveTypesTab = ({ types }) => {
             {paginated.length === 0 ? (
               <tr><td colSpan="4" className={styles.emptyRow}>No leave types found.</td></tr>
             ) : paginated.map(t => (
-              <tr key={t.id} onClick={() => handleEditClick(t)} style={{ cursor: 'pointer' }} className={styles.clickableRow}>
+              <tr key={t.id} onClick={() => handleEditClick(t)} className={styles.clickableRow}>
                 <td><strong className={styles.codeCell}>{t.leaveCode}</strong></td>
                 <td>{t.leaveName}</td>
                 <td>
@@ -259,7 +272,7 @@ const LeaveTypesTab = ({ types }) => {
                   </span>
                 </td>
                 <td>
-                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748B', backgroundColor: '#F1F5F9', padding: '4px 8px', borderRadius: '4px' }}>
+                  <span className={styles.genderBadge}>
                     {t.applicableGender === 'MALE' ? 'MALE ONLY' : t.applicableGender === 'FEMALE' ? 'FEMALE ONLY' : 'ALL GENDERS'}
                   </span>
                 </td>
@@ -357,7 +370,7 @@ const LeavePlansTab = ({ plans, types }) => {
         <div className={styles.plansLeft}>
           <div className={styles.formCard}>
             <div className={styles.formCardHeader}>
-              <span className={styles.formCardIcon}>⊞</span>
+              <span className={styles.formCardIcon}><LuLayoutGrid size={20} /></span>
               <span className={styles.formCardTitle}>Create Leave Plan</span>
             </div>
             <form onSubmit={handlePlanSubmit} className={styles.form}>
@@ -389,7 +402,7 @@ const LeavePlansTab = ({ plans, types }) => {
           <div className={styles.activePlansCard}>
             <div className={styles.activePlansHeader}>
               <span className={styles.activePlansTitle}>ACTIVE PLANS</span>
-              <span className={styles.listIcon}>☰</span>
+              <span className={styles.listIcon}><LuList size={18} /></span>
             </div>
             <div className={styles.plansList}>
               {plans.length === 0 && <div className={styles.emptyPlans}>No plans created yet.</div>}
@@ -415,7 +428,7 @@ const LeavePlansTab = ({ plans, types }) => {
         <div className={styles.rulesCard}>
           <div className={styles.rulesCardHeader}>
             <div className={styles.rulesCardTitleRow}>
-              <span className={styles.rulesIcon}>⇄</span>
+              <span className={styles.rulesIcon}><LuArrowLeftRight size={20} /></span>
               <span className={styles.formCardTitle}>Map Rules to Plan</span>
             </div>
             <span className={styles.sandwichChip}>e.g. Sandwich Rule Configuration</span>
@@ -545,7 +558,7 @@ const LeavePlansTab = ({ plans, types }) => {
                   <td>{r.maxConsecutiveDays ? `${r.maxConsecutiveDays} Days` : 'Unlimited'}</td>
                   <td>{r.proofRequiredAfterDays ? `${r.proofRequiredAfterDays} Days` : 'N/A'}</td>
                   <td>
-                    <button className={styles.iconBtn} onClick={() => handleDeleteRule(r.id)}>🗑️</button>
+                    <button type="button" className={styles.iconBtn} onClick={() => handleDeleteRule(r.id)} title="Delete rule" aria-label="Delete rule"><LuTrash2 size={16} /></button>
                   </td>
                 </tr>
               ))}
@@ -670,7 +683,7 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
                       r.maxConsecutiveDays && `Max ${r.maxConsecutiveDays} consecutive`,
                     ].filter(Boolean).join(' · ') || '—'}
                   </td>
-                  <td><button className={styles.iconBtn} onClick={() => handleEditClick(r)} title="Edit Rule">✏️</button></td>
+                  <td><button type="button" className={styles.iconBtn} onClick={() => handleEditClick(r)} title="Edit Rule" aria-label="Edit rule"><LuPencil size={16} /></button></td>
                 </tr>
               ))}
             </tbody>
@@ -802,7 +815,7 @@ const EnrollmentTab = ({ plans }) => {
       <div className={styles.enrollLeft}>
         <div className={styles.formCard}>
           <div className={styles.formCardHeader}>
-            <span className={styles.formCardIcon}>👤+</span>
+            <span className={styles.formCardIcon}><LuUserPlus size={20} /></span>
             <span className={styles.formCardTitle}>Assign Leave Plan</span>
           </div>
           <form onSubmit={handleEnroll} className={styles.form}>
@@ -832,7 +845,10 @@ const EnrollmentTab = ({ plans }) => {
                 ))}
               </select>
             </div>
-            <button type="submit" className={styles.primaryBtn}>👤+ Enroll Staff</button>
+            <button type="submit" className={styles.primaryBtn} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <LuUserPlus size={18} />
+              Enroll Staff
+            </button>
           </form>
         </div>
 
@@ -862,8 +878,8 @@ const EnrollmentTab = ({ plans }) => {
         <div className={styles.tableCardHeader}>
           <span className={styles.tableCardTitle}>ENROLLMENT DIRECTORY</span>
           <div className={styles.dirHeaderActions}>
-            <button className={styles.iconBtn}>🔍</button>
-            <button className={styles.iconBtn}>⚙</button>
+            <button type="button" className={styles.iconBtn} aria-label="Search"><LuSearch size={18} /></button>
+            <button type="button" className={styles.iconBtn} title="Directory settings" aria-label="Directory settings"><LuSettings size={18} /></button>
           </div>
         </div>
 

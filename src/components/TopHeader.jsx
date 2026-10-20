@@ -1,56 +1,52 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useHeaderNotifications } from '../hooks/queries/useHeaderNotifications';
+import { CommandPalette } from './shell/CommandPalette';
+import { AccountDrawer } from './shell/AccountDrawer';
+import { NotificationsDrawer } from './shell/NotificationsDrawer';
 import styles from './TopHeader.module.scss';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import MenuIcon from '@mui/icons-material/Menu';
+import { LuBell, LuMenu, LuSearch } from 'react-icons/lu';
+
+const PAGE_META = [
+  { match: (p) => p.includes('reports/detailed'), title: 'Staff Detailed Report', crumbs: ['Dashboard', 'Reports', 'Detailed'] },
+  { match: (p) => p.includes('report'), title: 'Attendance Summary', crumbs: ['Dashboard', 'Reports', 'Summary'] },
+  { match: (p) => p.includes('staff'), title: 'Staff', crumbs: ['Dashboard', 'Staff', 'List'] },
+  { match: (p) => p.includes('leave-dashboard'), title: 'My Leaves', crumbs: ['Dashboard', 'Leave', 'My Leaves'] },
+  { match: (p) => p.includes('leave-approvals'), title: 'Leave Approvals', crumbs: ['Dashboard', 'Leave', 'Approvals'] },
+  { match: (p) => p.includes('leave-configuration'), title: 'Leave Configuration', crumbs: ['Dashboard', 'Leave', 'Config'] },
+  { match: (p) => p.includes('holidays'), title: 'Holiday Calendar', crumbs: ['Dashboard', 'Settings', 'Holidays'] },
+  { match: (p) => p.includes('hr-dashboard'), title: 'HR Dashboard', crumbs: ['Dashboard', 'Leave', 'HR'] },
+  { match: (p) => p.includes('attendance'), title: 'Attendance', crumbs: ['Dashboard', 'Attendance', 'Overview'] },
+  { match: (p) => p.includes('approvals'), title: 'Regularization Approvals', crumbs: ['Dashboard', 'Attendance', 'Approvals'] },
+  { match: (p) => p.includes('shifts'), title: 'Shift Management', crumbs: ['Dashboard', 'Shifts', 'Management'] },
+  { match: (p) => p.includes('salary'), title: 'Salary Management', crumbs: ['Dashboard', 'Payroll', 'Salary'] },
+  { match: (p) => p.includes('payslip'), title: 'Payslips', crumbs: ['Dashboard', 'Payroll', 'Payslips'] },
+  { match: (p) => p.includes('roles'), title: 'Role Management', crumbs: ['Dashboard', 'Staff', 'Roles'] },
+];
+
+const formatName = (name) => {
+  if (!name) return '';
+  return name
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+const isMac =
+  typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 
 const TopHeader = ({ onMenuClick, isMobile }) => {
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { total: notifCount } = useHeaderNotifications();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
-  const getBreadcrumbs = () => {
-    const path = location.pathname;
-    if (path.includes('reports/detailed')) return 'Report > Staff Detailed Report';
-    if (path.includes('report')) return 'Report > Attendance Summary';
-    if (path.includes('staff')) return 'Staff Management > Dashboard Overview';
-    if (path.includes('leave-dashboard')) return 'Leave Management > Dashboard';
-    if (path.includes('submit-leave')) return 'Leave Management > Request Leave';
-    if (path.includes('leave-approvals')) return 'Leave Management > Approvals';
-    if (path.includes('leave-configuration')) return 'Leave Management > Configuration';
-    if (path.includes('leave')) return 'Leave Management > Overview';
-    if (path.includes('holidays')) return 'Settings > Holiday Calendar';
-    if (path.includes('attendance') || path.endsWith('/approvals') || path.includes('/approvals')) return 'Attendance Module > Overview';
-    if (path.includes('shift')) return 'Shift & Roster Management > Schedules';
-    if (path.includes('salary') || path.includes('payslip')) return 'Salary Management > Overview';
-    return 'Overview';
-  };
-
-  const getPageTitle = () => {
-    const path = location.pathname;
-    if (path.includes('reports/detailed')) return 'Staff Detailed Report';
-    if (path.includes('report')) return 'Attendance Summary';
-    if (path.includes('staff')) return 'Staff Dashboard';
-    if (path.includes('leave-dashboard')) return 'Leave Dashboard';
-    if (path.includes('submit-leave')) return 'Request Leave';
-    if (path.includes('leave-approvals')) return 'Leave Approvals';
-    if (path.includes('leave-configuration')) return 'Leave Configuration';
-    if (path.includes('holidays')) return 'Holiday Calendar';
-    if (path.includes('attendance')) return 'Attendance Dashboard';
-    if (path.endsWith('/approvals') || path.includes('/approvals')) return 'Regularization Approvals';
-    if (path.includes('shifts')) return 'Shift Management';
-    if (path.includes('salary')) return 'Salary Management';
-    if (path.includes('payslip')) return 'Payslips';
-    if (path.includes('roles')) return 'Role Management';
-    return 'Dashboard';
-  };
-
-  const formatName = (name) => {
-    if (!name) return '';
-    return name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  const meta = PAGE_META.find((item) => item.match(location.pathname)) || {
+    title: 'Dashboard',
+    crumbs: ['Dashboard'],
   };
 
   const getRawName = () => {
@@ -60,45 +56,104 @@ const TopHeader = ({ onMenuClick, isMobile }) => {
     return user?.username || user?.staffId || 'User';
   };
 
-  const rawName = getRawName();
-  const displayRole = user?.roles?.[0]?.replace('ROLE_', '') || user?.role || 'Staff';
-  const displayName = formatName(rawName) || 'User';
-  const initials = displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const displayName = formatName(getRawName()) || 'User';
+  const initials = displayName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 
-  const today = new Date().toLocaleDateString('en-IN', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((open) => !open);
+        setAccountOpen(false);
+        setNotifOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
-    <header className={styles.topHeader}>
-      <div className={styles.headerLeft}>
-        {isMobile && (
-          <button className={styles.menuBtn} onClick={onMenuClick} aria-label="Toggle menu">
-            <MenuIcon fontSize="small" />
-          </button>
-        )}
-        <div className={styles.titleBlock}>
-          <h2 className={styles.pageTitle}>{getPageTitle()}</h2>
-          <div className={styles.breadcrumbs}>{getBreadcrumbs()}</div>
-        </div>
-      </div>
-      <div className={styles.headerRight}>
-        <span className={styles.dateStr}>{today}</span>
-        <button className={styles.iconBtn} onClick={toggleTheme} title="Toggle Theme" aria-label="Toggle theme">
-          {theme === 'light' ? <DarkModeIcon fontSize="small" /> : <LightModeIcon fontSize="small" />}
-        </button>
-        <div className={styles.userProfile}>
-          <div className={styles.userInfo}>
-            <span className={styles.userName}>{displayName}</span>
-            <span className={styles.userRole}>{displayRole}</span>
+    <>
+      <header className={styles.topHeader}>
+        <div className={styles.headerLeft}>
+          {isMobile && (
+            <button type="button" className={styles.menuBtn} onClick={onMenuClick} aria-label="Toggle menu">
+              <LuMenu size={20} />
+            </button>
+          )}
+          <div className={styles.titleBlock}>
+            <h2 className={styles.pageTitle}>{meta.title}</h2>
+            <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
+              {meta.crumbs.map((crumb, index) => (
+                <React.Fragment key={`${crumb}-${index}`}>
+                  {index > 0 && <span className={styles.crumbSep}>•</span>}
+                  <span className={index === meta.crumbs.length - 1 ? styles.crumbCurrent : styles.crumb}>
+                    {crumb}
+                  </span>
+                </React.Fragment>
+              ))}
+            </nav>
           </div>
-          <div className={styles.avatar}>{initials}</div>
         </div>
-      </div>
-    </header>
+
+        <div className={styles.headerRight}>
+          <button
+            type="button"
+            className={styles.searchBtn}
+            onClick={() => {
+              setPaletteOpen(true);
+              setAccountOpen(false);
+              setNotifOpen(false);
+            }}
+            aria-label="Open search"
+          >
+            <LuSearch size={16} strokeWidth={1.75} aria-hidden />
+            <span className={styles.searchLabel}>Search…</span>
+            <kbd className={styles.searchKbd}>{isMac ? '⌘' : 'Ctrl'}K</kbd>
+          </button>
+
+          <button
+            type="button"
+            className={styles.iconBtn}
+            onClick={() => {
+              setNotifOpen(true);
+              setAccountOpen(false);
+              setPaletteOpen(false);
+            }}
+            title="Notifications"
+            aria-label={notifCount > 0 ? `Notifications, ${notifCount} pending` : 'Notifications'}
+          >
+            <LuBell size={18} strokeWidth={1.75} />
+            {notifCount > 0 && (
+              <span className={styles.badge}>{notifCount > 99 ? '99+' : notifCount}</span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            className={styles.avatarBtn}
+            onClick={() => {
+              setAccountOpen(true);
+              setNotifOpen(false);
+              setPaletteOpen(false);
+            }}
+            aria-label="Open account menu"
+            title={displayName}
+          >
+            <span className={styles.avatar}>{initials}</span>
+          </button>
+        </div>
+      </header>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <NotificationsDrawer open={notifOpen} onClose={() => setNotifOpen(false)} />
+      <AccountDrawer open={accountOpen} onClose={() => setAccountOpen(false)} />
+    </>
   );
 };
 

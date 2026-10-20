@@ -9,6 +9,7 @@ import AttendanceRegularizeModal from '../components/AttendanceRegularizeModal';
 import { formatDateByConfig } from '../helpers/dateUtils';
 import styles from './AttendanceDashboard.module.scss';
 import { Badge } from '../components/ui';
+import { LuPencil, LuFolderOpen, LuCalendarDays } from 'react-icons/lu';
 import '../styles/main.scss';
 
 const MONTHS = [
@@ -20,13 +21,13 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const getStatusColor = (status) => {
   switch(status) {
-    case 'P': return '#10b981'; // Green
-    case 'A': return '#ef4444'; // Red
-    case 'HD': return '#f59e0b'; // Orange
-    case 'L': return '#3b82f6'; // Blue
-    case 'WO': return '#94a3b8'; // Gray
-    case 'PH': return '#d946ef'; // Pink
-    default: return '#cbd5e1';
+    case 'P': return 'var(--primary-color)';
+    case 'A': return 'var(--error-color)';
+    case 'HD': return 'var(--warning-color)';
+    case 'L': return 'var(--info-color)';
+    case 'WO': return 'var(--text-disabled)';
+    case 'PH': return 'var(--secondary-color)';
+    default: return 'var(--text-muted)';
   }
 };
 
@@ -288,12 +289,14 @@ const AttendanceDashboard = () => {
           }
           
           const isSelected = selectedDateObj && selectedDateObj.dateStr === cell.dateStr;
-          
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const cellDate = new Date(cell.dateStr);
+          cellDate.setHours(0, 0, 0, 0);
+          const isToday = cellDate.getTime() === today.getTime();
+          const statusClass = cell.status ? styles[`calendarStatus${cell.status}`] : '';
+
           const handleCellClick = () => {
-            const cellDate = new Date(cell.dateStr);
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            
             if (cellDate >= today && (!cell.status || cell.status === '' || cell.status === 'No Record')) {
               history.push(`/leave-dashboard?startDate=${cell.dateStr}&endDate=${cell.dateStr}`);
             } else {
@@ -302,17 +305,17 @@ const AttendanceDashboard = () => {
           };
 
           return (
-            <div 
-              key={cell.dateStr} 
+            <div
+              key={cell.dateStr}
               onClick={handleCellClick}
               className={isSelected ? styles.calendarCellSelected : styles.calendarCell}
             >
-              <div className={isSelected ? styles.calendarDayNumSelected : styles.calendarDayNum}>
+              <div className={`${styles.calendarDayNum} ${isToday ? styles.calendarDayToday : ''}`}>
                 {cell.dayNum}
               </div>
               {cell.status && (
-                <div className={styles.calendarStatus}>
-                  <Badge variant={getBadgeVariant(cell.status)}>{cell.status}</Badge>
+                <div className={`${styles.calendarStatus} ${statusClass || ''}`}>
+                  {cell.status}
                 </div>
               )}
             </div>
@@ -383,14 +386,14 @@ const AttendanceDashboard = () => {
               className={styles.btnRegularize} 
               onClick={handleRegularizeClick}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <LuPencil size={18} />
               Attendance Regularization
             </button>
             <button 
               className={styles.btnLeave} 
               onClick={() => history.push('/leave-dashboard')}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <LuFolderOpen size={18} />
               Leave Application
             </button>
           </div>
@@ -405,11 +408,10 @@ const AttendanceDashboard = () => {
             <div 
               className={activeBalanceTab === 'pending' ? styles.tabActive : styles.tabInactive}
               onClick={() => setActiveBalanceTab('pending')}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               Pending Apps
               {pendingLeaves.length > 0 && (
-                <span style={{backgroundColor: '#ef4444', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold'}}>
+                <span className={styles.pendingBadge}>
                   {pendingLeaves.length}
                 </span>
               )}
@@ -417,20 +419,20 @@ const AttendanceDashboard = () => {
           </div>
 
           <table className={styles.leaveTable}>
-            <thead style={{ backgroundColor: '#f1f5f9' }}>
+            <thead>
               {activeBalanceTab === 'balance' ? (
                 <tr>
-                  <th className={styles.leaveTableHeader} style={{ borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px' }}>Leave Type</th>
+                  <th className={styles.leaveTableHeader}>Leave Type</th>
                   <th className={styles.leaveTableHeader}>Opening</th>
-                  <th className={styles.leaveTableHeader} style={{ borderTopRightRadius: '4px', borderBottomRightRadius: '4px' }}>Closing</th>
+                  <th className={styles.leaveTableHeader}>Closing</th>
                 </tr>
               ) : (
                 <tr>
-                  <th className={styles.leaveTableHeader} style={{ borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px' }}>App No</th>
+                  <th className={styles.leaveTableHeader}>App No</th>
                   <th className={styles.leaveTableHeader}>App Date</th>
                   <th className={styles.leaveTableHeader}>Type</th>
                   <th className={styles.leaveTableHeader}>From</th>
-                  <th className={styles.leaveTableHeader} style={{ borderTopRightRadius: '4px', borderBottomRightRadius: '4px' }}>To</th>
+                  <th className={styles.leaveTableHeader}>To</th>
                 </tr>
               )}
             </thead>
@@ -444,14 +446,14 @@ const AttendanceDashboard = () => {
                   </tr>
                 )) : (
                   <tr className={styles.leaveTableRow}>
-                    <td colSpan="3" style={{textAlign: 'center', padding: '10px', color: '#64748b'}}>No balances found</td>
+                    <td colSpan="3" className={styles.emptyTableCell}>No balances found</td>
                   </tr>
                 )
               ) : (
                 pendingLeaves.length > 0 ? pendingLeaves.map((app, idx) => (
                   <tr key={idx} className={styles.leaveTableRow}>
                     <td className={styles.leaveType}>
-                      <a href={`/leave-dashboard`} style={{color: '#2563eb', textDecoration: 'underline'}}>{app.id || 'N/A'}</a>
+                      <a href="/leave-dashboard" className={styles.leaveAppLink}>{app.id || 'N/A'}</a>
                     </td>
                     <td className={styles.leaveValue}>{formatDateStr(app.createdAt)}</td>
                     <td className={styles.leaveValue}>{app.leaveType?.leaveCode || 'N/A'}</td>
@@ -460,7 +462,7 @@ const AttendanceDashboard = () => {
                   </tr>
                 )) : (
                   <tr className={styles.leaveTableRow}>
-                    <td colSpan="5" style={{textAlign: 'center', padding: '10px', color: '#64748b'}}>No pending applications</td>
+                    <td colSpan="5" className={styles.emptyTableCell}>No pending applications</td>
                   </tr>
                 )
               )}
@@ -504,7 +506,7 @@ const AttendanceDashboard = () => {
         <div className={styles.calendarLeftPane}>
           <div className={styles.calendarHeader}>
             <h3 className={styles.calendarTitle}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <LuCalendarDays size={18} />
               My Datebook
             </h3>
             <div className={styles.calendarMonthYear}>

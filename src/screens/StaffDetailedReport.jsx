@@ -6,9 +6,7 @@ import {
   getPaginationRowModel, 
   flexRender 
 } from '@tanstack/react-table';
-import { CircularProgress } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import AssessmentIcon from '@mui/icons-material/Assessment';
+import { LuSearch, LuChartColumn } from 'react-icons/lu';
 import { apiService } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useStoreConfig } from '../hooks/queries';
@@ -103,7 +101,7 @@ export default function StaffDetailedReport() {
     {
       header: 'Date',
       accessorKey: 'date',
-      cell: info => <span style={{ fontWeight: 500 }}>{info.getValue() || '-'}</span>
+      cell: info => <span className={styles.dateCell}>{info.getValue() || '-'}</span>
     },
     {
       header: 'Shift Time',
@@ -192,20 +190,23 @@ export default function StaffDetailedReport() {
 
         <div className={styles.filterGroup}>
           <label>Filter Date</label>
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-            <SearchIcon style={{ position: 'absolute', left: '10px', color: 'var(--text-secondary)' }} fontSize="small" />
+          <div className={styles.searchField}>
+            <LuSearch size={18} className={styles.searchIcon} aria-hidden="true" />
             <input 
               type="text" 
               placeholder="Search by date..." 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              style={{ paddingLeft: '35px', width: '100%' }}
             />
           </div>
         </div>
       </div>
 
-      {isError && <div style={{ color: 'red', marginBottom: '1rem', fontWeight: 'bold' }}>Failed to load detailed report. Please try again.</div>}
+      {isError && (
+        <div className={styles.errorBanner} role="alert">
+          Failed to load detailed report. Please try again.
+        </div>
+      )}
 
       <div className={styles.tableCard}>
         <div className={styles.tableWrapper}>
@@ -230,7 +231,7 @@ export default function StaffDetailedReport() {
               {isLoading ? (
                 <tr>
                   <td colSpan={columns.length} className={styles.emptyCell}>
-                    <CircularProgress />
+                    <span className={styles.inlineSpinner} aria-hidden="true" />
                     <p>Loading detailed report...</p>
                   </td>
                 </tr>
@@ -247,7 +248,7 @@ export default function StaffDetailedReport() {
               ) : (
                 <tr>
                   <td colSpan={columns.length} className={styles.emptyCell}>
-                    <AssessmentIcon />
+                    <LuChartColumn />
                     <h3>No Data Found</h3>
                     <p>No shift data found for the selected date range and staff.</p>
                   </td>

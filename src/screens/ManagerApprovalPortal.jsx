@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig } from '../helpers/dateUtils';
+import { LuCheck, LuX, LuCircle, LuInbox } from 'react-icons/lu';
+import { Drawer, Modal, Button, Checkbox } from '../components/ui';
 
 const ManagerApprovalPortal = ({ managerId = 1 }) => {
   const [selectedReq, setSelectedReq] = useState(null);
@@ -186,28 +188,43 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
         </div>
       </div> */}
 
-      <div className={styles.tableCard}>
+      <div className={`${styles.tableCard} mp-card`}>
         <div className={styles.tableHeaderSection}>
           <div className={styles.tableTitle}>Pending Requests</div>
           {selectedIds.length > 0 && (
             <div className={styles.bulkActions}>
               <button className={styles.bulkBtnReject} onClick={() => handleBulkAction('reject')} disabled={bulkActionMutation.isPending}>
-                {bulkActionMutation.isPending && bulkActionMutation.variables?.action === 'reject' ? 'Processing...' : `✕ Reject (${selectedIds.length})`}
+                {bulkActionMutation.isPending && bulkActionMutation.variables?.action === 'reject' ? (
+                  'Processing...'
+                ) : (
+                  <span className={styles.bulkBtnLabel}>
+                    <LuX size={16} aria-hidden="true" />
+                    Reject ({selectedIds.length})
+                  </span>
+                )}
               </button>
               <button className={styles.bulkBtn} onClick={() => handleBulkAction('approve')} disabled={bulkActionMutation.isPending}>
-                {bulkActionMutation.isPending && bulkActionMutation.variables?.action === 'approve' ? 'Processing...' : `✓ Approve (${selectedIds.length})`}
+                {bulkActionMutation.isPending && bulkActionMutation.variables?.action === 'approve' ? (
+                  'Processing...'
+                ) : (
+                  <span className={styles.bulkBtnLabel}>
+                    <LuCheck size={16} aria-hidden="true" />
+                    Approve ({selectedIds.length})
+                  </span>
+                )}
               </button>
             </div>
           )}
         </div>
-        <table className={styles.approvalsTable}>
+        <table className={`${styles.approvalsTable} mp-table`}>
           <thead>
             <tr>
               <th className={styles.checkboxCell}>
-                <input 
-                  type="checkbox" 
-                  onChange={handleSelectAll} 
-                  checked={requests.length > 0 && selectedIds.length === requests.length} 
+                <Checkbox
+                  className={styles.tableCheckbox}
+                  onChange={handleSelectAll}
+                  checked={requests.length > 0 && selectedIds.length === requests.length}
+                  aria-label="Select all leave requests"
                 />
               </th>
               <th>STAFF NAME</th>
@@ -224,10 +241,11 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
               return (
               <tr key={req.id} onClick={() => openDetails(req)} className={styles.clickableRow}>
                 <td className={styles.checkboxCell} onClick={e => e.stopPropagation()}>
-                  <input 
-                    type="checkbox" 
-                    onChange={(e) => handleSelectOne(e, req.id)} 
-                    checked={selectedIds.includes(req.id)} 
+                  <Checkbox
+                    className={styles.tableCheckbox}
+                    onChange={(e) => handleSelectOne(e, req.id)}
+                    checked={selectedIds.includes(req.id)}
+                    aria-label={`Select leave request for ${staffName}`}
                   />
                 </td>
                 <td>
@@ -248,45 +266,68 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                 <td>{req.startDate} - {req.endDate}</td>
                 <td>{req.requestedDays} {req.requestedDays == 1 ? 'Day' : 'Days'}</td>
                 <td>
-                  <span className={styles.kpiBadge + " " + styles.amber} style={{fontSize: '0.65rem', padding: '4px 8px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B', textTransform: 'uppercase', fontWeight: 600}}>
-                    ● {req.status}
+                  <span className={styles.kpiBadge + " " + styles.amber} style={{display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', padding: '4px 8px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B', textTransform: 'uppercase', fontWeight: 600}}>
+                    <LuCircle size={8} className={styles.statusDot} aria-hidden="true" />
+                    {req.status}
                   </span>
                 </td>
                 <td className={styles.actionCell} onClick={e => e.stopPropagation()}>
-                  <button className={styles.iconBtn} onClick={() => handleAction('approve', req)} title="Approve">✓</button>
-                  <button className={styles.iconBtnReject} onClick={() => handleAction('reject', req)} title="Reject">✕</button>
+                  <button className={styles.iconBtn} onClick={() => handleAction('approve', req)} title="Approve" aria-label="Approve">
+                    <LuCheck size={16} aria-hidden="true" />
+                  </button>
+                  <button className={styles.iconBtnReject} onClick={() => handleAction('reject', req)} title="Reject" aria-label="Reject">
+                    <LuX size={16} aria-hidden="true" />
+                  </button>
                 </td>
               </tr>
             );
             })}
             {requests.length === 0 && (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: '#8C8D94' }}>No pending requests.</td>
+                <td colSpan="7" className={styles.emptyCell}>
+                  <div className={styles.emptyState}>
+                    <LuInbox size={40} strokeWidth={1.5} className={styles.emptyIcon} aria-hidden="true" />
+                    <p className={styles.emptyTitle}>No pending requests</p>
+                    <p className={styles.emptyHint}>New leave applications from your team will show up here.</p>
+                  </div>
+                </td>
               </tr>
             )}
           </tbody>
         </table>
         <div className={styles.tableFooter}>
           <div className={styles.showingText}>
-            SHOWING {requests.length} PENDING REQUEST{requests.length !== 1 ? 'S' : ''}
+            Showing {requests.length} pending request{requests.length !== 1 ? 's' : ''}
           </div>
         </div>
       </div>
 
       {isModalOpen && selectedReq && (
-        <div className={styles.modalOverlay} onClick={closeDetails}>
-          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div className={styles.modalProfile}>
-                <div className={styles.modalAvatar}>{getInitials(selectedReq.staffName)}</div>
-                <div className={styles.modalUserInfo}>
-                  <h2>{selectedReq.staffName || "Unknown Staff"}</h2>
-                  <p className={styles.modalMeta}>Applied {formatDateByConfig(selectedReq.createdAt, storeConfig?.dateFormat) || 'Recently'}</p>
-                </div>
-              </div>
-              <button className={styles.closeBtn} onClick={closeDetails}>×</button>
-            </div>
-            
+        <Drawer
+          open
+          onClose={closeDetails}
+          title={selectedReq.staffName || 'Unknown Staff'}
+          subtitle={`Applied ${formatDateByConfig(selectedReq.createdAt, storeConfig?.dateFormat) || 'recently'}`}
+          width={720}
+          footer={(
+            <>
+              <Button
+                variant="danger"
+                onClick={() => handleAction('reject')}
+                disabled={actionMutation.isPending}
+              >
+                {actionMutation.isPending && actionMutation.variables?.endpoint === 'reject' ? 'Processing…' : 'Reject request'}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => handleAction('approve')}
+                disabled={actionMutation.isPending}
+              >
+                {actionMutation.isPending && actionMutation.variables?.endpoint !== 'reject' ? 'Processing…' : 'Approve request'}
+              </Button>
+            </>
+          )}
+        >
             <div className={styles.modalBody}>
               <div className={styles.leftColumn}>
                 <div>
@@ -361,8 +402,8 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
                             <td>
                               <span style={{
                                 fontSize: '0.65rem', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600,
-                                border: '1px solid ' + (h.status === 'APPROVED' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'),
-                                color: h.status === 'APPROVED' ? '#2563EB' : '#D97706'
+                                border: '1px solid ' + (h.status === 'APPROVED' ? 'rgba(0, 167, 111, 0.28)' : 'rgba(245, 158, 11, 0.3)'),
+                                color: h.status === 'APPROVED' ? 'var(--primary-color-dark, #007867)' : '#D97706'
                               }}>
                                 {h.status}
                               </span>
@@ -383,68 +424,36 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
               </div>
             </div>
             
-            <div className={styles.modalFooter}>
-              <button className={styles.rejectBtn} onClick={() => handleAction('reject')} disabled={actionMutation.isPending}>
-                {actionMutation.isPending && actionMutation.variables?.endpoint === 'reject' ? 'Processing...' : 'Reject Request'}
-              </button>
-              <button className={styles.approveBtn} onClick={() => handleAction('approve')} disabled={actionMutation.isPending}>
-                {actionMutation.isPending && actionMutation.variables?.endpoint !== 'reject' ? 'Processing...' : 'Approve Request'}
-              </button>
-            </div>
-          </div>
-        </div>
+        </Drawer>
       )}
 
-      {rejectPromptReq && (
-        <div className={styles.modalOverlay} onClick={() => setRejectPromptReq(null)} style={{ zIndex: 1100, backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className={styles.modalContent} style={{ maxWidth: '400px', padding: '24px', gap: '20px' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-main)', fontWeight: '600' }}>Reject Request</h3>
-              <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => setRejectPromptReq(null)}>✕</button>
-            </div>
-            
-            <div style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-              Please provide a reason for rejecting this leave request. This remark will be visible to the employee.
-            </div>
-            
-            <textarea
-              value={rejectPromptRemarks}
-              onChange={e => setRejectPromptRemarks(e.target.value)}
-              placeholder="Enter rejection reason (mandatory)..."
-              style={{
-                width: '100%',
-                background: 'var(--input-bg)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                padding: '12px',
-                color: 'var(--text-main)',
-                fontFamily: 'inherit',
-                fontSize: '0.9rem',
-                minHeight: '100px',
-                resize: 'vertical',
-                boxSizing: 'border-box'
-              }}
-              autoFocus
-            />
-            
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
-              <button 
-                onClick={() => setRejectPromptReq(null)}
-                style={{ padding: '10px 16px', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={confirmReject}
-                disabled={actionMutation.isPending}
-                style={{ padding: '10px 16px', background: 'var(--red-bg)', border: '1px solid var(--red-border)', color: 'var(--red-text)', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}
-              >
-                {actionMutation.isPending ? 'Processing...' : 'Confirm Rejection'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={!!rejectPromptReq}
+        onClose={() => setRejectPromptReq(null)}
+        title="Reject request"
+        subtitle="Provide a reason for rejecting this leave request. The remark is visible to the employee."
+        size="sm"
+        footer={(
+          <>
+            <Button variant="outline" onClick={() => setRejectPromptReq(null)}>Cancel</Button>
+            <Button
+              variant="danger"
+              onClick={confirmReject}
+              disabled={!rejectPromptRemarks?.trim() || actionMutation.isPending}
+            >
+              {actionMutation.isPending ? 'Rejecting…' : 'Confirm reject'}
+            </Button>
+          </>
+        )}
+      >
+        <textarea
+          value={rejectPromptRemarks}
+          onChange={(e) => setRejectPromptRemarks(e.target.value)}
+          placeholder="Enter rejection reason (mandatory)…"
+          className={styles.rejectTextarea}
+          autoFocus
+        />
+      </Modal>
     </div>
   );
 };

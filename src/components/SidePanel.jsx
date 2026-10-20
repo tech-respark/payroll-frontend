@@ -1,36 +1,11 @@
-import React, { useEffect } from 'react';
-import styles from './SidePanel.module.scss';
+import React from 'react';
+import { Drawer } from './ui';
 
-const SidePanel = ({ isOpen, onClose, title, children }) => {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  return (
-    <>
-      <div className={styles.overlay} onClick={onClose}></div>
-      <div className={styles.sidePanel}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>{title}</h2>
-          <button className={styles.closeBtn} onClick={onClose}>
-            &times;
-          </button>
-        </div>
-        <div className={styles.content}>
-          {children}
-        </div>
-      </div>
-    </>
-  );
-};
+/** @deprecated Prefer importing Drawer from components/ui. Kept for compatibility. */
+const SidePanel = ({ isOpen, onClose, title, children }) => (
+  <Drawer open={isOpen} onClose={onClose} title={title}>
+    {children}
+  </Drawer>
+);
 
 export default SidePanel;

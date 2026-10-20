@@ -74,7 +74,7 @@
     left: 0;
     width: 100%;
     height: 2px;
-    background: var(--primary-color, #6ea8fe);
+    background: var(--primary-color);
     border-radius: 2px 2px 0 0;
   }
 }
@@ -114,14 +114,16 @@
 .formCard, .activePlansCard, .rulesCard, .kpiCard {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
 .tableCard {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -137,7 +139,7 @@
 }
 
 .formCardIcon {
-  color: var(--primary-color, #6ea8fe);
+  color: var(--primary-color);
   font-size: 1.2rem;
 }
 
@@ -177,20 +179,27 @@
 .input, .select, .textarea {
   width: 100%;
   box-sizing: border-box;
-  background: var(--bg-white, rgba(255,255,255,0.05));
-  border: 1px solid var(--border-color);
+  background: var(--bg-white, var(--bg-subtle));
+  border: 1px solid var(--input-border, var(--border-color));
   color: var(--text-dark);
-  border-radius: 6px;
-  padding: 0.65rem 0.85rem;
-  font-size: 0.9rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 8px;
+  min-height: 42px;
+  padding: 0 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: var(--transition);
   font-family: inherit;
 
   &:focus {
     outline: none;
-    border-color: var(--primary-color, #6ea8fe);
-    box-shadow: 0 0 0 3px rgba(110, 168, 254, 0.15);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-color-alpha);
   }
+}
+
+.textarea {
+  min-height: 80px;
+  padding: 0.65rem 0.85rem;
 }
 
 .select {
@@ -202,25 +211,56 @@
   padding-right: 2.2rem;
 }
 
-.textarea {
-  resize: vertical;
-  min-height: 80px;
+.primaryBtn {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: none;
+  font-family: inherit;
+
+  &:hover:not(:disabled) {
+    background: var(--primary-color-dark);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
-.primaryBtn {
-  background: var(--primary-color, #9bbcf5);
-  color: #0f172a;
-  border: none;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
+.formBtnRow {
+  display: flex;
+  gap: 12px;
+
+  .primaryBtn,
+  .secondaryBtn {
+    flex: 1;
+  }
+}
+
+.secondaryBtn {
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 8px;
+  font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.2s ease;
-  // width: 100%;
+  min-height: 44px;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: var(--transition);
 
   &:hover {
-    opacity: 0.9;
+    background: var(--bg-hover);
+    color: var(--text-dark);
   }
 }
 
@@ -231,6 +271,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .tableCardTitleRow {
@@ -254,7 +296,8 @@
 
 .searchBox {
   position: relative;
-  width: 250px;
+  width: 220px;
+  flex-shrink: 0;
 }
 
 .searchIcon {
@@ -268,16 +311,19 @@
 
 .searchInput {
   width: 100%;
-  background: var(--bg-white);
-  border: 1px solid var(--border-color);
+  background: var(--bg-white, var(--bg-subtle));
+  border: 1px solid var(--input-border, var(--border-color));
   color: var(--text-dark);
-  border-radius: 20px;
-  padding: 0.4rem 1rem 0.4rem 2rem;
-  font-size: 0.85rem;
-  
+  border-radius: 8px;
+  min-height: 40px;
+  padding: 0 1rem 0 2rem;
+  font-size: 0.8125rem;
+  font-family: inherit;
+
   &:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-color-alpha);
   }
 }
 
@@ -299,7 +345,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(0,0,0,0.1);
+  background: var(--bg-subtle);
 }
 
 .table td {
@@ -312,7 +358,15 @@
 .emptyRow {
   text-align: center;
   color: var(--text-muted);
-  padding: 2rem !important;
+  font-size: 0.875rem;
+  padding: 2.5rem 1.5rem !important;
+}
+
+.emptyPlans {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
 .codeCell {
@@ -329,9 +383,29 @@
 }
 
 .badgePaid {
-  background: rgba(110, 168, 254, 0.15);
-  color: #6ea8fe;
-  border: 1px solid rgba(110, 168, 254, 0.3);
+  background: rgba(0, 167, 111, 0.12);
+  color: #00A76F;
+  border: 1px solid rgba(0, 167, 111, 0.24);
+}
+
+.genderBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  padding: 0.25rem 0.55rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.clickableRow {
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: var(--bg-hover);
+  }
 }
 
 .badgeUnpaid {
@@ -446,14 +520,15 @@
 
 .activePlansCard {
   background: var(--bg-card);
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
 .activePlansHeader {
   padding: 1rem 1.5rem;
-  background: rgba(0,0,0,0.2);
+  background: var(--bg-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -566,19 +641,22 @@
 }
 
 .mapRuleBtn {
-  background: #4f46e5;
-  color: white;
+  background: var(--primary-color);
+  color: #fff;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   cursor: pointer;
   height: fit-content;
-  transition: background 0.2s ease;
+  transition: var(--transition);
+  font-family: inherit;
+  flex-shrink: 0;
 
-  &:hover {
-    background: #4338ca;
+  &:hover:not(:disabled) {
+    background: var(--primary-color-dark);
   }
 }
 
@@ -601,12 +679,12 @@
 }
 
 .modal {
-  background: var(--bg-color);
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
   width: 100%;
   max-width: 650px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   overflow: hidden;
 }
 
@@ -658,16 +736,17 @@
 }
 
 .cancelBtn {
-  background: #ffffff;
-    border: none;
-    color: #f52e2e;
-    font-weight: 800;
-    cursor: pointer;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-  
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: var(--transition);
+
   &:hover {
-    color: red;
+    background: rgba(239, 68, 68, 0.08);
   }
 }
 
@@ -720,7 +799,7 @@
 
 .donutFill {
   fill: none;
-  stroke: #6ea8fe;
+  stroke: var(--primary-color);
   stroke-width: 3;
   stroke-linecap: round;
 }
@@ -779,9 +858,9 @@
 }
 
 .statusActive {
-  background: rgba(255,255,255,0.05);
+  background: rgba(0, 167, 111, 0.08);
   color: var(--text-dark);
-  border-left-color: #6ea8fe;
+  border-left-color: var(--primary-color);
 }
 
 .statusPending {
@@ -841,8 +920,8 @@
   margin: 1.5rem;
   padding: 1.25rem;
   border-radius: 8px;
-  background: rgba(110, 168, 254, 0.05);
-  border: 1px solid rgba(110, 168, 254, 0.2);
+  background: rgba(0, 167, 111, 0.06);
+  border: 1px solid rgba(0, 167, 111, 0.16);
   display: flex;
   gap: 1rem;
   align-items: center;

@@ -4,12 +4,20 @@
   gap: 24px;
 }
 
+.bulkBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
 /* Filter Card */
 .filterCard {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
 }
 
 .filterRow {
@@ -23,6 +31,7 @@
 .filterInputs {
   display: flex;
   gap: 24px;
+  flex-wrap: wrap;
 }
 
 .inputGroup {
@@ -35,25 +44,36 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .inputField {
   background: transparent;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 10px 16px;
+  padding: 8px 12px;
+  min-height: 40px;
   color: var(--text-dark);
   font-size: 14px;
   outline: none;
+  font-family: var(--primary-font);
 
   option {
     background-color: var(--bg-card);
     color: var(--text-dark);
   }
-  
+
   &:focus {
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-color-alpha);
   }
+}
+
+.inputFieldCompact {
+  min-height: 36px;
+  padding: 4px 8px;
+  font-size: 13px;
 }
 
 .statusToggleGroup {
@@ -61,39 +81,45 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   overflow: hidden;
+  min-height: 40px;
 }
 
 .statusToggleBtn {
   background: transparent;
   border: none;
-  padding: 10px 24px;
+  padding: 8px 20px;
+  min-height: 40px;
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
-  
+  font-family: var(--primary-font);
+
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-hover);
+    color: var(--text-dark);
   }
 }
 
 .statusToggleBtnActive {
   background: var(--primary-color);
-  color: white;
+  color: #fff;
   border: none;
-  padding: 10px 24px;
+  padding: 8px 20px;
+  min-height: 40px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--primary-color-shadow);
+  font-family: var(--primary-font);
 }
 
 /* Table Card */
 .tableCard {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
@@ -116,10 +142,11 @@
   text-transform: uppercase;
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
+  background: var(--table-head-bg, var(--bg-subtle));
 }
 
 .td {
-  padding: 20px 24px;
+  padding: 16px 24px;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-dark);
   font-size: 14px;
@@ -128,8 +155,9 @@
 
 .tr {
   transition: var(--transition);
+
   &:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-hover);
   }
 }
 
@@ -143,7 +171,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(63, 151, 239, 0.15);
+  background: var(--primary-color-alpha);
   color: var(--primary-color);
   display: flex;
   align-items: center;
@@ -165,8 +193,8 @@
 /* Status Pill */
 .statusPill {
   display: inline-block;
-  padding: 4px 16px;
-  border-radius: 16px;
+  padding: 4px 12px;
+  border-radius: 8px;
   font-size: 11px;
   font-weight: 600;
   border: 1px solid;
@@ -174,18 +202,21 @@
 }
 
 .statusPending {
-  border-color: #f59e0b;
-  color: #f59e0b;
+  border-color: var(--warning-color);
+  color: #B76E00;
+  background: rgba(255, 171, 0, 0.12);
 }
 
 .statusApproved {
-  border-color: #10b981;
-  color: #10b981;
+  border-color: var(--success-color);
+  color: #118D57;
+  background: rgba(34, 197, 94, 0.12);
 }
 
 .statusRejected {
-  border-color: #ef4444;
-  color: #ef4444;
+  border-color: var(--error-color);
+  color: #B71D18;
+  background: rgba(255, 86, 48, 0.12);
 }
 
 /* Punch Blocks */
@@ -198,88 +229,86 @@
 .punchBlock {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
   width: max-content;
 }
 
 .punchIn {
-  background: rgba(59, 130, 246, 0.15);
-  border-left: 3px solid #3b82f6;
-  color: #60a5fa;
-  @media (prefers-color-scheme: light) {
-    color: #2563eb;
-  }
+  background: rgba(0, 184, 217, 0.12);
+  border-left: 3px solid var(--info-color);
+  color: #006C9C;
 }
 
 .punchOut {
-  background: rgba(245, 158, 11, 0.15);
-  border-left: 3px solid #f59e0b;
-  color: #fbbf24;
-  @media (prefers-color-scheme: light) {
-    color: #d97706;
-  }
+  background: rgba(255, 171, 0, 0.12);
+  border-left: 3px solid var(--warning-color);
+  color: #B76E00;
 }
 
-/* Neon Actions */
+/* Row / bulk actions */
 .actionsCell {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
 }
 
-.neonBtn {
-  padding: 6px 16px;
-  border-radius: 16px;
-  font-weight: 700;
-  font-size: 11px;
+.actionsCellEnd {
+  justify-content: flex-end;
+}
+
+.actionBtn {
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
   cursor: pointer;
-  border: none;
-  text-transform: uppercase;
-  transition: all 0.2s;
-  
-  &:hover {
-    transform: translateY(-1px);
+  border: 1px solid transparent;
+  transition: var(--transition);
+  font-family: var(--primary-font);
+  text-transform: none;
+  letter-spacing: 0;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 }
 
 .btnApprove {
-  background: #10b981;
-  color: white;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+  background: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+
+  &:hover:not(:disabled) {
+    box-shadow: var(--primary-color-shadow);
+  }
 }
 
 .btnReject {
-  background: #ef4444;
-  color: white;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  background: transparent;
+  color: var(--error-color);
+  border-color: rgba(255, 86, 48, 0.32);
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 86, 48, 0.08);
+  }
 }
 
-/* Checkbox */
-.checkbox {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  &:checked {
-    background: white;
-    border-color: white;
-  }
-  
-  &:checked::after {
-    content: "✓";
-    color: #0f172a;
-    font-size: 12px;
-    font-weight: bold;
-  }
+.tableEmpty {
+  text-align: center;
+  padding: 48px 24px !important;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.tableLoading {
+  text-align: center;
+  padding: 48px 24px !important;
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 /* Pagination */
@@ -289,12 +318,22 @@
   align-items: center;
   padding: 16px 24px;
   border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .pageControls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.pageSummary {
+  display: flex;
+  align-items: center;
+  gap: 24px;
   color: var(--text-muted);
   font-size: 13px;
 }
@@ -307,19 +346,36 @@
 .arrowBtn {
   background: transparent;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 8px;
   color: var(--text-muted);
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  
-  &:hover {
+  transition: var(--transition);
+
+  &:hover:not(:disabled) {
     color: var(--text-dark);
     border-color: var(--text-muted);
+    background: var(--bg-hover);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 }
 
+.thCheckbox {
+  width: 48px;
+}
 
+.thActions {
+  text-align: right;
+}
+
+.tdActions {
+  text-align: right;
+}

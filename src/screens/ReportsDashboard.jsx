@@ -3,11 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { useStoreConfig } from '../hooks/queries';
 import { Link } from 'react-router-dom';
 import styles from './ReportsDashboard.module.scss';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import SearchIcon from '@mui/icons-material/Search';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import CircularProgress from '@mui/material/CircularProgress';
+import {
+  LuChartColumn,
+  LuDownload,
+  LuSearch,
+  LuRefreshCw,
+  LuArrowUp,
+  LuArrowDown,
+} from 'react-icons/lu';
 import { apiService } from '../api/apiService';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -17,9 +20,6 @@ import {
   getPaginationRowModel,
   flexRender 
 } from '@tanstack/react-table';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-
 const ReportsDashboard = () => {
   const { tenantId, token, hasAccess } = useAuth();
   const { storeConfig } = useStoreConfig();
@@ -178,21 +178,20 @@ const ReportsDashboard = () => {
 
         <div className={styles.filterGroup}>
           <label>Filter Staff</label>
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-            <SearchIcon style={{ position: 'absolute', left: '10px', color: 'var(--text-secondary)' }} fontSize="small" />
+          <div className={styles.searchField}>
+            <LuSearch size={18} className={styles.searchIcon} aria-hidden="true" />
             <input 
               type="text" 
               placeholder="Search by name or ID..." 
               value={staffFilter}
               onChange={(e) => setStaffFilter(e.target.value)}
-              style={{ paddingLeft: '35px', width: '100%' }}
             />
           </div>
         </div>
 
         <div className={styles.actionButtons}>
           <button className={styles.primaryBtn} onClick={fetchReport} disabled={loading}>
-            {loading ? <CircularProgress size={20} color="inherit" /> : <RefreshIcon fontSize="small" />}
+            {loading ? <span className={styles.inlineSpinner} aria-hidden="true" /> : <LuRefreshCw size={18} />}
             Generate Report
           </button>
           
@@ -201,13 +200,13 @@ const ReportsDashboard = () => {
             onClick={handleExportCSV} 
             disabled={loading || filteredData.length === 0}
           >
-            <FileDownloadIcon fontSize="small" />
+            <LuDownload size={18} />
             Export to CSV
           </button>
         </div>
       </div>
 
-      {error && <div style={{ color: 'red', marginBottom: '1rem', fontWeight: 'bold' }}>{error}</div>}
+      {error && <div className={styles.errorBanner} role="alert">{error}</div>}
 
       <div className={styles.tableCard}>
         <div className={styles.tableWrapper}>
@@ -224,8 +223,8 @@ const ReportsDashboard = () => {
                       <div className={styles.thContent}>
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {{
-                          asc: <ArrowUpwardIcon fontSize="inherit" />,
-                          desc: <ArrowDownwardIcon fontSize="inherit" />
+                          asc: <LuArrowUp size={16} />,
+                          desc: <LuArrowDown size={16} />
                         }[header.column.getIsSorted()] ?? null}
                       </div>
                     </th>
@@ -237,7 +236,7 @@ const ReportsDashboard = () => {
               {loading ? (
                 <tr>
                   <td colSpan="5" className={styles.emptyCell}>
-                    <CircularProgress />
+                    <span className={styles.inlineSpinner} aria-hidden="true" />
                     <p>Generating report...</p>
                   </td>
                 </tr>
@@ -254,7 +253,7 @@ const ReportsDashboard = () => {
               ) : (
                 <tr>
                   <td colSpan="5" className={styles.emptyCell}>
-                    <AssessmentIcon />
+                    <LuChartColumn />
                     <h3>No Data Found</h3>
                     <p>No attendance records found for the selected date range and filters.</p>
                   </td>
