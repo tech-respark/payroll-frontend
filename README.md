@@ -12,6 +12,7 @@ Start at the [documentation portal](docs/README.md).
 - [System architecture](docs/architecture/system-architecture.md) — components and request/data flows
 - [API reference](docs/reference/api-reference.md) — verified HTTP surface
 - [Local development](docs/operations/local-development.md) — run the complete stack
+- [QA and production deployment](docs/operations/qa-and-production-deployment.md) — secrets, proxy, QA checks, production controls
 - [Tenant onboarding](docs/operations/tenant-onboarding.md) — controlled setup checklist
 - [Known limitations](docs/operations/known-limitations.md) — verified gaps and risks
 

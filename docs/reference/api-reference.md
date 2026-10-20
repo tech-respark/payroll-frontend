@@ -2,14 +2,14 @@
 
 > **Audience:** Frontend, backend, integration, QA, support  
 > **Purpose:** Inventory the current controller surface  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Backend controller annotations and frontend callers
 
 ## Conventions
 
 - Primary prefix: `/payroll-management/v1`
 - Sync prefix: `/api/v1/sync`
-- Authentication: `Authorization: Bearer <token>` except login and forgot-password
+- Authentication: `Authorization: Bearer <token>` except login, forgot-password, and `/actuator/health`
 - Content type: usually JSON; PDF/Excel endpoints return binary data
 - Tenant/store context: query parameters, request body, JWT claims, or endpoint-specific headers
 
@@ -28,17 +28,17 @@ Response formats vary between `LoginResponse`, `{message, code, timestamp, data}
 
 | Method | Path | Extra authorization |
 | --- | --- | --- |
-| GET | `/personnel/all` | JWT |
-| POST | `/personnelForAttendanceManagement` | JWT |
+| GET | `/personnel/all` | Self only unless `MANAGE_STAFF` or `VIEW_OTHER_STAFF` |
+| POST | `/personnelForAttendanceManagement` | `MANAGE_STAFF` |
 | POST | `/personnelAttendanceSummary` | JWT |
-| POST | `/personnelDetailsForListOfStaffIds` | JWT |
-| POST | `/updatePasswordForPersonnel` | JWT |
+| POST | `/personnelDetailsForListOfStaffIds` | Self-constrained unless `MANAGE_STAFF`, `MANAGE_ATTENDANCE`, or `VIEW_OTHER_STAFF` |
+| POST | `/updatePasswordForPersonnel` | `MANAGE_STAFF` |
 | GET | `/roles/permissions/modules` | Authenticated |
-| GET | `/roles` | `MANAGE_ROLES` |
+| GET | `/roles` | `MANAGE_ROLES` or `MANAGE_STAFF` |
 | POST | `/roles/create` | `MANAGE_ROLES` |
 | POST | `/roles/update?roleId=` | `MANAGE_ROLES` |
-| POST | `/roles/assign` | `MANAGE_ROLES` |
-| GET | `/roles/staff/{staffId}` | Authenticated |
+| POST | `/roles/assign` | `MANAGE_ROLES` or `MANAGE_STAFF` |
+| GET | `/roles/staff/{staffId}` | Self, `MANAGE_ROLES`, or `MANAGE_STAFF` |
 | POST | `/api/v1/sync/staff?tenantId=` | JWT |
 
 ## Store and holidays
@@ -65,6 +65,8 @@ Legacy/current UI surface:
 | POST | `/flagRegularizationRequests` |
 | GET | `/personnelAttendanceForADay` |
 
+`/inOutHistoryInformation` and `/advancedInOutHistoryInformation` require `staffIds`. A missing list returns HTTP 400 instead of a SQL `IN null` 500. Callers without `MANAGE_ATTENDANCE`, `MANAGE_STAFF`, or `VIEW_OTHER_STAFF` can only query their own `staffId`. Regularization writes are self-or-`MANAGE_ATTENDANCE`.
+
 Newer regularization surface:
 
 | Method | Path |
@@ -78,7 +80,7 @@ These contracts overlap but are not interchangeable.
 
 ## Shifts, roster, reporting, and appointments
 
-All `SStaffShiftsController` paths have class-level `MANAGE_SHIFTS`.
+Shift GET/list paths accept `VIEW_SHIFTS` or `MANAGE_SHIFTS`. Roster and slot writes require `MANAGE_SHIFTS`. Report POSTs accept `VIEW_REPORTS`, `MANAGE_ATTENDANCE`, `MANAGE_SALARY`, or `MANAGE_SHIFTS`. Date-scoped `GET /staffshifts` reads `staff_shifts` only (personnel `staff_id` is not a join key). Roster GET and staff reports resolve stored `staff_id` against `personnel_details.id` or `personnel_code` and return canonical `id`.
 
 | Method | Path |
 | --- | --- |
@@ -111,17 +113,17 @@ Employee/manager operations:
 
 | Method | Path | Extra authorization where present |
 | --- | --- | --- |
-| GET | `/leaves/types/{staffId}` | JWT |
-| GET | `/leaves/applications/staff/{staffId}` | JWT |
+| GET | `/leaves/types/{staffId}` | Self or `MANAGE_LEAVES` |
+| GET | `/leaves/applications/staff/{staffId}` | Self or `MANAGE_LEAVES` |
 | GET | `/leaves/applications/pending` | JWT |
-| POST | `/leaves/apply` | JWT |
-| GET | `/leaves/balances/{staffId}` | JWT |
-| GET | `/leaves/balances/all/{staffId}` | JWT |
+| POST | `/leaves/apply` | Self unless `MANAGE_LEAVES` |
+| GET | `/leaves/balances/{staffId}` | Self or `MANAGE_LEAVES` |
+| GET | `/leaves/balances/all/{staffId}` | Self or `MANAGE_LEAVES` |
 | POST | `/leaves/{applicationId}/approve` | `MANAGE_LEAVES` |
-| POST | `/leaves/{applicationId}/reject` | JWT |
-| POST | `/leaves/{applicationId}/cancel` | JWT |
+| POST | `/leaves/{applicationId}/reject` | `MANAGE_LEAVES` |
+| POST | `/leaves/{applicationId}/cancel` | JWT actor |
 | POST | `/leaves/{applicationId}/approve-cancellation` | `MANAGE_LEAVES` |
-| POST | `/leaves/{applicationId}/reject-cancellation` | JWT |
+| POST | `/leaves/{applicationId}/reject-cancellation` | `MANAGE_LEAVES` |
 
 All `/admin/leave-plans/*` endpoints require `MANAGE_LEAVES`: leave-type GET/POST/PUT; plan GET/POST/update; assign staff; map/list/update/delete rules; list enrollments; create overrides; adjust balance.
 
@@ -131,13 +133,13 @@ All `/admin/leave-plans/*` endpoints require `MANAGE_LEAVES`: leave-type GET/POS
 | --- | --- | --- |
 | POST | `/personnelSalaryComponentsCalculation` | `MANAGE_SALARY` |
 | GET | `/personnelSalaryCalculation` | `MANAGE_SALARY` |
-| POST | `/monthlyCalculationComponents` | `MANAGE_SALARY` |
-| GET | `/getPayslipData` | JWT |
+| POST | `/monthlyCalculationComponents` | `MANAGE_SALARY`; month-scoped variables |
+| GET | `/getPayslipData` | Self or `MANAGE_SALARY` |
 | GET | `/salaryComponentDefinitions` | JWT |
-| POST | `/printStaffPayslip` | JWT |
-| GET | `/personnelSalaryComponents` | JWT |
-| GET | `/personnelSalaryComponentsForMonth` | JWT |
-| POST | `/downloadBillPdf` | JWT |
+| POST | `/printStaffPayslip` | Self or `MANAGE_SALARY` |
+| GET | `/personnelSalaryComponents` | Self or `MANAGE_SALARY` |
+| GET | `/personnelSalaryComponentsForMonth` | Self or `MANAGE_SALARY` |
+| POST | `/downloadBillPdf` | Self or `MANAGE_SALARY` |
 | GET | `/excelOfPayslip` | `MANAGE_SALARY` |
 
 ## Operations and dashboard
@@ -145,11 +147,10 @@ All `/admin/leave-plans/*` endpoints require `MANAGE_LEAVES`: leave-type GET/POS
 | Method | Path | Purpose |
 | --- | --- | --- |
 | GET | `/admin/dashboard/metrics` | HR metrics |
-| POST | `/trigger/retrieveAttendanceData` | On-demand vendor retrieval |
-| POST | `/trigger/calculateMonthWiseSummary` | Build monthly summary |
-| POST | `/trigger/calculateSalary` | Run salary calculation |
-
-Trigger endpoints are currently JWT-only and should be restricted before production use.
+| POST | `/trigger/retrieveAttendanceData` | On-demand vendor retrieval; `MANAGE_ATTENDANCE` |
+| POST | `/trigger/calculateMonthWiseSummary` | Build monthly summary; `MANAGE_ATTENDANCE` |
+| POST | `/trigger/calculateSalary` | Run salary calculation; `MANAGE_SALARY` |
+| POST | `/api/v1/sync/staff` | External staff import; `MANAGE_STAFF` |
 
 ## Error behavior
 

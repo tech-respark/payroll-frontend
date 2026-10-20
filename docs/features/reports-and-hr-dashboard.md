@@ -2,7 +2,7 @@
 
 > **Audience:** Managers, HR, payroll, sales demos, support, developers  
 > **Purpose:** Explain current reporting and executive metrics  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Report/HR screens and shift/report services
 
 ## Attendance Summary (`/reports`)
@@ -20,7 +20,7 @@ Capabilities:
 
 Requires `MANAGE_ATTENDANCE` or `MANAGE_SALARY`. It selects a staff member and period, then retrieves detailed shift/attendance report data.
 
-Both report screens call endpoints hosted in the shift controller, whose class-level backend permission is currently `MANAGE_SHIFTS`. Permission alignment must be tested for each production role.
+Both report screens call endpoints hosted in the shift controller. Those report POSTs allow `VIEW_REPORTS`, `MANAGE_ATTENDANCE`, `MANAGE_SALARY`, or `MANAGE_SHIFTS`. Detailed queries also filter `store_id`.
 
 ## HR Dashboard (`/hr-dashboard`)
 
@@ -31,13 +31,13 @@ Requires `VIEW_HR_DASHBOARD` in the frontend. It presents metrics and shortcuts 
 - leave approvals;
 - high-level workforce status.
 
-The metrics endpoint accepts tenant/store headers and currently defaults missing values. Some labels such as “Healthy” are static presentation, not a configured threshold.
+The metrics endpoint uses JWT tenant/store (`SecurityUtils`) and counts both `PENDING` and `CANCELLATION_REQUESTED`. “View Approvals” opens `/leave-approvals` only when the user has `MANAGE_LEAVES`. Some labels such as “Healthy” are static presentation, not a configured threshold.
 
 ## Reporting boundaries
 
 - Reports are operational summaries, not statutory payroll filings.
 - CSV is implemented on the attendance summary screen.
-- Detailed report response envelopes are not fully consistent with summary responses.
+- Report screens unwrap `{ data: [] }` the same way.
 - Dashboard shortcut visibility is not independently checked against the permission required by the destination route.
 
 Use the [API reference](../reference/api-reference.md) for endpoint contracts and [known limitations](../operations/known-limitations.md) for access mismatches.

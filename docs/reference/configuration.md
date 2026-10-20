@@ -2,7 +2,7 @@
 
 > **Audience:** Developers, DevOps, operators  
 > **Purpose:** List runtime settings without exposing secret values  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Vite config, backend properties, and configuration consumers
 
 ## Frontend
@@ -25,9 +25,12 @@ Vite also deduplicates `react` and `react-dom` and pre-bundles `@tanstack/react-
 | `server.port` | HTTPS API port | No |
 | `spring.datasource.url` | MySQL location/database | Environment-sensitive |
 | `DB_USERNAME`, `DB_PASSWORD` | Database authentication | Yes |
-| `spring.jpa.hibernate.ddl-auto` | Schema behavior | No; production-critical |
+| `jwt.secret` / `JWT_SECRET` | HS256 signing key, minimum 32 bytes | Yes; required at startup |
+| `cors.allowed-origins` / `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins | No; defaults are local Vite only |
+| `jwt.expiration-ms` | JWT lifetime | No |
+| `spring.jpa.hibernate.ddl-auto` / `HIBERNATE_DDL_AUTO` | Schema behavior | No; production-critical |
 | `server.ssl.*` | Keystore, alias, passwords | Passwords are secret |
-| `management.endpoints.web.exposure.include` | Operational endpoints | No |
+| `management.endpoints.web.exposure.include` | Operational endpoints (`health` only in tracked config) | No |
 | `spring.rabbitmq.*` | Messaging broker | Credentials are secret |
 | `env`, `address.queue` | Message routing environment/queue | No |
 | `spring.mail.*` | SMTP | Credentials are secret |
@@ -39,9 +42,18 @@ Vite also deduplicates `react` and `react-dom` and pre-bundles `@tanstack/react-
 The repository default expects database `payroll_management`. Local environments may use another port by overriding the complete JDBC URL:
 
 ```bash
+export SPRING_PROFILES_ACTIVE=local
+# copy backend src/main/resources/application-local.example.properties
+# to gitignored application-local.properties and fill local values
+```
+
+Environment-variable alternative:
+
+```bash
 export SPRING_DATASOURCE_URL='jdbc:mysql://127.0.0.1:3307/payroll_management?useSSL=false'
 export DB_USERNAME='<local-user>'
 export DB_PASSWORD='<local-password>'
+export JWT_SECRET='<local-secret-at-least-32-bytes>'
 ```
 
 Do not put real values in committed shell scripts, Markdown, `.env`, screenshots, or examples.
@@ -49,6 +61,8 @@ Do not put real values in committed shell scripts, Markdown, `.env`, screenshots
 ## Integration data stored in MySQL
 
 Tenant rows contain biometric and external-software configuration. Store rows contain external branch mapping. Treat vendor credentials as secrets even though the current model stores them in application tables.
+
+Deployed QA and production hosts inject the same keys from a secret manager. See [QA and production deployment](../operations/qa-and-production-deployment.md).
 
 ## Production recommendations
 

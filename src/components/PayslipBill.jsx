@@ -40,9 +40,9 @@ const PayslipBill = ({ payslipData, payslipMonth, storeConfig }) => {
           'Accept': 'application/json',
           'Tenantid': String(tenantId),
           'Storeid': String(storeId),
-          'Userid': String(user?.id || ''),
+          'Userid': String(user?.staffId || ''),
           'Username': String(user?.username || ''),
-          'RoleId': String(user?.roles?.[0]?.id || '2'),
+          'RoleId': '2',
           'x-allowed-store-ids': `[${storeId}]`,
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         }

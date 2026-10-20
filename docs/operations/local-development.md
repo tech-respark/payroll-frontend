@@ -2,7 +2,7 @@
 
 > **Audience:** Developers and QA  
 > **Purpose:** Run the frontend, backend, and database locally  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Build files and verified local runtime
 
 ## Prerequisites
@@ -23,7 +23,7 @@
 | Backend HTTPS | 8092 |
 | Project MySQL on the verified workstation | 3307 |
 
-The committed backend default uses MySQL port 3306. Override the JDBC URL when your local server uses 3307.
+Tracked backend properties have no credential defaults. Local JDBC URL, passwords, and `jwt.secret` come from gitignored `application-local.properties` or environment variables. The verified workstation uses MySQL port 3307.
 
 ## Database
 
@@ -35,11 +35,10 @@ Confirm connectivity and table count before starting the API.
 
 ```bash
 export JAVA_HOME='<path-to-java-21>'
-export SPRING_DATASOURCE_URL='jdbc:mysql://127.0.0.1:3307/payroll_management?useSSL=false'
-export DB_USERNAME='<local-user>'
-export DB_PASSWORD='<local-password>'
+export SPRING_PROFILES_ACTIVE=local
 
 cd ../payroll-backend
+# copy application-local.example.properties to gitignored application-local.properties first
 mvn spring-boot:run
 ```
 
@@ -80,4 +79,4 @@ mvn test
 
 Basic login and database screens do not require every integration. OTP notifications, emails, biometric retrieval, and staff import require their corresponding external services/configuration.
 
-See [runbook and troubleshooting](runbook-and-troubleshooting.md) when startup or login fails.
+See [runbook and troubleshooting](runbook-and-troubleshooting.md) when startup or login fails. Shared QA and production servers follow [QA and production deployment](qa-and-production-deployment.md); do not copy `application-local.properties` onto those hosts.

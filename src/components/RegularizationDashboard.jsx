@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
+import { addDaysToDateKey, todayLocalKey } from '../helpers/dateUtils';
 import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 import { Checkbox } from './ui';
 import styles from './RegularizationDashboard.module.scss';
@@ -21,8 +22,8 @@ const getInitials = (name) => {
 const RegularizationDashboard = ({ staffList }) => {
   const { tenantId, storeId, user } = useAuth();
   const [activeTab, setActiveTab] = useState('PENDING');
-  const [fromDate, setFromDate] = useState(new Date().toISOString().split('T')[0]);
-  const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
+  const [fromDate, setFromDate] = useState(addDaysToDateKey(todayLocalKey(), -45));
+  const [toDate, setToDate] = useState(todayLocalKey());
   const [selectedStaffId, setSelectedStaffId] = useState('All');
   
   const [selectedRequests, setSelectedRequests] = useState([]);
@@ -67,7 +68,7 @@ const RegularizationDashboard = ({ staffList }) => {
     try {
       const payload = reqIds.map(id => ({
         personnelAttendanceId: id,
-        modifiedBy: user?.id || 1,
+        modifiedBy: user?.staffId,
         currentStatus: action,
         remark: ""
       }));
@@ -80,6 +81,8 @@ const RegularizationDashboard = ({ staffList }) => {
       
       setSelectedRequests([]);
       queryClient.invalidateQueries({ queryKey: ['regularizationRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['headerNotifRegs'] });
+      queryClient.invalidateQueries({ queryKey: ['attendanceData'] });
     } catch (err) {
       console.error(`Failed to ${action} requests`, err);
     } finally {

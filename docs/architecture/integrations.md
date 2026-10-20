@@ -2,7 +2,7 @@
 
 > **Audience:** Integration developers, architects, operators, client implementation teams  
 > **Purpose:** Define current integration directions, prerequisites, and schedules  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Integration services, handlers, schedulers, and configuration
 
 ## Team Office biometric attendance
@@ -13,7 +13,7 @@ The handler requests punches for employee/date ranges and writes raw attendance 
 
 ## External role and staff import
 
-Import is triggered by authenticated:
+Import is triggered by `MANAGE_STAFF`:
 
 ```text
 POST /api/v1/sync/staff?tenantId={optionalTenantId}
@@ -55,7 +55,7 @@ Staff response:
 }
 ```
 
-`externalStaffId` maps to `employee_code`; email becomes username. Stores without `external_branch_id` are skipped. New roles have empty permissions and require review.
+`externalStaffId` maps to `employee_code`; email becomes username. Stores without `external_branch_id` are skipped. New roles have empty permissions and require review. New people get a random password hash and must use forgot-password or an admin password set before they can sign in.
 
 This sync is on demand; no periodic staff-sync scheduler is implemented.
 
@@ -76,7 +76,7 @@ This sync is on demand; no periodic staff-sync scheduler is implemented.
 | Quarterly leave accrual | Midnight, first of Jan/Apr/Jul/Oct | Apply quarterly rules |
 | Annual expiry/grant | 00:01, first of January | Expire carry-forward and apply annual rules |
 
-Schedulers run inside the API JVM. In a multi-instance deployment, use leader election or a distributed lock to avoid duplicate execution.
+Schedulers run inside the API JVM. Each job takes a `scheduler_lock` row for its TTL so a second instance skips an in-flight run. Prefer one API process per environment. Leave accrual skips a period that already has an `ACCRUAL` ledger row.
 
 ## Integration readiness checklist
 

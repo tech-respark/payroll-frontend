@@ -7,14 +7,14 @@ import { apiService } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
-import { formatDateByConfig } from '../helpers/dateUtils';
+import { formatDateByConfig, parseLocalDate } from '../helpers/dateUtils';
 import { Radio } from '../components/ui';
 import { LuPlane, LuClock, LuCalendarDays } from 'react-icons/lu';
 
 const EmployeeDashboard = () => {
   const { user, tenantId, storeId } = useAuth();
   const { storeConfig } = useStoreConfig();
-  const staffId = user?.staffId || user?.id || 1;
+  const staffId = user?.staffId;
   const { showToast } = useToast();
 
   const location = useLocation();
@@ -76,9 +76,9 @@ const EmployeeDashboard = () => {
   // Duration Calculation Logic
   useEffect(() => {
     if (formData.startDate && formData.endDate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
-      if (end >= start) {
+      const start = parseLocalDate(formData.startDate);
+      const end = parseLocalDate(formData.endDate);
+      if (start && end && end >= start) {
         const diffTime = Math.abs(end - start);
         let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
         if (diffDays === 1 && (leaveSession === 'FIRST_HALF' || leaveSession === 'SECOND_HALF')) {
@@ -100,6 +100,10 @@ const EmployeeDashboard = () => {
       handleCancel();
       queryClient.invalidateQueries({ queryKey: ['leaveBalances', staffId] });
       queryClient.invalidateQueries({ queryKey: ['leaveHistory', staffId] });
+      queryClient.invalidateQueries({ queryKey: ['pendingLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['headerNotifLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['headerNotifMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['hrDashboardMetrics'] });
     },
     onError: (err) => {
       console.error(err);
@@ -112,10 +116,17 @@ const EmployeeDashboard = () => {
       staffId: staffId,
       remarks: "Cancelled by employee"
     }),
-    onSuccess: () => {
-      showToast("Leave cancelled successfully", "success");
+    onSuccess: (data) => {
+      const requested = data?.status === 'CANCELLATION_REQUESTED'
+        || String(data?.message || '').toLowerCase().includes('cancellation requested');
+      showToast(requested ? 'Cancellation requested; pending manager approval' : 'Leave cancelled successfully', 'success');
       queryClient.invalidateQueries({ queryKey: ['leaveBalances', staffId] });
       queryClient.invalidateQueries({ queryKey: ['leaveHistory', staffId] });
+      queryClient.invalidateQueries({ queryKey: ['pendingLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['headerNotifLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['headerNotifMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['hrDashboardMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['leaveData'] });
     },
     onError: (err) => {
       console.error(err);
@@ -125,7 +136,17 @@ const EmployeeDashboard = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = { ...formData, staffId, tenantId, storeId, leaveSession };
+    if (!staffId) {
+      showToast('Your staff profile is missing. Please sign in again.', 'error');
+      return;
+    }
+    const payload = {
+      ...formData,
+      staffId,
+      tenantId,
+      storeId,
+      leaveSession: isOptionalHolidaySelected ? 'FULL_DAY' : leaveSession,
+    };
     submitLeaveMutation.mutate(payload);
   };
 
@@ -240,7 +261,7 @@ const EmployeeDashboard = () => {
               )}
             </div>
 
-            {formData.startDate && formData.endDate && formData.startDate === formData.endDate && (
+            {formData.startDate && formData.endDate && formData.startDate === formData.endDate && !isOptionalHolidaySelected && (
               <div className={styles.formGroup}>
                 <label className={styles.label}>LEAVE SESSION</label>
                 <div className={styles.radioGroup}>
@@ -347,7 +368,7 @@ const EmployeeDashboard = () => {
                 <StatusBadge status={req.status} />
               </div>
               <div className={styles.historyCardDetails}>
-                {req.leaveType?.name || 'Leave'} • {req.requestedDays} {req.requestedDays === 1 ? 'Day' : 'Days'}
+                {req.leaveType?.leaveName || req.leaveType?.name || 'Leave'} • {req.requestedDays} {req.requestedDays === 1 ? 'Day' : 'Days'}
               </div>
               {(req.status === 'PENDING' || req.status === 'APPROVED') && (
                 <button 

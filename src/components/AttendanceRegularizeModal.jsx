@@ -8,7 +8,7 @@ import { LuPlus, LuX, LuClock } from 'react-icons/lu';
 import styles from './AttendanceRegularizeModal.module.scss';
 
 const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId }) => {
-  const { hasAccess } = useAuth();
+  const { hasAccess, user } = useAuth();
   const { showToast } = useToast();
   const canManage = hasAccess(['MANAGE_ATTENDANCE']);
   const [punches, setPunches] = useState([]);
@@ -82,8 +82,8 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
       currentStatus: p.isNew ? (canManage ? 'APPROVED' : 'PENDING') : (p.currentStatus || 'APPROVED'),
       punchDate: p.punchDate || staffData.attendanceDate,
       attendanceDate: p.attendanceDate || staffData.attendanceDate,
-      createdBy: p.createdBy || 1,
-      modifiedBy: p.modifiedBy || 1,
+      createdBy: p.createdBy || user?.staffId,
+      modifiedBy: p.modifiedBy || user?.staffId,
     }));
 
     const payload = {

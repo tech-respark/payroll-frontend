@@ -2,7 +2,7 @@
 
 > **Audience:** Product, QA, frontend/backend developers, support
 > **Purpose:** Record current frontend route gates and important backend differences
-> **Last verified:** 2026-10-19
+> **Last verified:** 2026-10-20
 > **Source of truth:** `App.jsx`, `Navigation.jsx`, screen checks, `@PreAuthorize`
 
 ## Navigation groups
@@ -56,14 +56,14 @@ Strong class-level checks exist for:
 - leave-plan administration: `MANAGE_LEAVES`;
 - shift controller: `MANAGE_SHIFTS`.
 
-Selected salary and leave methods have method-level checks. Many staff, attendance, holiday, dashboard, payslip, sync, and trigger endpoints require only an authenticated JWT.
+Selected salary, leave, trigger, sync, and store-hours methods have method-level checks. Remaining unannotated authenticated endpoints still need review.
 
 ## Known mismatches
 
-1. `/reports` route requires `VIEW_REPORTS`, while the navigation group requires attendance or salary management.
-2. `/shifts` allows view-only users in the frontend, but its backend controller requires `MANAGE_SHIFTS`.
-3. `MANAGE_STAFF` can expose staff-directory controls while shared staff-list filtering relies on `VIEW_OTHER_STAFF`.
-4. The HR dashboard can link to leave approvals without checking `MANAGE_LEAVES`.
-5. A missing protected route produces empty authenticated content because there is no catch-all access-denied route.
+1. `/reports` route requires `VIEW_REPORTS`, while the navigation group is visible with attendance or salary management.
+2. Shift GET/list endpoints accept `VIEW_SHIFTS` or `MANAGE_SHIFTS`; roster and slot writes still require `MANAGE_SHIFTS`.
+3. `MANAGE_STAFF` now receives the full store directory (same as `VIEW_OTHER_STAFF`). Role list GET and assignment allow `MANAGE_STAFF`; role create/update still require `MANAGE_ROLES`. Callers without those authorities receive only their own personnel row.
+4. HR dashboard “View Approvals” only links to `/leave-approvals` when the user has `MANAGE_LEAVES`.
+5. Unknown or permission-denied routes redirect to `/staff`.
 
 QA must test both visibility and direct API access for every role. Backend authorization is the security boundary.

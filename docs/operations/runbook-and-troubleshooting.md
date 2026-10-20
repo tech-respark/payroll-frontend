@@ -2,8 +2,10 @@
 
 > **Audience:** Developers, QA, support, operators  
 > **Purpose:** Diagnose common local and application failures  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Verified startup behavior and current code paths
+
+Shared QA and production environments use a reverse proxy and injected secrets. See [QA and production deployment](qa-and-production-deployment.md).
 
 ## Service health sequence
 

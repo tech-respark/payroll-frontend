@@ -2,7 +2,7 @@
 
 > **Audience:** Backend developers, data engineers, architects, operators  
 > **Purpose:** Describe the verified logical model and schema risks  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** 38 JPA mappings and the 41-table MySQL 8 dump
 
 ## Domain map
@@ -48,7 +48,7 @@ The dump has 41 tables: 38 are JPA-mapped and three are legacy Hibernate sequenc
 - `employee_code` is the external/HR identifier.
 - `personnel_code` is a legacy numeric value.
 
-Current dump data and legacy columns sometimes mix these identities in fact-table `staff_id` fields. New integrations must map identifiers explicitly.
+Current dump data and legacy columns sometimes mix these identities in fact-table `staff_id` fields. Roster GET and staff-report SQL resolve `staff_shifts.staff_id` against both `personnel_details.id` and `personnel_code`, then expose canonical `id`. New writes should store `personnel_details.id`.
 
 ## Schema management
 
@@ -64,7 +64,7 @@ Before production maturity:
 ## Verified schema mismatches
 
 - `PersonnelDetails.salaryAmount` maps to `salaryAmount`, while the dump uses `salary_amount`.
-- Several legacy `personnel_id`/`personnel_code` columns are not mapped.
+- `PersonnelDetails.personnelCode` maps `personnel_details.personnel_code`. Other legacy `personnel_id`/`personnel_code` columns on fact tables remain unmapped.
 - Staff identifier semantics vary in historical rows.
 - Enrollment uniqueness annotations and table constraints are not fully aligned.
 - Salary definitions include `absentPenalty` without a corresponding formula rule in the supplied dump.

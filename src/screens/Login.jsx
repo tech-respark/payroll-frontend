@@ -57,7 +57,7 @@ const Login = () => {
 
   const handleGenerateOtp = async () => {
     if (!forgotUsername) {
-      showToast('Please enter your username or mobile number.', 'error');
+      showToast('Please enter your username, email, or mobile number.', 'error');
       return;
     }
     setForgotLoading(true);
@@ -200,7 +200,7 @@ const Login = () => {
         title={forgotStep === 1 ? 'Forgot password' : forgotStep === 2 ? 'Verify OTP' : 'Reset password'}
         subtitle={
           forgotStep === 1
-            ? 'Enter your username or mobile number to receive a 6-digit OTP.'
+            ? 'Enter your username, email, or mobile number to receive a 6-digit OTP.'
             : forgotStep === 2
               ? 'Enter the 6-digit OTP sent to your registered mobile number.'
               : 'Please enter a strong new password.'
@@ -229,13 +229,13 @@ const Login = () => {
       >
         {forgotStep === 1 && (
           <div className={styles.formGroup}>
-            <label className={styles.label}>Username / Mobile</label>
+            <label className={styles.label}>Username / Email / Mobile</label>
             <input
               type="text"
               value={forgotUsername}
               onChange={(e) => setForgotUsername(e.target.value)}
               className={styles.input}
-              placeholder="Enter username"
+              placeholder="Enter username, email, or mobile"
             />
           </div>
         )}

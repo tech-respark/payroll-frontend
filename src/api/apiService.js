@@ -2,15 +2,16 @@ export const BASE_URL = '/payroll-management/v1';
 
 
 const handleResponse = async (response, endpoint) => {
-  if ((response.status === 401 || response.status === 403) && !endpoint.includes('/login')) {
-    // Token is expired or invalid
+  if (response.status === 401 && !endpoint.includes('/login')) {
     localStorage.removeItem('jwtToken');
     localStorage.removeItem('user');
     window.location.href = '/login';
     throw new Error('Session expired. Please log in again.');
   }
-  if (!response.ok && response.status !== 401) {
-    let errorMessage = 'Network response was not ok';
+  if (!response.ok) {
+    let errorMessage = response.status === 403
+      ? 'You do not have permission to perform this action.'
+      : 'Network response was not ok';
     try {
       const errorData = await response.json();
       errorMessage = errorData.error || errorData.message || errorMessage;

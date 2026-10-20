@@ -2,7 +2,7 @@
 
 > **Audience:** Everyone working with or evaluating Relfor Payroll  
 > **Purpose:** Central navigation and documentation ownership  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Current `payroll-frontend` and `payroll-backend` code
 
 This portal follows a docs-as-code model. It separates product promises, user workflows, technical design, operational procedures, and known limitations so each audience can find reliable information quickly.
@@ -18,6 +18,7 @@ This portal follows a docs-as-code model. It separates product promises, user wo
 | Integration engineer | [Integrations](architecture/integrations.md) | Biometric, staff sync, messaging, email |
 | API consumer | [API reference](reference/api-reference.md) | Methods, paths, authorization, response styles |
 | DevOps or support | [Operations](operations/local-development.md) | Setup, configuration, runbooks, troubleshooting |
+| QA or release operator | [QA and production deployment](operations/qa-and-production-deployment.md) | Secrets, reverse proxy, QA checks, production controls |
 | Tenant implementation team | [Tenant onboarding](operations/tenant-onboarding.md) | Safe sequencing and acceptance checks |
 
 ## Product and client documentation
@@ -53,6 +54,7 @@ This portal follows a docs-as-code model. It separates product promises, user wo
 ## Operations
 
 - [Local development](operations/local-development.md)
+- [QA and production deployment](operations/qa-and-production-deployment.md)
 - [Tenant onboarding](operations/tenant-onboarding.md)
 - [Runbook and troubleshooting](operations/runbook-and-troubleshooting.md)
 - [Known limitations and risks](operations/known-limitations.md)

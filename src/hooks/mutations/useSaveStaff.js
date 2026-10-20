@@ -20,7 +20,17 @@ export const useSaveStaff = ({ onSuccess } = {}) => {
 
   const { mutate: saveStaff, isPending: isSaving } = useMutation({
     mutationFn: async (payload) => {
-      const savedStaffRes = await apiService.post('/personnelForAttendanceManagement', payload, {
+      const joining = payload.personnelJoiningDetails || {};
+      const cleaned = {
+        ...payload,
+        personnelJoiningDetails: {
+          ...joining,
+          staffId: joining.staffId === '' || joining.staffId == null ? (payload.id ?? null) : joining.staffId,
+          reportingTo: joining.reportingTo === '' ? null : joining.reportingTo,
+          storeId: joining.storeId === '' || joining.storeId == null ? storeId : joining.storeId,
+        },
+      };
+      const savedStaffRes = await apiService.post('/personnelForAttendanceManagement', cleaned, {
         'Tenantid': String(tenantId),
         'Storeid': String(storeId),
         'x-allowed-store-ids': String(storeId),

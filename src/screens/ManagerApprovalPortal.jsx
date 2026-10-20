@@ -9,7 +9,7 @@ import { formatDateByConfig } from '../helpers/dateUtils';
 import { LuCheck, LuX, LuCircle, LuInbox } from 'react-icons/lu';
 import { Drawer, Modal, Button, Checkbox } from '../components/ui';
 
-const ManagerApprovalPortal = ({ managerId = 1 }) => {
+const ManagerApprovalPortal = () => {
   const [selectedReq, setSelectedReq] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [remarks, setRemarks] = useState('');
@@ -17,7 +17,8 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
   const [leaveHistory, setLeaveHistory] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   
-  const { tenantId, storeId } = useAuth();
+  const { tenantId, storeId, user } = useAuth();
+  const managerId = user?.staffId;
   const { storeConfig } = useStoreConfig();
   const { showToast } = useToast();
 
@@ -44,11 +45,16 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
 
   useEffect(() => {
     if (selectedStaffData && selectedReq) {
-      const targetBalance = selectedStaffData.balanceData.find(b => b.typeId === selectedReq.leaveType?.id);
+      const balances = Array.isArray(selectedStaffData.balanceData) ? selectedStaffData.balanceData : [];
+      const history = Array.isArray(selectedStaffData.historyData) ? selectedStaffData.historyData : [];
+      const targetBalance = balances.find(b => b.typeId === selectedReq.leaveType?.id);
       setCurrentBalance(targetBalance ? targetBalance.available : null);
       
       const currentMonth = new Date().getMonth();
-      const thisMonthHistory = selectedStaffData.historyData.filter(h => new Date(h.startDate).getMonth() === currentMonth);
+      const thisMonthHistory = history.filter(h => {
+        const start = h.startDate ? new Date(`${String(h.startDate).slice(0, 10)}T00:00:00`) : null;
+        return start && start.getMonth() === currentMonth;
+      });
       setLeaveHistory(thisMonthHistory);
     }
   }, [selectedStaffData, selectedReq]);
@@ -71,6 +77,9 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
 
   const actionMutation = useMutation({
     mutationFn: async ({ reqId, endpoint, remarks }) => {
+      if (!managerId) {
+        throw new Error('Your staff profile is missing. Please sign in again.');
+      }
       return await apiService.post(`/leaves/${reqId}/${endpoint}`, { managerId, remarks });
     },
     onSuccess: (data, variables) => {
@@ -83,6 +92,13 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['pendingLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['headerNotifLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['headerNotifMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['hrDashboardMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['leaveHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['leaveBalances'] });
+      queryClient.invalidateQueries({ queryKey: ['leaveData'] });
+      queryClient.invalidateQueries({ queryKey: ['attendanceData'] });
     }
   });
 
@@ -130,6 +146,9 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
           let endpoint = action === 'approve' 
             ? (req.status === 'CANCELLATION_REQUESTED' ? 'approve-cancellation' : 'approve') 
             : (req.status === 'CANCELLATION_REQUESTED' ? 'reject-cancellation' : 'reject');
+          if (!managerId) {
+            throw new Error('Your staff profile is missing. Please sign in again.');
+          }
           await apiService.post(`/leaves/${req.id}/${endpoint}`, { managerId, remarks: action === 'approve' ? 'Bulk Approved' : 'Bulk Rejected' });
         }
       }
@@ -138,6 +157,13 @@ const ManagerApprovalPortal = ({ managerId = 1 }) => {
       showToast(`Bulk ${variables.action}d ${variables.ids.length} requests successfully`, 'success');
       setSelectedIds([]);
       queryClient.invalidateQueries({ queryKey: ['pendingLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['headerNotifLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['headerNotifMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['hrDashboardMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['leaveHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['leaveBalances'] });
+      queryClient.invalidateQueries({ queryKey: ['leaveData'] });
+      queryClient.invalidateQueries({ queryKey: ['attendanceData'] });
     },
     onError: (err) => {
       showToast(err.message || "Bulk action failed", 'error');

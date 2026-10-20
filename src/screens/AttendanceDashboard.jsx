@@ -6,7 +6,7 @@ import { useStaffList, useStoreConfig } from '../hooks/queries';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import AttendanceRegularizeModal from '../components/AttendanceRegularizeModal';
-import { formatDateByConfig } from '../helpers/dateUtils';
+import { formatDateByConfig, todayLocalKey, parseLocalDate } from '../helpers/dateUtils';
 import styles from './AttendanceDashboard.module.scss';
 import { Badge } from '../components/ui';
 import { LuPencil, LuFolderOpen, LuCalendarDays } from 'react-icons/lu';
@@ -137,7 +137,7 @@ const AttendanceDashboard = () => {
         };
         
         let status = dayRecord ? (dayRecord.currentStatus) : 'absent';
-        let isFuture = new Date(dateStr) > new Date();
+        let isFuture = dateStr > todayLocalKey();
         if (isFuture) status = '';
         
         let punches = dayRecord ? (dayRecord.individualPunchesList || []) : [];
@@ -229,7 +229,7 @@ const AttendanceDashboard = () => {
   useEffect(() => {
     if (attendanceData.length > 0) {
       if (!selectedDateObj) {
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = todayLocalKey();
         const todayObj = attendanceData.find(d => d.dateStr === todayStr);
         if (todayObj) setSelectedDateObj(todayObj);
         else setSelectedDateObj(attendanceData[0]);
@@ -289,15 +289,13 @@ const AttendanceDashboard = () => {
           }
           
           const isSelected = selectedDateObj && selectedDateObj.dateStr === cell.dateStr;
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const cellDate = new Date(cell.dateStr);
-          cellDate.setHours(0, 0, 0, 0);
-          const isToday = cellDate.getTime() === today.getTime();
+          const today = parseLocalDate(todayLocalKey());
+          const cellDate = parseLocalDate(cell.dateStr);
+          const isToday = cellDate && today && cellDate.getTime() === today.getTime();
           const statusClass = cell.status ? styles[`calendarStatus${cell.status}`] : '';
 
           const handleCellClick = () => {
-            if (cellDate >= today && (!cell.status || cell.status === '' || cell.status === 'No Record')) {
+            if (cellDate && today && cellDate >= today && (!cell.status || cell.status === '' || cell.status === 'No Record')) {
               history.push(`/leave-dashboard?startDate=${cell.dateStr}&endDate=${cell.dateStr}`);
             } else {
               setSelectedDateObj(cell);
@@ -332,8 +330,7 @@ const AttendanceDashboard = () => {
       </div>
     );
     
-    const dObj = new Date(selectedDateObj.dateStr);
-    const dateFormatted = formatDateByConfig(dObj, storeConfig?.dateFormat);
+    const dateFormatted = formatDateByConfig(selectedDateObj.dateStr, storeConfig?.dateFormat);
     
     return (
       <div className={styles.detailsCard}>

@@ -411,7 +411,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
       setTotals({ earning: 0, deduction: 0, net: 0 });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStaffId]);
+  }, [selectedStaffId, selectedMonth, selectedYear]);
 
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaffId) {
@@ -432,26 +432,30 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
       const compRes = await apiService.get(`/salaryComponentDefinitions?tenantId=${tenantId}&storeId=${storeId}`);
       const availableComponents = compRes.data || [];
       
-      const savedRes = await apiService.get(`/personnelSalaryComponents?staffId=${staffId}`);
+      const savedRes = await apiService.get(`/personnelSalaryComponentsForMonth?staffId=${staffId}&month=${selectedMonth}&year=${selectedYear}`);
       const savedStructure = savedRes.data || { earningsList: [], deductionsList: [] };
 
       // Filter to only variables (isCalculatedMonthly = true) and exclude those with formulas
       const varDefs = availableComponents.filter(c => c.isCalculatedMonthly && (!c.formula || c.formula.trim() === ''));
 
-      const merged = varDefs.map(comp => {
-        let savedAnnualValue = 0;
-        if (comp.componentCategory === 'EARNING' && savedStructure.earningsList) {
-          const found = savedStructure.earningsList.find(e => e.componentName === comp.componentName);
-          if (found) savedAnnualValue = found.annualValue;
-        } else if (comp.componentCategory === 'DEDUCTION' && savedStructure.deductionsList) {
-          const found = savedStructure.deductionsList.find(e => e.componentName === comp.componentName);
-          if (found) savedAnnualValue = found.annualValue;
+      const monthlyOf = (found) => {
+        if (!found) return '';
+        if (found.monthlyValue != null && found.monthlyValue !== '') return String(found.monthlyValue);
+        if (found.annualValue) {
+          const monthly = Number(found.annualValue) / 12;
+          return Number.isInteger(monthly) ? String(monthly) : monthly.toFixed(2);
         }
-        
-        let displayMonthly = savedAnnualValue > 0 ? (savedAnnualValue / 12).toFixed(2) : '';
-        if (displayMonthly.endsWith('.00')) displayMonthly = Math.round(savedAnnualValue / 12).toString();
+        return '';
+      };
 
-        return { ...comp, monthlyValue: displayMonthly };
+      const merged = varDefs.map(comp => {
+        let found;
+        if (comp.componentCategory === 'EARNING' && savedStructure.earningsList) {
+          found = savedStructure.earningsList.find(e => e.componentName === comp.componentName);
+        } else if (comp.componentCategory === 'DEDUCTION' && savedStructure.deductionsList) {
+          found = savedStructure.deductionsList.find(e => e.componentName === comp.componentName);
+        }
+        return { ...comp, monthlyValue: monthlyOf(found) };
       });
 
       setComponents(merged);
@@ -465,13 +469,18 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
   };
 
   const calculateTotals = (earnings, deductions, defs = []) => {
+    const monthlyAmount = (item) => {
+      if (item.monthlyValue != null && item.monthlyValue !== '') return Number(item.monthlyValue) || 0;
+      if (item.annualValue != null && item.annualValue !== '') return Number(item.annualValue) / 12;
+      return 0;
+    };
     const totE = earnings.reduce((sum, item) => {
       const def = defs.find(d => d.componentName === item.componentName);
-      return sum + (def && def.includeInTotal === false ? 0 : (item.annualValue / 12));
+      return sum + (def && def.includeInTotal === false ? 0 : monthlyAmount(item));
     }, 0);
     const totD = deductions.reduce((sum, item) => {
       const def = defs.find(d => d.componentName === item.componentName);
-      return sum + (def && def.includeInTotal === false ? 0 : (item.annualValue / 12));
+      return sum + (def && def.includeInTotal === false ? 0 : monthlyAmount(item));
     }, 0);
     setTotals({ earning: Math.round(totE), deduction: Math.round(totD), net: Math.round(totE - totD) });
   };
@@ -486,38 +495,16 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
     if (!selectedStaffId) return;
     setSaving(true);
 
-    // Fetch existing fixed components first so we don't overwrite them
-    let fixedEarnings = [];
-    let fixedDeductions = [];
-    try {
-      const savedRes = await apiService.get(`/personnelSalaryComponents?staffId=${selectedStaffId}`);
-      if (savedRes.data) {
-        const compRes = await apiService.get(`/salaryComponentDefinitions?tenantId=${tenantId}&storeId=${storeId}`);
-        const availableComponents = compRes.data || [];
-        
-        const isVar = (name) => {
-          const def = availableComponents.find(c => c.componentName === name);
-          return def ? def.isCalculatedMonthly : false;
-        };
-
-        fixedEarnings = (savedRes.data.earningsList || []).filter(e => !isVar(e.componentName));
-        fixedDeductions = (savedRes.data.deductionsList || []).filter(e => !isVar(e.componentName));
-      }
-    } catch (err) {
-      console.error("Failed to fetch existing components", err);
-    }
-
-    const newEarningsList = [...fixedEarnings];
-    const newDeductionsList = [...fixedDeductions];
+    const newEarningsList = [];
+    const newDeductionsList = [];
 
     components.forEach(sc => {
       if (sc.monthlyValue !== '' && sc.monthlyValue !== null) {
-        const annualEquivalent = Number(sc.monthlyValue) * 12;
         const item = {
           salaryComponentDefinitionsId: sc.id,
           componentName: sc.componentName,
           componentType: sc.componentType,
-          annualValue: annualEquivalent
+          monthlyValue: Number(sc.monthlyValue)
         };
         if (sc.componentCategory === 'EARNING') newEarningsList.push(item);
         if (sc.componentCategory === 'DEDUCTION') newDeductionsList.push(item);
@@ -528,12 +515,14 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
       tenantId,
       storeId,
       staffId: selectedStaffId,
+      salaryMonth: selectedMonth,
+      salaryYear: selectedYear,
       earningsList: newEarningsList,
       deductionsList: newDeductionsList
     };
 
     try {
-      await apiService.post('/personnelSalaryComponentsCalculation', payload, {
+      await apiService.post('/monthlyCalculationComponents', payload, {
         'Tenantid': String(tenantId),
         'Storeid': String(storeId),
         'x-allowed-store-ids': String(storeId)

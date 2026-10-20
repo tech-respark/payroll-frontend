@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
-import { formatDateByConfig } from '../helpers/dateUtils';
+import { formatDateByConfig, todayLocalKey, addDaysToDateKey } from '../helpers/dateUtils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useStaffList, useShiftSlots, useStoreSettings, useWeeklyShifts } from '../hooks/queries';
 import { Checkbox } from '../components/ui';
@@ -45,7 +45,7 @@ const ShiftsDashboard = () => {
   });
 
   // Roster Data
-  const [assignStartDate, setAssignStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [assignStartDate, setAssignStartDate] = useState(todayLocalKey());
   const [assignNoOfDays, setAssignNoOfDays] = useState(1);
   const [globalShiftId, setGlobalShiftId] = useState('');
   const [bulkAssignments, setBulkAssignments] = useState({});
@@ -61,14 +61,14 @@ const ShiftsDashboard = () => {
   const { storeSettings: storeSettingsData } = useStoreSettings();
   const { shiftSlots } = useShiftSlots();
   
-  const [weeklyStartDate, setWeeklyStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [weeklyStartDate, setWeeklyStartDate] = useState(todayLocalKey());
   const { weeklyShifts } = useWeeklyShifts(weeklyStartDate);
 
   useEffect(() => {
-    if (storeSettingsData && storeSettingsData.length > 0) {
-      const s = storeSettingsData[0];
-      setStoreOpenTime(s.storeOpenTime || '08:00');
-      setStoreCloseTime(s.storeCloseTime || '22:00');
+    const settings = Array.isArray(storeSettingsData) ? storeSettingsData[0] : storeSettingsData;
+    if (settings) {
+      setStoreOpenTime(settings.storeOpenTime || '08:00');
+      setStoreCloseTime(settings.storeCloseTime || '22:00');
     }
   }, [storeSettingsData]);
 
@@ -281,9 +281,7 @@ const ShiftsDashboard = () => {
   };
 
   const handleDateShift = (direction) => {
-    const current = new Date(assignStartDate);
-    current.setDate(current.getDate() + direction);
-    setAssignStartDate(current.toISOString().split('T')[0]);
+    setAssignStartDate(addDaysToDateKey(assignStartDate, direction));
   };
 
   const generateRosterMutation = useMutation({
@@ -306,7 +304,7 @@ const ShiftsDashboard = () => {
       setGlobalShiftId('');
       
       // Invalidate the weekly schedule data so it refetches immediately
-      queryClient.invalidateQueries(['weeklyShifts']);
+      queryClient.invalidateQueries({ queryKey: ['weeklyShifts'] });
     },
     onError: () => {
       showToast('Failed to assign bulk shifts.', 'error');
@@ -330,14 +328,14 @@ const ShiftsDashboard = () => {
     const staffShiftsList = selectedStaffIds.map(staffId => {
       const assignment = bulkAssignments[staffId];
       return {
-        createdBy: user.userId || user.staffId || user.id || 1,
+        createdBy: user?.staffId,
         createdOn: currentIsoTime,
-        day: new Date(assignStartDate).toLocaleDateString('en-US', { weekday: 'long' }),
+        day: new Date(`${assignStartDate}T00:00:00`).toLocaleDateString('en-US', { weekday: 'long' }),
         earlyOutTime: '',
-        modifiedBy: user.userId || user.staffId || user.id || 1,
+        modifiedBy: user?.staffId,
         modifiedOn: currentIsoTime,
         onLeave: assignment.isWorking ? 0 : 1,
-        shiftDate: new Date(assignStartDate).toISOString(),
+        shiftDate: assignStartDate,
         slot: `${assignment.startTime}-${assignment.endTime}`,
         staffBreakTime: assignment.breaks && assignment.breaks.length > 0 ? assignment.breaks.map(b => ({
           slot: `${b.startTime}-${b.endTime}`,
@@ -353,8 +351,8 @@ const ShiftsDashboard = () => {
     });
 
     generateRosterMutation.mutate({
-      createdBy: user.userId || user.staffId || user.id || 1,
-      modifiedBy: user.userId || user.staffId || user.id || 1,
+      createdBy: user?.staffId,
+      modifiedBy: user?.staffId,
       noOfDays: parseInt(assignNoOfDays),
       staffShiftsList: staffShiftsList,
       tenantId: tenantId,
@@ -439,6 +437,14 @@ const ShiftsDashboard = () => {
         >
           Weekly Schedule
         </button>
+        {canManage && (
+          <button 
+            className={`${styles.tabBtn} ${activeTab === 'settings' ? styles.tabBtnActive : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            Store Hours
+          </button>
+        )}
       </div>
 
       {/* STORE SETTINGS */}
@@ -870,11 +876,9 @@ const ShiftsDashboard = () => {
             <div className={styles.tableHeader}>
               <div className={styles.headerLabel}>STAFF NAME</div>
               {[...Array(7)].map((_, i) => {
-                const date = new Date(weeklyStartDate);
-                date.setDate(date.getDate() + i);
                 return (
                   <div key={i} className={styles.headerLabel}>
-                    {formatDateByConfig(date, storeConfig?.dateFormat)}
+                    {formatDateByConfig(addDaysToDateKey(weeklyStartDate, i), storeConfig?.dateFormat)}
                   </div>
                 );
               })}
@@ -889,11 +893,7 @@ const ShiftsDashboard = () => {
                     </div>
                     
                     {[...Array(7)].map((_, i) => {
-                      const dateStr = (() => {
-                        const d = new Date(weeklyStartDate);
-                        d.setDate(d.getDate() + i);
-                        return d.toISOString().split('T')[0];
-                      })();
+                      const dateStr = addDaysToDateKey(weeklyStartDate, i);
                       
                       // Find shift for this staff and date
                       const shift = weeklyShifts.find(s => s.staffId === staff.id && s.shiftDate.startsWith(dateStr));

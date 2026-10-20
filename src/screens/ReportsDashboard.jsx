@@ -12,6 +12,7 @@ import {
   LuArrowDown,
 } from 'react-icons/lu';
 import { apiService } from '../api/apiService';
+import { toLocalDateKey } from '../helpers/dateUtils';
 import { useQuery } from '@tanstack/react-query';
 import { 
   useReactTable, 
@@ -26,8 +27,8 @@ const ReportsDashboard = () => {
   
   // Default to current month
   const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+  const firstDay = toLocalDateKey(new Date(today.getFullYear(), today.getMonth(), 1));
+  const lastDay = toLocalDateKey(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
   const [fromDate, setFromDate] = useState(firstDay);
   const [toDate, setToDate] = useState(lastDay);
@@ -47,7 +48,8 @@ const ReportsDashboard = () => {
         fromDateStr: fromDate,
         toDateStr: toDate
       });
-      return responseData?.data || [];
+      const rows = Array.isArray(responseData?.data) ? responseData.data : (Array.isArray(responseData) ? responseData : []);
+      return rows;
     },
     enabled: !!tenantId && !!storeConfig?.storeId
   });
@@ -59,7 +61,7 @@ const ReportsDashboard = () => {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const filteredData = React.useMemo(() => {
-    return reportData.filter(item => {
+    return (Array.isArray(reportData) ? reportData : []).filter(item => {
       if (!staffFilter) return true;
       const searchLower = staffFilter.toLowerCase();
       const nameMatch = item.name?.toLowerCase().includes(searchLower);

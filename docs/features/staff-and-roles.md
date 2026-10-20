@@ -2,7 +2,7 @@
 
 > **Audience:** HR users, managers, support, developers  
 > **Purpose:** Explain staff records and role assignment  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** `StaffDashboard`, `RoleManagement`, staff/role controllers
 
 ## Staff Details (`/staff`)
@@ -16,7 +16,7 @@ The editor groups data into:
 3. Banking & Documents
 4. Work Experience
 
-`MANAGE_STAFF` enables create/edit controls. `VIEW_OTHER_STAFF` enables broader directory and staff-selection behavior in several screens.
+`MANAGE_STAFF` enables create/edit controls and the full store directory. `VIEW_OTHER_STAFF` also enables the directory without write access. Empty joining `Long` fields are sent as `null` on save. After create, child bank/document rows receive the saved staff id.
 
 ### Save flow
 

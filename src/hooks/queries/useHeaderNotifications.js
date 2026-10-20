@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { apiService } from '../../api/apiService';
-
-const isoDate = (d) => d.toISOString().split('T')[0];
+import { addDaysToDateKey, todayLocalKey } from '../../helpers/dateUtils';
 
 /**
  * Aggregates actionable inbox items for the header notifications panel.
@@ -16,9 +15,14 @@ export const useHeaderNotifications = () => {
   const canHr = hasAccess(['VIEW_HR_DASHBOARD']);
 
   const metricsQuery = useQuery({
-    queryKey: ['headerNotifMetrics'],
-    queryFn: async () => apiService.get('/admin/dashboard/metrics'),
-    enabled: canHr,
+    queryKey: ['headerNotifMetrics', tenantId, storeId],
+    queryFn: async () => apiService.get('/admin/dashboard/metrics', {
+      Tenantid: String(tenantId),
+      Storeid: String(storeId),
+      'X-TenantID': String(tenantId),
+      'X-StoreID': String(storeId),
+    }),
+    enabled: canHr && !!tenantId && !!storeId,
     staleTime: 60_000,
     refetchInterval: 120_000,
   });
@@ -39,15 +43,14 @@ export const useHeaderNotifications = () => {
   const regQuery = useQuery({
     queryKey: ['headerNotifRegs', tenantId, storeId],
     queryFn: async () => {
-      const to = new Date();
-      const from = new Date();
-      from.setDate(from.getDate() - 45);
+      const to = todayLocalKey();
+      const from = addDaysToDateKey(to, -45);
       const payload = {
         tenantId,
         storeId,
         applicationName: 'RESPARK',
-        fromDate: isoDate(from),
-        toDate: isoDate(to),
+        fromDate: from,
+        toDate: to,
         currentStatus: 'PENDING',
         staffId: null,
         pageModel: {
@@ -84,7 +87,7 @@ export const useHeaderNotifications = () => {
           ? '1 leave request needs review'
           : `${leaveCount} leave requests need review`,
       count: leaveCount,
-      path: canLeave || canHr ? '/leave-approvals' : '/hr-dashboard',
+      path: canLeave ? '/leave-approvals' : '/hr-dashboard',
       tone: 'primary',
     });
   }

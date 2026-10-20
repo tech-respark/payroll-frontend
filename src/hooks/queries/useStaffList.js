@@ -20,11 +20,10 @@ export const useStaffList = () => {
     enabled: !!tenantId && !!storeId,
   });
 
-  const staffList = hasAccess(['VIEW_OTHER_STAFF'])
+  const staffList = hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF'])
     ? rawStaffList
     : rawStaffList.filter(s => {
         if (user?.staffId && String(s.id) === String(user.staffId)) return true;
-        if (user?.id && String(s.id) === String(user.id)) return true;
         if (user?.username && s.username && String(s.username).toLowerCase() === String(user.username).toLowerCase()) return true;
         if (user?.email && s.email && String(s.email).toLowerCase() === String(user.email).toLowerCase()) return true;
         return false;

@@ -9,7 +9,8 @@ import { apiService } from '../../api/apiService';
  * @returns {{ roles, isLoading, error }}
  */
 export const useRoles = () => {
-  const { tenantId } = useAuth();
+  const { tenantId, hasAccess } = useAuth();
+  const canFetchRoles = hasAccess(['MANAGE_ROLES', 'MANAGE_STAFF']);
 
   const { data: roles = [], isLoading, error } = useQuery({
     queryKey: ['roles', tenantId],
@@ -17,7 +18,7 @@ export const useRoles = () => {
       const res = await apiService.get(`/roles?tenantId=${tenantId}`);
       return (res && res.success) ? (res.data || []) : [];
     },
-    enabled: !!tenantId,
+    enabled: !!tenantId && canFetchRoles,
   });
 
   return { roles, isLoading, error };

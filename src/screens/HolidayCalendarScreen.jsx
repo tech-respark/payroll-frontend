@@ -4,7 +4,7 @@ import { apiService } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
-import { formatDateByConfig } from '../helpers/dateUtils';
+import { formatDateByConfig, toLocalDateKey, todayLocalKey } from '../helpers/dateUtils';
 import { Drawer, Button, Switch } from '../components/ui';
 import {
   LuPlus,
@@ -19,15 +19,7 @@ import styles from './HolidayCalendarScreen.module.scss';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-const toDateKey = (value) => {
-  if (!value) return '';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return String(value).slice(0, 10);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-};
+const toDateKey = (value) => toLocalDateKey(value);
 
 const startOfMonthGrid = (year, monthIndex) => {
   // Monday-first grid
@@ -70,20 +62,23 @@ export default function HolidayCalendarScreen() {
   const createMutation = useMutation({
     mutationFn: (holidayData) => apiService.post('/holidays', holidayData),
     onSuccess: () => {
-      queryClient.invalidateQueries(['holidays']);
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
       showToast('Holiday created successfully!', 'success');
       closeDrawer();
     },
     onError: (error) => {
-      showToast(error.response?.data?.message || 'Failed to create holiday', 'error');
+      showToast(error.message || 'Failed to create holiday', 'error');
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => apiService.delete(`/holidays/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries(['holidays']);
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
       showToast('Holiday deleted successfully!', 'success');
+    },
+    onError: (error) => {
+      showToast(error.message || 'Failed to delete holiday', 'error');
     },
   });
 
@@ -121,19 +116,10 @@ export default function HolidayCalendarScreen() {
   }, [viewYear, viewMonth, holidaysByDate, todayKey]);
 
   const nextUpHoliday = useMemo(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    let next = null;
-    let minDiff = Infinity;
-    holidaysList.forEach((h) => {
-      const hDate = new Date(h.holidayDate);
-      const diff = hDate.getTime() - now.getTime();
-      if (diff >= 0 && diff < minDiff) {
-        minDiff = diff;
-        next = h;
-      }
-    });
-    return next;
+    const todayKeyNow = todayLocalKey();
+    return [...holidaysList]
+      .filter((h) => toDateKey(h.holidayDate) >= todayKeyNow)
+      .sort((a, b) => toDateKey(a.holidayDate).localeCompare(toDateKey(b.holidayDate)))[0] || null;
   }, [holidaysList]);
 
   const openCreate = (dateKey) => {
@@ -207,8 +193,8 @@ export default function HolidayCalendarScreen() {
           <div className={styles.metricValueContainer}>
             <span className={styles.metricValueLarge}>
               {Object.keys(holidaysByDate).filter((k) => {
-                const d = new Date(k);
-                return d.getFullYear() === viewYear && d.getMonth() === viewMonth;
+                const [y, m] = toDateKey(k).split('-').map(Number);
+                return y === viewYear && m === viewMonth + 1;
               }).length}
             </span>
             <span className={styles.metricValueSub}>in {monthLabel.split(' ')[0]}</span>

@@ -145,6 +145,7 @@ const AppContent = () => {
 
             <Redirect from="/login" to="/staff" />
             <Redirect from="/"      to="/staff" />
+            <Redirect to="/staff" />
           </Switch>
         </Suspense>
         </main>

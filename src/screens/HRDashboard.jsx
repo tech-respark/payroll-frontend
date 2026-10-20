@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useHistory } from 'react-router-dom';
 import { apiService } from '../api/apiService';
+import { useAuth } from '../context/AuthContext';
 import styles from './HRDashboard.module.scss';
 import { LuX } from 'react-icons/lu';
 
@@ -27,14 +28,21 @@ const formatMissingDate = (dateStr) => {
 
 const HRDashboard = () => {
   const history = useHistory();
+  const { tenantId, storeId, hasAccess } = useAuth();
   const leaveCardRef = useRef(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [selectedDayBreakdown, setSelectedDayBreakdown] = useState(null);
   const [selectedAwolEmployee, setSelectedAwolEmployee] = useState(null);
 
   const { data: metrics, isLoading, isError } = useQuery({
-    queryKey: ['hrDashboardMetrics'],
-    queryFn: async () => apiService.get('/admin/dashboard/metrics')
+    queryKey: ['hrDashboardMetrics', tenantId, storeId],
+    queryFn: async () => apiService.get('/admin/dashboard/metrics', {
+      Tenantid: String(tenantId),
+      Storeid: String(storeId),
+      'X-TenantID': String(tenantId),
+      'X-StoreID': String(storeId),
+    }),
+    enabled: !!tenantId && !!storeId,
   });
 
   useEffect(() => {
@@ -166,7 +174,7 @@ const HRDashboard = () => {
               {metrics.pendingLeaveRequests} <span className={styles.info}>Requires Action</span>
             </div>
           </div>
-          <div className={styles.cardFooter} onClick={() => history.push('/leave-approvals')} role="button" tabIndex={0}>
+          <div className={styles.cardFooter} onClick={() => history.push(hasAccess(['MANAGE_LEAVES']) ? '/leave-approvals' : '/leave-dashboard')} role="button" tabIndex={0}>
             <span>View Approvals</span>
             <span className={styles.arrow}>→</span>
           </div>

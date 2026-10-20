@@ -2,16 +2,16 @@
 
 > **Audience:** Developers, architects, security reviewers, operators  
 > **Purpose:** Document implemented controls and verified gaps  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Security configuration, JWT classes, role loading, frontend auth context
 
 ## Authentication
 
-Login accepts username or email plus password. Passwords are matched with BCrypt. On success the API issues an HS256 JWT containing username, `tenantId`, and `storeId`, with a ten-hour lifetime.
+Login accepts username or email plus password. Passwords are matched with BCrypt. Inactive accounts are rejected with the same 401 message as invalid credentials. On success the API issues an HS256 JWT containing username, `tenantId`, and `storeId`. Token lifetime is `jwt.expiration-ms` (default ten hours). The signing secret is `jwt.secret` / `JWT_SECRET` and must be at least 32 bytes; the process fails to start if it is missing or too short.
 
-The frontend stores `jwtToken` and the login response in `localStorage`, sends `Authorization: Bearer <token>`, and clears the session on non-login 401/403 responses.
+The frontend stores `jwtToken` and the login response in `localStorage`, sends `Authorization: Bearer <token>`, and clears the session on non-login **401** responses. A **403** stays signed in and surfaces a permission error. Missing, expired, or invalid JWTs are unauthenticated and return **401**. Denied authorities on an authenticated request return **403**. Inactive users cannot keep using an old token; the JWT filter requires `UserDetails.isEnabled()`.
 
-Public backend paths are login, forgot-password routes, CORS preflight, and `/actuator/**`. All other paths require an authenticated request.
+Public backend paths are login, forgot-password routes, CORS preflight, and `/actuator/health`. All other paths, including remaining actuator routes, require an authenticated request.
 
 ## Authorities
 
@@ -30,7 +30,7 @@ Frontend `hasAccess` performs a flat string match. Backend method checks use Spr
 | Frontend routes | Registers screens for selected authorities | Ownership of requested records |
 | JWT filter | Authenticates the request | Permission for every operation |
 | `@PreAuthorize` | Protects annotated class/method | Unannotated authenticated endpoints |
-| `SecurityUtils` | Can replace request tenant/store with JWT scope | Staff/resource ownership everywhere |
+| `SecurityUtils` | Replaces request tenant/store with JWT scope; `requireSelfOrAnyAuthority` and `constrainStaffIds` for staff-scoped reads/writes | Every unannotated identifier |
 
 ## Multi-tenant model
 
@@ -40,15 +40,12 @@ There is no database row-level security. Every service/repository path must enfo
 
 ## Current security risks
 
-- The backend repository contains hardcoded/default secrets in configuration and JWT code. Rotate and externalize them.
-- Several sensitive endpoints are only authenticated, not permission-gated.
-- Some leave reject/cancellation and attendance approval paths lack explicit management authorities.
-- Staff/password and payroll trigger endpoints need stronger authorization.
-- JWT signing secret is source-controlled.
-- Password reset uses weaker token/OTP practices than recommended.
-- New externally synced users receive a predictable initial credential.
-- Inactive user enforcement requires review.
-- Public actuator matching is broader than the intended private operational posture.
+- Leave approve/reject and cancellation decisions require `MANAGE_LEAVES`. Employees can apply only for their own `staffId` unless they have `MANAGE_LEAVES`. Holiday writes require `MANAGE_LEAVES`. HR metrics require `VIEW_HR_DASHBOARD`. Flagging regularization requests requires `MANAGE_ATTENDANCE`. Staff-scoped leave, payslip, salary-component, attendance history, and regularization writes require self or the matching `MANAGE_*` authority. `GET /personnel/all` returns the caller only unless `MANAGE_STAFF` or `VIEW_OTHER_STAFF`. Role list GET requires `MANAGE_ROLES` or `MANAGE_STAFF`. Password updates require `MANAGE_STAFF`. Denied `@PreAuthorize` checks return HTTP 403.
+- Attendance retrieve and monthly-summary triggers require `MANAGE_ATTENDANCE`. Salary calculate requires `MANAGE_SALARY`. External staff sync requires `MANAGE_STAFF`. Store-hours writes require `MANAGE_SHIFTS` or `MANAGE_STORE_SETTINGS`.
+- Previously committed secrets and JWT values must still be rotated wherever they were deployed.
+- New externally synced users cannot log in until password reset or an admin password set.
+- Browser session data is stored in `localStorage`.
+- CORS allowed origins are injected (`CORS_ALLOWED_ORIGINS`); tracked defaults are local Vite origins only.
 
 Detailed items are tracked in [known limitations](../operations/known-limitations.md).
 
@@ -58,7 +55,7 @@ Detailed items are tracked in [known limitations](../operations/known-limitation
 2. Rotate all values that have appeared in source or historical documents.
 3. Enforce tenant/store/staff ownership in backend services.
 4. Add explicit authorities to every write or sensitive read endpoint.
-5. Restrict actuator to a private network or authenticated operations role.
+5. Keep actuator limited to `/actuator/health` on public paths; put any extra operational endpoints behind authentication or a private network.
 6. Use secure cookies or a reviewed browser-token strategy where appropriate.
 7. Add cross-tenant and broken-object-authorization tests.
 

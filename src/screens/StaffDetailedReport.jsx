@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-table';
 import { LuSearch, LuChartColumn } from 'react-icons/lu';
 import { apiService } from '../api/apiService';
+import { toLocalDateKey } from '../helpers/dateUtils';
 import { useAuth } from '../context/AuthContext';
 import { useStoreConfig } from '../hooks/queries';
 import styles from './StaffDetailedReport.module.scss';
@@ -20,15 +21,15 @@ export default function StaffDetailedReport() {
 
   // Default to current month
   const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+  const firstDay = toLocalDateKey(new Date(today.getFullYear(), today.getMonth(), 1));
+  const lastDay = toLocalDateKey(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
   // State for date range
   const [fromDate, setFromDate] = useState(firstDay);
   const [toDate, setToDate] = useState(lastDay);
   
   // State for selected staff, default to logged in user
-  const [selectedStaffId, setSelectedStaffId] = useState(user?.id?.toString() || user?.staffId?.toString() || '');
+  const [selectedStaffId, setSelectedStaffId] = useState(user?.staffId?.toString() || '');
   
   // Search query state for the table
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,7 +45,8 @@ export default function StaffDetailedReport() {
         fromDateStr: fromDate,
         toDateStr: toDate
       });
-      return response.data.data || response.data || [];
+      const rows = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
+      return rows;
     },
     enabled: !!tenantId && !!storeConfig?.storeId
   });
@@ -53,7 +55,7 @@ export default function StaffDetailedReport() {
   const staffOptions = useMemo(() => {
     if (!Array.isArray(staffSummary)) return [];
     return staffSummary.map(staff => ({
-      id: staff.staff_id || staff.personnel_code || staff.number, 
+      id: staff.staff_id ?? staff.staffId, 
       name: staff.name
     })).filter(s => s.id && s.name);
   }, [staffSummary]);
@@ -77,7 +79,8 @@ export default function StaffDetailedReport() {
         fromDateStr: fromDate,
         toDateStr: toDate
       });
-      return response.data.data || response.data || [];
+      const rows = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
+      return rows;
     },
     enabled: !!tenantId && !!storeConfig?.storeId && !!selectedStaffId
   });

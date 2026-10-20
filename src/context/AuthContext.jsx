@@ -2,8 +2,17 @@ import React, { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext();
 
+const readStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  } catch {
+    localStorage.removeItem('user');
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const initialUser = JSON.parse(localStorage.getItem('user') || 'null');
+  const initialUser = readStoredUser();
   
   const [tenantId, setTenantId] = useState(initialUser?.tenantId || null);
   const [storeId, setStoreId] = useState(initialUser?.storeId || null);

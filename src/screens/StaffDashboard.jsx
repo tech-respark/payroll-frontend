@@ -37,6 +37,7 @@ const StaffDashboard = () => {
     experience: 0,
     displayRank: 0,
     roleId: '',
+    assignedRoleName: '',
     birthDate: '',
     enableAppointments: 1,
     allStaffAppointmentDashboard: 1,
@@ -72,21 +73,22 @@ const StaffDashboard = () => {
     try {
       const res = await apiService.get(`/roles/staff/${staffId}`);
       if (res && res.success && res.data) {
-        return res.data.id;
+        return { id: res.data.id, name: res.data.name || res.data.roleName || '' };
       }
     } catch (err) {
       console.error('Failed to fetch staff role', err);
     }
-    return '';
+    return { id: '', name: '' };
   };
 
   const handleSelectStaff = async (staff) => {
     setSelectedStaff(staff);
-    const assignedRoleId = await fetchStaffRole(staff.id);
+    const assignedRole = await fetchStaffRole(staff.id);
     setFormData({ 
       ...emptyStaff, 
       ...staff, 
-      roleId: assignedRoleId || '',
+      roleId: assignedRole.id || '',
+      assignedRoleName: assignedRole.name || '',
       personnelJoiningDetails: staff.personnelJoiningDetails || { ...emptyJoiningDetailsObj },
       personnelBankAccountDetails: staff.personnelBankAccountDetails || { ...emptyBankAccountDetailsObj },
       personnelWorkExperienceDetailsList: staff.personnelWorkExperienceDetailsList || [],
@@ -296,6 +298,10 @@ const StaffDashboard = () => {
                         {rolesList.map(role => (
                           <option key={role.id} value={role.id}>{role.name}</option>
                         ))}
+                        {formData.roleId && formData.assignedRoleName
+                          && !rolesList.some(role => String(role.id) === String(formData.roleId)) && (
+                          <option value={formData.roleId}>{formData.assignedRoleName}</option>
+                        )}
                       </select>
                     </div>
                     <div className={styles.formGroup}><label className={styles.formLabel}>Username *</label><input type="text" className={styles.formInput} name="username" value={formData.username} onChange={handleChange} required /></div>
@@ -425,7 +431,18 @@ const StaffDashboard = () => {
 
               {/* Form Actions Footer */}
               <div className={styles.actionsRow}>
-                <Button type="button" variant="outline" onClick={() => { setSelectedStaff(null); setIsNew(false); }}>Cancel</Button>
+                <Button type="button" variant="outline" onClick={() => {
+                  if (!canViewOtherStaff) {
+                    const me = staffList.find(s => String(s.id) === String(user?.staffId));
+                    if (me) {
+                      handleSelectStaff(me);
+                      setIsNew(false);
+                      return;
+                    }
+                  }
+                  setSelectedStaff(null);
+                  setIsNew(false);
+                }}>Cancel</Button>
                 {canManageStaff && <Button type="submit" variant="primary" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Profile'}</Button>}
               </div>
             </form>

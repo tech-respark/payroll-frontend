@@ -2,20 +2,21 @@
 
 > **Audience:** Employees, managers, HR, support, developers  
 > **Purpose:** Describe roster, punch, summary, and regularization flows  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Shift/attendance screens, services, entities, and scheduler
 
 ## Shift Management (`/shifts`)
 
-The route and navigation are visible with `VIEW_SHIFTS` or `MANAGE_SHIFTS`; the backend shift controller currently requires `MANAGE_SHIFTS` for the full class.
+The route and navigation are visible with `VIEW_SHIFTS` or `MANAGE_SHIFTS`. Backend GET shift/slot/weekly endpoints allow either authority; POST roster/slots still require `MANAGE_SHIFTS`. `GET /staffshifts?date=` and weekly store roster both select from `staff_shifts` by tenant, store, and `shift_date` (no personnel-table join). Returned `staffId` values are canonical `personnel_details.id`; rows stored under `personnel_code` are remapped on read.
 
 Implemented tabs:
 
 - **Shift Management:** reusable shift templates and time rules
-- **Roster Management:** staff/date assignments
+- **Roster Management:** staff/date assignments (`shiftDate` is sent as `yyyy-MM-dd`)
 - **Weekly Schedule:** store-level weekly view
+- **Store Hours:** open/close times for roster dropdowns (`MANAGE_SHIFTS` only)
 
-Only users with `MANAGE_SHIFTS` see write controls. A store-hours settings panel exists in code but has no reachable tab in the current UI.
+Only users with `MANAGE_SHIFTS` see write controls. Regularization approval listing maps remark/status/punch event from the current SQL column order. Pending/rejected punches are shown on the day but do not count as Present.
 
 ## Attendance (`/attendance`)
 
@@ -27,7 +28,7 @@ All authenticated users can reach the route. The screen provides:
 - regularization and leave shortcuts;
 - staff selector when `VIEW_OTHER_STAFF` is available.
 
-Display codes include present, absent, half day, late, weekly off, and public holiday.
+Display codes include present, absent, half day, late, weekly off, and public holiday. The calendar posts `staffIds: [selectedStaff]`; the in/out history APIs reject an empty staff list with HTTP 400.
 
 ## Attendance data flow
 
