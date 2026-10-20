@@ -72,29 +72,29 @@ const ReportsDashboard = () => {
 
   const columns = React.useMemo(() => [
     {
-      header: 'Sr. No',
-      accessorFn: (row, index) => index + 1,
-      id: 'srNo',
-      enableSorting: false,
-    },
-    {
       accessorKey: 'name',
-      header: 'Staff Name',
-      cell: info => info.getValue() || '-',
+      header: 'Staff',
+      cell: info => {
+        const row = info.row.original;
+        const name = info.getValue() || '—';
+        const staffId = row.staff_id ?? row.staffId;
+        if (!staffId) return name;
+        return <Link to={`/reports/detailed?staffId=${staffId}`}>{name}</Link>;
+      },
     },
     {
       accessorKey: 'totalHours',
-      header: 'Roster Working Hours',
+      header: 'Hours planned',
       cell: info => info.getValue() || '0.00',
     },
     {
       accessorKey: 'totalHoursWorkedAsPerBiometric',
-      header: 'Biometric Working Hours',
+      header: 'Hours punched',
       cell: info => info.getValue() || '0.00',
     },
     {
       accessorKey: 'leaves',
-      header: 'Leaves',
+      header: 'Leave days',
       cell: info => {
         const val = info.getValue() || 0;
         return (
@@ -121,15 +121,13 @@ const ReportsDashboard = () => {
     if (!reportData || reportData.length === 0) return;
 
     const headers = [
-      'Sr. No', 
-      'Staff Name', 
-      'Roster Working Hours', 
-      'Biometric Working Hours', 
-      'Leaves'
+      'Staff',
+      'Hours planned',
+      'Hours punched',
+      'Leave days'
     ];
 
-    const rows = filteredData.map((item, index) => [
-      index + 1,
+    const rows = filteredData.map((item) => [
       item.name || '-',
       item.totalHours || 0,
       item.totalHoursWorkedAsPerBiometric || 0,
@@ -156,10 +154,11 @@ const ReportsDashboard = () => {
 
   return (
     <div className={styles.dashboardContainer}>
+      <p className="screenIntro">Compare hours planned on the roster with hours punched for each person in the date range.</p>
       <div className={styles.filterCard}>
         
         <div className={styles.filterGroup}>
-          <label>From Date</label>
+          <label>From</label>
           <input 
             type="date" 
             value={fromDate} 
@@ -169,7 +168,7 @@ const ReportsDashboard = () => {
         </div>
         
         <div className={styles.filterGroup}>
-          <label>To Date</label>
+          <label>To</label>
           <input 
             type="date" 
             value={toDate} 
@@ -179,12 +178,12 @@ const ReportsDashboard = () => {
         </div>
 
         <div className={styles.filterGroup}>
-          <label>Filter Staff</label>
+          <label>Staff</label>
           <div className={styles.searchField}>
             <LuSearch size={18} className={styles.searchIcon} aria-hidden="true" />
             <input 
-              type="text" 
-              placeholder="Search by name or ID..." 
+              type="search" 
+              placeholder="Search by name" 
               value={staffFilter}
               onChange={(e) => setStaffFilter(e.target.value)}
             />
@@ -194,7 +193,7 @@ const ReportsDashboard = () => {
         <div className={styles.actionButtons}>
           <button className={styles.primaryBtn} onClick={fetchReport} disabled={loading}>
             {loading ? <span className={styles.inlineSpinner} aria-hidden="true" /> : <LuRefreshCw size={18} />}
-            Generate Report
+            Refresh
           </button>
           
           <button 
@@ -203,7 +202,7 @@ const ReportsDashboard = () => {
             disabled={loading || filteredData.length === 0}
           >
             <LuDownload size={18} />
-            Export to CSV
+            Export CSV
           </button>
         </div>
       </div>
@@ -237,9 +236,9 @@ const ReportsDashboard = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="5" className={styles.emptyCell}>
+                  <td colSpan="4" className={styles.emptyCell}>
                     <span className={styles.inlineSpinner} aria-hidden="true" />
-                    <p>Generating report...</p>
+                    <p>Refreshing…</p>
                   </td>
                 </tr>
               ) : table.getRowModel().rows.length > 0 ? (
@@ -254,10 +253,10 @@ const ReportsDashboard = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className={styles.emptyCell}>
+                  <td colSpan="4" className={styles.emptyCell}>
                     <LuChartColumn />
-                    <h3>No Data Found</h3>
-                    <p>No attendance records found for the selected date range and filters.</p>
+                    <h3>No hours in this range</h3>
+                    <p>No planned or punched hours for the selected dates.</p>
                   </td>
                 </tr>
               )}

@@ -47,8 +47,8 @@
 }
 
 .iconWarn {
-  background: rgba(255, 171, 0, 0.14);
-  color: var(--warning-color);
+  background: var(--badge-warning-bg);
+  color: var(--badge-warning-fg);
 }
 
 .body {

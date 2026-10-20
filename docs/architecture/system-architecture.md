@@ -2,7 +2,7 @@
 
 > **Audience:** Developers, architects, DevOps, technical clients  
 > **Purpose:** Describe components, boundaries, and major data flows  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Both application repositories and MySQL schema
 
 ## Context
@@ -30,7 +30,7 @@ flowchart LR
 
 ## Frontend structure
 
-`main.jsx` mounts provider layers in this order: Query Client, Theme, Toast, Auth, Router. `App.jsx` renders login or the authenticated shell and lazy-loads each feature screen. Theme defaults to light; design tokens and shell chrome live in `src/styles/main.scss` plus `Navigation` / `TopHeader` (280px sidebar, 88px mini rail, 64px header, 24px content gutters). Header chrome includes ⌘K command palette, approval notifications drawer, and account drawer (`src/components/shell/`).
+`main.jsx` mounts provider layers in this order: Query Client, Theme, Toast, Auth, Router. `App.jsx` renders login or the authenticated shell and lazy-loads each feature screen. Theme defaults to light; Hajiro design tokens live in `src/styles/hajiro-theme.css` and `src/styles/main.scss` plus `Navigation` / `TopHeader` (248px sidebar, 88px mini rail, 64px header, 24px content gutters). Header chrome includes ⌘K command palette, approval notifications drawer, and account drawer (`src/components/shell/`).
 
 Shared UI primitives live under `src/components/ui` (`Button`, `Input`, `Card`, `Badge`, `Modal`, `Drawer`, `Checkbox`, `Switch`, `Radio`). Screens should use these for overlays and binary/choice controls instead of raw browser checkboxes, radios, or ad-hoc SVG icons. Decorative and navigation icons use Lucide via `react-icons/lu`. Token names, shell sizes, `.mp-*` utilities, and styling rules are documented in [design system](design-system.md).
 

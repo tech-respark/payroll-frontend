@@ -142,6 +142,28 @@ All `/admin/leave-plans/*` endpoints require `MANAGE_LEAVES`: leave-type GET/POS
 | POST | `/downloadBillPdf` | Self or `MANAGE_SALARY` |
 | GET | `/excelOfPayslip` | `MANAGE_SALARY` |
 
+## Hospitality payroll
+
+Prefix: `/hospitality`. Tenant and store come from query parameters and are overwritten from the JWT.
+
+| Method | Path | Extra authorization |
+| --- | --- | --- |
+| GET / POST | `/advances`, `/advances/{id}/close` | View: `MANAGE_SALARY`, `VIEW_HOSPITALITY`, or `MANAGE_HOSPITALITY`. Write: `MANAGE_SALARY` or `MANAGE_HOSPITALITY` |
+| GET / POST / DELETE | `/commission-plans` | Same as advances |
+| GET / POST | `/sales`, `/sales/import` | Same as advances |
+| GET / POST | `/tip-pools`, `/tip-pools/{id}/distribute` | Same as advances |
+| GET / PUT | `/statutory` | Same as advances |
+| GET / POST | `/daily-sales` | GET also allows `VIEW_REPORTS` |
+| GET | `/labor` | Reports, manage-salary, or hospitality |
+| GET | `/muster` | Reports, manage-salary, attendance, or hospitality |
+| GET | `/neft` | CSV; `MANAGE_SALARY` or `MANAGE_HOSPITALITY` |
+| POST | `/apply-payroll` | `MANAGE_SALARY` or `MANAGE_HOSPITALITY` |
+| GET / POST | `/fnf`, `/fnf/{id}/settle` | View also allows `MANAGE_STAFF` |
+| GET / POST | `/swaps`, `/swaps/{id}/decide` | Create is authenticated. Decide needs `MANAGE_SHIFTS` or `MANAGE_HOSPITALITY` |
+| GET / POST | `/availability` | Self or shift/hospitality managers |
+| POST | `/clock` | Authenticated self |
+| GET | `/me` | Authenticated self |
+
 ## Operations and dashboard
 
 | Method | Path | Purpose |

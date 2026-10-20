@@ -11,9 +11,9 @@ The route and navigation are visible with `VIEW_SHIFTS` or `MANAGE_SHIFTS`. Back
 
 Implemented tabs:
 
-- **Shift Management:** reusable shift templates and time rules
-- **Roster Management:** staff/date assignments (`shiftDate` is sent as `yyyy-MM-dd`)
-- **Weekly Schedule:** store-level weekly view
+- **Shift Management:** reusable shift templates and time rules, including an overnight flag when the end time is the next calendar day
+- **Roster Management:** staff/date assignments (`shiftDate` is sent as `yyyy-MM-dd`). Save roster and remove break ask for confirmation
+- **Weekly Schedule:** store-level weekly view with previous/next week navigation
 - **Store Hours:** open/close times for roster dropdowns (`MANAGE_SHIFTS` only)
 
 Only users with `MANAGE_SHIFTS` see write controls. Regularization approval listing maps remark/status/punch event from the current SQL column order. Pending/rejected punches are shown on the day but do not count as Present.
@@ -50,7 +50,7 @@ Terminal inserts also invoke a database trigger that updates portions of the dai
 
 Employees submit corrections from the attendance modal. Users with `MANAGE_ATTENDANCE` can create an immediately approved correction in that modal.
 
-Regularization Approvals (`/approvals`) requires `MANAGE_ATTENDANCE` in the UI and supports pending, approved, and rejected queues through legacy attendance endpoints. A second newer `/regularizations/*` API also exists, so integrations must not assume there is only one contract.
+Regularization Approvals (`/approvals`) requires `MANAGE_ATTENDANCE` in the UI. Managers filter by date range (last 7 / 30 / 45 days or this month) and staff, then review pending, approved, and rejected punch corrections. Approve and reject ask for confirmation; reject can include a remark. Pending and rejected punches stay visible on the attendance day but do not count as Present. The queue uses the legacy attendance endpoints. A second newer `/regularizations/*` API also exists, so integrations must not assume there is only one contract.
 
 ## Scheduled retrieval
 
@@ -61,4 +61,5 @@ The attendance scheduler scans `payroll_scheduler_info` on a fixed delay. The de
 - Stable employee-code mapping is required for biometric imports.
 - Timezone is stored per store; JPA uses `Asia/Kolkata` as the configured JDBC timezone.
 - Attendance retrieval, daily summary, monthly summary, and payroll are separate stages.
+- An overnight punch interval (checkout before check-in) is treated as plus 24 hours. Four or more punches on a day are marked `SPLIT`. Employees can also clock from `/my-work`.
 - A failed retrieval older than the one-hour lookback stays stuck until an operator moves its invocation time back into that window. See [known limitations](../operations/known-limitations.md).

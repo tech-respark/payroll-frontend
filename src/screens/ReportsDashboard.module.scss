@@ -40,11 +40,11 @@
     min-width: 200px;
 
     label {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      color: var(--text-label);
+      text-transform: none;
+      letter-spacing: normal;
     }
 
     input,
@@ -139,8 +139,8 @@
   font-weight: 600;
   font-size: 14px;
   padding: 12px 16px;
-  background: rgba(255, 86, 48, 0.08);
-  border: 1px solid rgba(255, 86, 48, 0.24);
+  background: var(--badge-danger-bg);
+  border: 1px solid var(--error-color);
   border-radius: 8px;
 }
 
@@ -169,8 +169,8 @@
       font-weight: 700;
       border-bottom: 1px solid var(--border-color);
       white-space: nowrap;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      text-transform: none;
+      letter-spacing: normal;
     }
 
     td {
@@ -192,6 +192,15 @@
 
 .nameCol {
   font-weight: 600;
+
+  a {
+    color: var(--primary-color);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .emptyCell {
@@ -302,8 +311,8 @@
 }
 
 .blueBadge {
-  background: rgba(0, 184, 217, 0.16);
-  color: var(--info-color);
+  background: var(--badge-info-bg);
+  color: var(--badge-info-fg);
 }
 
 .greyBadge {

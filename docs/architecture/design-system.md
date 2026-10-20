@@ -1,38 +1,49 @@
-# Design system (Minimal-inspired)
+# Design system (Hajiro)
 
 > **Audience:** Frontend developers, designers, technical reviewers  
 > **Purpose:** Document shared tokens, shell layout, UI primitives, and styling rules  
 > **Last verified:** 2026-10-20  
-> **Source of truth:** `src/styles/main.scss`, `src/components/ui/`, shell components (`Navigation`, `TopHeader`)
+> **Source of truth:** `src/styles/hajiro-theme.css`, `src/styles/main.scss`, `src/components/ui/`, shell components (`Navigation`, `TopHeader`)
 
-Payroll uses a **custom** Minimal-inspired layer: CSS variables, Sass modules, and Lucide icons (`react-icons/lu`). It is not the commercial Minimal React template; behavior and class names are owned by this repository.
+Payroll uses the **Hajiro v1** palette and spacing rules on the existing product shell. Product name and logo stay as they are in this repository. CSS variables, Sass modules, and Lucide icons (`react-icons/lu`) remain the implementation layer.
+
+Brand tokens live in `src/styles/hajiro-theme.css` (`--hj-*`). `main.scss` maps those onto the existing `--primary-color`, `--bg-card`, and `--text-dark` names so screens do not hardcode hex values.
+
+## Brand principles
+
+- Clear, calm, dependable, human, operationally efficient.
+- Navy for headings and brand anchors, **blue for primary actions**, teal as a restrained accent.
+- Keep product UI light and low-noise. Do not use gradients on large surfaces. Small avatar marks may use the blue–teal logo gradient.
+- 60% neutral surfaces, 30% navy/text/structure, 10% blue/teal accents.
+- Do not use teal for long paragraphs or as the default success color. Success is `#16805D`.
 
 ## Design tokens
 
-Brand/shell tokens and **light surface defaults** live on `:root` in `src/styles/main.scss`. `[data-theme='light']` and `[data-theme='dark']` override the full surface/text/badge set. `index.html` sets `data-theme` from `localStorage` before React boots so dark mode does not flash unstyled.
+Brand/shell tokens and **light surface defaults** live on `:root` in `src/styles/main.scss` after `hajiro-theme.css`. `[data-theme='light']` and `[data-theme='dark']` override the full surface/text/badge set. `index.html` sets `data-theme` from `localStorage` before React boots so dark mode does not flash unstyled.
 
 | Category | Examples | Notes |
 | --- | --- | --- |
-| Brand | `--primary-color`, `--primary-color-dark`, `--primary-color-alpha`, `--primary-color-shadow` | Green primary (`#00A76F` light); use for CTAs and focus rings |
-| Semantic | `--success-color`, `--warning-color`, `--error-color`, `--info-color` | Status dots and non-badge accents |
-| Surfaces | `--bg-color`, `--bg-card`, `--bg-subtle`, `--bg-hover` | Page vs card vs inset panels |
-| Text | `--text-dark`, `--text-muted`, `--text-label`, `--text-disabled` | `--text-dark` is **not** a button fill (it becomes white in dark mode) |
-| Borders & shadow | `--border-color`, `--border-color-strong`, `--shadow-card`, `--shadow-md` | Prefer soft 1px borders over heavy outlines |
-| Inputs | `--input-border`, `--input-bg` | Transparent in light; `--bg-subtle` in dark |
-| Badges | `--badge-*-bg`, `--badge-*-fg` | Light/dark-safe label colors for success, warning, danger, info, primary |
-| Shell | `--sidebar-width` (280px), `--sidebar-mini-width` (88px), `--header-height` (64px) | Mini rail matches Minimal’s 88px icon column |
-| Typography | `--primary-font` (Public Sans), `--display-font` (Barlow) | No Inter; stack matches Minimal marketing |
+| Brand | `--hj-brand-navy` `#10264D`, `--hj-brand-blue` `#2477D4`, `--hj-brand-teal` `#18B7A0`, `--hj-brand-slate` `#71829D` | Matches the Hajiro mark (blue–teal H) and navy wordmark |
+| Product aliases | `--primary-color`, `--primary-color-dark`, `--primary-color-alpha`, `--accent-color`, `--brand-navy` | Primary is **blue**; teal is `--accent-color` only |
+| Semantic | `--success-color`, `--warning-color`, `--error-color`, `--info-color` | Status dots and non-badge accents; pair with a label |
+| Surfaces | `--bg-color` `#F6F9FC`, `--bg-card`, `--bg-subtle`, `--bg-hover` | White cards on a soft grey-blue page |
+| Text | `--text-dark` `#17243A`, `--text-muted`, `--text-label`, `--text-disabled` | `--text-dark` is **not** a button fill (it becomes light in dark mode) |
+| Borders & shadow | `--border-color` `#DCE5EF`, `--border-color-strong`, `--shadow-card` | Prefer 1px borders and restrained navy-tinted shadows |
+| Inputs | `--input-border`, `--input-bg` | White surface, 42px min-height, blue focus ring |
+| Badges | `--badge-*-bg`, `--badge-*-fg` | Soft tinted chips with readable foreground text |
+| Shell | `--sidebar-width` (248px), `--sidebar-mini-width` (88px), `--header-height` (64px) | Hajiro sidebar width; mini rail stays 88px |
+| Typography | `--primary-font` / `--display-font` (Inter) | Body 16px / 1.5; sentence case; no all-caps headings |
 
-Theme is toggled via `data-theme` on the document root (`ThemeContext`).
+Theme is toggled via `data-theme` on the document root (`ThemeContext`). Dark mode uses Minimal grey steps (`#141A21` page, `#1C252E` paper, `#28323D` inset) with Hajiro blue for actions.
 
 ## Application shell
 
 Authenticated layout (`App.jsx` + global classes in `main.scss`):
 
-- Fixed sidebar (280px expanded, **88px** mini icon rail) and 64px top header. Collapse/expand uses `--sidebar-motion` (280ms ease); main content only animates `margin-left` to avoid width+margin jitter. Labels clip/fade in place; open groups close on collapse and reopen after expand. Desktop collapsed preference persists in `localStorage`; mobile drawer uses an overlay under the nav, Escape to dismiss, and no mini rail. `prefers-reduced-motion` disables sidebar motion.
+- Fixed sidebar (248px expanded, **88px** mini icon rail) and 64px top header. Collapse/expand uses `--sidebar-motion` (280ms ease); main content only animates `margin-left` to avoid width+margin jitter. Labels clip/fade in place; open groups close on collapse and reopen after expand. Desktop collapsed preference persists in `localStorage`; mobile drawer uses an overlay under the nav, Escape to dismiss, and no mini rail. `prefers-reduced-motion` disables sidebar motion.
 - Main scroll region: `.main-content` with **24px** horizontal gutters (16px on small breakpoints).
 - Feature surfaces often use `.dashboard-content` or `.mp-card` (16px radius, `--shadow-card`).
-- **Page title lives in `TopHeader` only** — do not repeat the route name as an in-page `h1` (“My Leaves”, “Calendar”, etc.). Keep section titles inside cards/widgets; put primary actions in a slim toolbar when needed.
+- **Page title lives in `TopHeader` only** — do not repeat the route name as an in-page `h1`. Keep section titles inside cards/widgets; put primary actions in a slim toolbar when needed.
 
 ### Header actions (`TopHeader` + `src/components/shell/`)
 
@@ -48,13 +59,17 @@ Body scroll is locked while `Modal`, `Drawer`, or the command palette is open (`
 
 | Primitive | Module | Use when |
 | --- | --- | --- |
-| `Button` | `ui.module.scss` | Actions; variant `primary` is the green CTA |
-| `Input` | `ui.module.scss` | Text fields; 40px min-height, 3px focus ring |
+| `Button` | `ui.module.scss` | Actions; variant `primary` is the **blue** CTA (40px, 10px radius, white text) |
+| `Input` | `ui.module.scss` | Text fields; 42px min-height, 3px blue focus ring |
 | `Card` | `ui.module.scss` | Grouped content with header/body/footer |
-| `Badge` | `ui.module.scss` | Inline status chips |
+| `Badge` | `ui.module.scss` | Inline status chips with text labels |
 | `Checkbox`, `Radio`, `Switch` | `FormControls.module.scss` | Settings and forms; `Switch` row variant is compact |
 | `Modal` | `Overlay.module.scss` | Short confirmations; sizes `sm`–`xl` |
 | `Drawer` | `Overlay.module.scss` | Create/edit side panels; default width **480px** |
+| `StaffPicker` | `StaffPicker.module.scss` | Searchable staff combobox; use instead of a native staff `<select>` |
+| `ConfirmDialog` | wraps `Modal` | Approve, reject, delete, and other irreversible actions |
+
+Page chrome: `.screenIntro` and `.screenHint` in `main.scss` are the one-line explanations under the header title. Do not add a second `h1`. Prefer `formatDisplayDate` / `prettyStatus` from `helpers/displayUtils.js` over raw ISO dates and `PENDING` enums.
 
 Overlays share **16px** radius, `--shadow-md`, **24px** header/body padding, and a sticky footer on `--bg-subtle` with a solid top border.
 
@@ -68,21 +83,22 @@ Defined in `main.scss` for screens that are not yet on CSS modules:
 | --- | --- |
 | `.mp-page` | Vertical stack with 24px gap |
 | `.mp-toolbar` | Title/actions row with wrap |
-| `.mp-btn-primary` | Green CTA matching `Button` primary |
+| `.mp-btn-primary` | Blue CTA matching `Button` primary |
 | `.mp-card`, `.mp-card-flush` | Card surfaces |
 | `.mp-section-title`, `.mp-label` | Section typography |
 | `.mp-empty`, `.mp-empty-title`, `.mp-empty-hint` | Empty states |
 | `.mp-input` | Token-aligned native inputs |
-| `.mp-table` | Minimal-style data tables |
+| `.mp-table` | Data tables; sentence-case headers |
 
 ## Rules of thumb
 
-1. **Green CTAs only** — Primary actions use `var(--primary-color)` or `<Button variant="primary">`. Do not fill buttons with `var(--text-dark)`.
-2. **40px controls** — Inputs, primary buttons, and `.mp-btn-primary` target 40px minimum height.
-3. **24px rhythm** — Section gaps, card body padding, and overlay padding use 24px unless density requires tighter tables.
-4. **Tokens over hex** — Use CSS variables for colors, borders, and shadows so dark mode stays readable.
+1. **Blue CTAs only** — Primary actions use `var(--primary-color)` (`#2477D4`) or `<Button variant="primary">`. Teal is an accent, not the default button. Do not fill buttons with `var(--text-dark)`.
+2. **40–42px controls** — Primary buttons 40px; inputs 42px; radius 10px (`--shape-borderRadius`).
+3. **24px rhythm** — Section gaps, card body padding, and overlay padding use 24px unless density requires tighter tables. Spacing scale is 4px.
+4. **Tokens over hex** — Use `--hj-*` or the mapped `--primary-color` / `--bg-*` variables so dark mode stays readable.
 5. **Shared overlays and forms** — Use `Modal` / `Drawer` and `Checkbox` / `Radio` / `Switch` instead of one-off modals or native controls on touched screens.
 6. **Icons** — Lucide via `react-icons/lu`; avoid ad-hoc SVG sets for navigation chrome.
+7. **Status** — Never rely on color alone. Pair chips with explicit text (Present, Absent, Draft, Paid).
 
 ## Related documentation
 

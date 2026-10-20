@@ -6,7 +6,7 @@
   --input-bg: var(--bg-subtle);
   --accent-bg: var(--primary-color-alpha);
   --accent-text: var(--primary-color);
-  --accent-border: rgba(0, 167, 111, 0.24);
+  --accent-border: var(--primary-color-alpha);
   --accent: var(--primary-color);
   --red-bg: rgba(239, 68, 68, 0.1);
   --red-text: #ef4444;
@@ -143,8 +143,6 @@
     color: var(--text-label);
     font-weight: 700;
     font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
     background: var(--table-head-bg);
   }
 
@@ -482,12 +480,22 @@
   background: var(--card-bg);
 }
 
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+  font-weight: 600;
+}
+
 .sectionHeader {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   margin: 0 0 12px 0;
   display: flex;
   align-items: center;
@@ -526,10 +534,8 @@
     
     label {
       display: block;
-      font-size: 0.65rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
       margin-bottom: 4px;
       font-weight: 600;
     }
@@ -566,11 +572,9 @@
   
   label {
     display: block;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     margin: 0 0 8px 0;
   }
   
@@ -646,9 +650,7 @@
   th {
     color: var(--text-muted);
     font-weight: 700;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-size: 0.75rem;
   }
   
   td {

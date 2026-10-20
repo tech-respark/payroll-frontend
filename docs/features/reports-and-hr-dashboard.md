@@ -11,8 +11,9 @@ The route requires `VIEW_REPORTS`, but the navigation group is currently shown o
 
 Capabilities:
 
-- date-range attendance summary;
+- date-range attendance summary of hours planned vs hours punched;
 - sortable/filterable table;
+- staff name links to `/reports/detailed?staffId=`;
 - CSV export;
 - automatic initial query plus manual refresh.
 

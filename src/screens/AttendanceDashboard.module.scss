@@ -30,28 +30,37 @@
 }
 
 .filterBar {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 160px 120px minmax(220px, 320px);
   background: var(--bg-card);
   border-radius: 16px;
   border: 1px solid var(--border-color);
   padding: 20px 24px;
-  gap: 24px;
-  align-items: flex-end;
+  gap: 16px 24px;
+  align-items: end;
   box-shadow: var(--shadow-card);
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .filterGroup {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .filterGroupLarge {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1;
+  min-width: 0;
 }
 
 .filterLabel {
@@ -243,7 +252,7 @@
 }
 
 .calendarDayToday {
-  background: #FF5630;
+  background: var(--primary-color);
   color: #fff;
 }
 
@@ -259,12 +268,12 @@
   background: rgba(145, 158, 171, 0.12);
 }
 
-.calendarStatusP { background: rgba(34, 197, 94, 0.16); color: #118D57; }
-.calendarStatusA { background: rgba(255, 86, 48, 0.16); color: #B71D18; }
-.calendarStatusHD { background: rgba(255, 171, 0, 0.16); color: #B76E00; }
-.calendarStatusL { background: rgba(0, 184, 217, 0.16); color: #006C9C; }
-.calendarStatusWO { background: rgba(145, 158, 171, 0.16); color: #637381; }
-.calendarStatusPH { background: rgba(142, 51, 255, 0.14); color: #5119B7; }
+.calendarStatusP { background: var(--badge-success-bg); color: var(--badge-success-fg); }
+.calendarStatusA { background: var(--badge-danger-bg); color: var(--badge-danger-fg); }
+.calendarStatusHD { background: var(--badge-warning-bg); color: var(--badge-warning-fg); }
+.calendarStatusL { background: var(--badge-info-bg); color: var(--badge-info-fg); }
+.calendarStatusWO { background: var(--badge-default-bg); color: var(--badge-default-fg); }
+.calendarStatusPH { background: var(--badge-warning-bg); color: var(--badge-warning-fg); }
 
 .legendContainer {
   padding: 20px 24px;
@@ -330,11 +339,11 @@
 }
 
 .metricLabel {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  text-transform: none;
+  letter-spacing: 0;
   margin-bottom: 8px;
 }
 

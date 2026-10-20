@@ -62,6 +62,7 @@ export function AccountDrawer({ open, onClose }) {
 
   const shortcuts = [
     { id: 'attendance', label: 'Attendance', path: '/attendance', icon: LuClipboardCheck, show: true },
+    { id: 'my-work', label: 'My Work', path: '/my-work', icon: LuClipboardCheck, show: true },
     { id: 'leaves', label: 'My Leaves', path: '/leave-dashboard', icon: LuCalendarOff, show: true },
     {
       id: 'payslips',
@@ -69,6 +70,13 @@ export function AccountDrawer({ open, onClose }) {
       path: '/payslips',
       icon: LuWallet,
       show: hasAccess(['VIEW_SALARY', 'MANAGE_SALARY']),
+    },
+    {
+      id: 'hospitality',
+      label: 'Hospitality Payroll',
+      path: '/hospitality',
+      icon: LuWallet,
+      show: hasAccess(['MANAGE_SALARY', 'VIEW_HOSPITALITY', 'MANAGE_HOSPITALITY']),
     },
     { id: 'staff', label: 'Staff directory', path: '/staff', icon: LuUsers, show: true },
   ].filter((s) => s.show);

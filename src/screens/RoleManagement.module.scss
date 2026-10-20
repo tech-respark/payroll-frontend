@@ -35,15 +35,14 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 12px;
-  height: 36px;
+  padding: 0 14px;
+  height: 40px;
   background: var(--primary-color);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 11px;
+  border-radius: var(--shape-borderRadius);
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.04em;
   cursor: pointer;
   transition: var(--transition);
   box-shadow: none;
@@ -75,7 +74,7 @@
   flex-direction: column;
   align-self: stretch;
   min-height: 100%;
-  background: transparent;
+  background: var(--bg-subtle);
 }
 
 .rolesListHeader {
@@ -83,8 +82,8 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
-  background-color: var(--bg-card);
+  padding: 16px;
+  background: transparent;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -157,7 +156,7 @@
   align-items: flex-start;
   gap: 10px;
   transition: var(--transition);
-  background: rgba(0, 167, 111, 0.08);
+  background: var(--nav-active-bg);
   box-shadow: inset 3px 0 0 var(--primary-color);
 
   > div:last-child {
@@ -187,6 +186,13 @@
   color: var(--text-muted);
   margin-top: 4px;
   font-weight: 500;
+}
+
+.roleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
 }
 
 .roleIcon {
@@ -336,9 +342,9 @@
   width: 100%;
   box-sizing: border-box;
   min-height: 42px;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--shape-borderRadius);
   padding: 8px 12px;
   color: var(--text-dark);
   font-size: 14px;
@@ -376,7 +382,7 @@
 }
 
 .moduleCard {
-  background: var(--bg-card);
+  background: var(--bg-subtle);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px 18px 18px;

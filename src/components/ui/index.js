@@ -7,3 +7,5 @@ export { Drawer } from './Drawer';
 export { Checkbox } from './Checkbox';
 export { Switch } from './Switch';
 export { Radio } from './Radio';
+export { StaffPicker } from '../StaffPicker';
+export { ConfirmDialog } from '../ConfirmDialog';

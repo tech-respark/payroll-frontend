@@ -5,6 +5,8 @@ import { apiService } from '../api/apiService';
 import { useStaffList } from '../hooks/queries';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { StaffPicker, ConfirmDialog } from '../components/ui';
+import { prettyStatus } from '../helpers/displayUtils';
 import {
   LuPencil,
   LuPlus,
@@ -47,16 +49,11 @@ const LeaveConfiguration = () => {
 
   return (
     <div className={styles.page}>
-      {/* Page Header */}
-      {/* <div className={styles.pageHeader}>
-        <div>
-          <p className={styles.pageSubtitle}>
-            {activeTab === 'types' && 'Manage leave categories, policy plans, and staff enrollment with surgical precision.'}
-            {activeTab === 'plans' && 'Manage leave categories, policy plans, and staff enrollment with granular rule mapping.'}
-            {activeTab === 'enrollment' && 'Assign leave plans to staff members, manage specific policy overrides, and monitor individual enrollment statuses across the enterprise.'}
-          </p>
-        </div>
-      </div> */}
+      <p className="screenIntro">
+        {activeTab === 'types' && 'Define leave categories staff can request. Click a type to edit it.'}
+        {activeTab === 'plans' && 'Group types into plans and set allotment, accrual, and carry-forward rules.'}
+        {activeTab === 'enrollment' && 'Assign a leave plan to each person. Adjust balances or override carry-forward when needed.'}
+      </p>
 
       {/* Tabs */}
       <div className={styles.tabBar}>
@@ -161,7 +158,7 @@ const LeaveTypesTab = ({ types }) => {
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>CODE (e.g. SL)</label>
+              <label className={styles.label}>Code (e.g. SL)</label>
               <input
                 className={styles.input}
                 placeholder="SL"
@@ -171,7 +168,7 @@ const LeaveTypesTab = ({ types }) => {
               />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>LEAVE TYPE</label>
+              <label className={styles.label}>Leave type</label>
               <select
                 className={styles.select}
                 value={formData.paid}
@@ -185,7 +182,7 @@ const LeaveTypesTab = ({ types }) => {
 
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>NAME (e.g. Sick Leave)</label>
+              <label className={styles.label}>Name (e.g. Sick Leave)</label>
               <input
                 className={styles.input}
                 placeholder="Sick Leave"
@@ -195,7 +192,7 @@ const LeaveTypesTab = ({ types }) => {
               />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>GENDER APPLICABILITY</label>
+              <label className={styles.label}>Gender applicability</label>
               <select
                 className={styles.select}
                 value={formData.applicableGender}
@@ -209,7 +206,7 @@ const LeaveTypesTab = ({ types }) => {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>DESCRIPTION</label>
+            <label className={styles.label}>Description</label>
             <textarea
               className={styles.textarea}
               placeholder="Optional description for staff reference..."
@@ -253,10 +250,10 @@ const LeaveTypesTab = ({ types }) => {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>CODE</th>
-              <th>NAME</th>
-              <th>CATEGORY</th>
-              <th>GENDER</th>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Gender</th>
             </tr>
           </thead>
           <tbody>
@@ -268,12 +265,12 @@ const LeaveTypesTab = ({ types }) => {
                 <td>{t.leaveName}</td>
                 <td>
                   <span className={t.paid ? styles.badgePaid : styles.badgeUnpaid}>
-                    {t.paid ? 'PAID' : 'UNPAID'}
+                    {t.paid ? 'Paid' : 'Unpaid'}
                   </span>
                 </td>
                 <td>
                   <span className={styles.genderBadge}>
-                    {t.applicableGender === 'MALE' ? 'MALE ONLY' : t.applicableGender === 'FEMALE' ? 'FEMALE ONLY' : 'ALL GENDERS'}
+                    {t.applicableGender === 'MALE' ? 'Male only' : t.applicableGender === 'FEMALE' ? 'Female only' : 'All genders'}
                   </span>
                 </td>
               </tr>
@@ -281,13 +278,15 @@ const LeaveTypesTab = ({ types }) => {
           </tbody>
         </table>
 
+        {filtered.length > 0 && (
         <div className={styles.tableFooter}>
-          <span className={styles.paginationInfo}>Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, filtered.length)} of {filtered.length} types</span>
+          <span className={styles.paginationInfo}>Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} of {filtered.length} types</span>
           <div className={styles.paginationBtns}>
             <button className={styles.pageBtn} onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>‹</button>
             <button className={styles.pageBtn} onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>›</button>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
@@ -303,6 +302,7 @@ const LeavePlansTab = ({ plans, types }) => {
   const [ruleForm, setRuleForm] = useState({ planId: '', leaveTypeId: '', annualAllotment: '', maxConsecutiveDays: '', proofRequiredAfterDays: '', allowNegativeBalance: false, accrualFrequency: 'NONE', maxCarryForward: '' });
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [editModal, setEditModal] = useState(null); // plan object
+  const [ruleToDelete, setRuleToDelete] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: mappedRules = [] } = useQuery({
@@ -354,7 +354,7 @@ const LeavePlansTab = ({ plans, types }) => {
   };
 
   const handleDeleteRule = (ruleId) => {
-    deleteRuleMutation.mutate(ruleId);
+    setRuleToDelete(ruleId);
   };
 
   const handlePlanSelect = (planId) => {
@@ -375,7 +375,7 @@ const LeavePlansTab = ({ plans, types }) => {
             </div>
             <form onSubmit={handlePlanSubmit} className={styles.form}>
               <div className={styles.formGroup}>
-                <label className={styles.label}>PLAN NAME</label>
+                <label className={styles.label}>Plan name</label>
                 <input
                   className={styles.input}
                   placeholder="e.g. Special Leave Plan"
@@ -385,7 +385,7 @@ const LeavePlansTab = ({ plans, types }) => {
                 />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>EFFECTIVE YEAR</label>
+                <label className={styles.label}>Effective year</label>
                 <select
                   className={styles.select}
                   value={planForm.effectiveYear}
@@ -401,7 +401,7 @@ const LeavePlansTab = ({ plans, types }) => {
           {/* Active Plans List */}
           <div className={styles.activePlansCard}>
             <div className={styles.activePlansHeader}>
-              <span className={styles.activePlansTitle}>ACTIVE PLANS</span>
+              <span className={styles.activePlansTitle}>Active plans</span>
               <span className={styles.listIcon}><LuList size={18} /></span>
             </div>
             <div className={styles.plansList}>
@@ -437,7 +437,7 @@ const LeavePlansTab = ({ plans, types }) => {
           <form onSubmit={handleRuleSubmit} className={styles.form}>
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
-                <label className={styles.label}>SELECT PLAN</label>
+                <label className={styles.label}>Select plan</label>
                 <select
                   className={styles.select}
                   value={ruleForm.planId}
@@ -449,7 +449,7 @@ const LeavePlansTab = ({ plans, types }) => {
                 </select>
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>SELECT LEAVE TYPE</label>
+                <label className={styles.label}>Select leave type</label>
                 <select
                   className={styles.select}
                   value={ruleForm.leaveTypeId}
@@ -464,7 +464,7 @@ const LeavePlansTab = ({ plans, types }) => {
 
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
-                <label className={styles.label}>ANNUAL ALLOTMENT</label>
+                <label className={styles.label}>Annual allotment</label>
                 <input
                   className={styles.input}
                   type="number"
@@ -476,7 +476,7 @@ const LeavePlansTab = ({ plans, types }) => {
                 />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>ACCRUAL FREQUENCY</label>
+                <label className={styles.label}>Accrual frequency</label>
                 <select
                   className={styles.select}
                   value={ruleForm.accrualFrequency}
@@ -492,7 +492,7 @@ const LeavePlansTab = ({ plans, types }) => {
             
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
-                <label className={styles.label}>MAX CARRY FORWARD</label>
+                <label className={styles.label}>Max carry forward</label>
                 <input
                   className={styles.input}
                   type="number"
@@ -502,7 +502,7 @@ const LeavePlansTab = ({ plans, types }) => {
                 />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>MAX CONSECUTIVE DAYS (OPTIONAL)</label>
+                <label className={styles.label}>Max consecutive days (optional)</label>
                 <input
                   className={styles.input}
                   type="number"
@@ -515,7 +515,7 @@ const LeavePlansTab = ({ plans, types }) => {
 
             <div className={styles.ruleFormFooter}>
               <div className={styles.formGroup} style={{ flex: 1 }}>
-                <label className={styles.label}>PROOF REQUIRED AFTER (DAYS)</label>
+                <label className={styles.label}>Proof required after (days)</label>
                 <input
                   className={styles.input}
                   type="number"
@@ -532,13 +532,13 @@ const LeavePlansTab = ({ plans, types }) => {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>LEAVE TYPE</th>
-                <th>ALLOTMENT</th>
-                <th>ACCRUAL</th>
-                <th>MAX CF</th>
-                <th>CONSECUTIVE</th>
-                <th>PROOF AFTER</th>
-                <th>ACTIONS</th>
+                <th>Leave type</th>
+                <th>Allotment</th>
+                <th>Accrual</th>
+                <th>Max CF</th>
+                <th>Consecutive</th>
+                <th>Proof after</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -553,7 +553,7 @@ const LeavePlansTab = ({ plans, types }) => {
                     {getTypeName(r.leaveTypeId)}
                   </td>
                   <td>{r.annualAllotment} Days</td>
-                  <td>{r.accrualFrequency}</td>
+                  <td>{prettyStatus(r.accrualFrequency)}</td>
                   <td>{r.maxCarryForward != null ? `${r.maxCarryForward} Days` : 'N/A'}</td>
                   <td>{r.maxConsecutiveDays ? `${r.maxConsecutiveDays} Days` : 'Unlimited'}</td>
                   <td>{r.proofRequiredAfterDays ? `${r.proofRequiredAfterDays} Days` : 'N/A'}</td>
@@ -568,6 +568,21 @@ const LeavePlansTab = ({ plans, types }) => {
       </div>
 
       {/* Edit Plan Modal */}
+      <ConfirmDialog
+        open={ruleToDelete != null}
+        title="Remove this rule?"
+        body="This leave type will no longer apply to staff on this plan."
+        confirmLabel="Remove rule"
+        danger
+        busy={deleteRuleMutation.isPending}
+        onClose={() => { if (!deleteRuleMutation.isPending) setRuleToDelete(null); }}
+        onConfirm={() => {
+          deleteRuleMutation.mutate(ruleToDelete, {
+            onSettled: () => setRuleToDelete(null),
+          });
+        }}
+      />
+
       {editModal && (
         <EditPlanModal
           plan={editModal}
@@ -639,7 +654,7 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
         <div className={styles.modalBody}>
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>PLAN NAME</label>
+              <label className={styles.label}>Plan name</label>
               <input
                 className={styles.input}
                 value={form.planName}
@@ -647,7 +662,7 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
               />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>EFFECTIVE YEAR</label>
+              <label className={styles.label}>Effective year</label>
               <select
                 className={styles.select}
                 value={form.effectiveYear}
@@ -658,14 +673,14 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
             </div>
           </div>
 
-          <div className={styles.modalSectionLabel}>MAPPED RULES</div>
+          <div className={styles.modalSectionLabel}>Mapped rules</div>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>TYPE</th>
-                <th>ALLOTMENT</th>
-                <th>RULES</th>
-                <th>ACTIONS</th>
+                <th>Type</th>
+                <th>Allotment</th>
+                <th>Rules</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -677,7 +692,7 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
                   <td>{r.annualAllotment} Days</td>
                   <td>
                     {[
-                      r.accrualFrequency && r.accrualFrequency !== 'NONE' && `${r.accrualFrequency}`,
+                      r.accrualFrequency && r.accrualFrequency !== 'NONE' && prettyStatus(r.accrualFrequency),
                       r.maxCarryForward != null && `Max CF: ${r.maxCarryForward}`,
                       r.proofRequiredAfterDays && `Proof > ${r.proofRequiredAfterDays} days`,
                       r.maxConsecutiveDays && `Max ${r.maxConsecutiveDays} consecutive`,
@@ -706,11 +721,11 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
             </div>
             <div className={styles.modalBody} style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '24px' }}>
               <div className={styles.formGroup}>
-                <label className={styles.label}>ANNUAL ALLOTMENT</label>
+                <label className={styles.label}>Annual allotment</label>
                 <input className={styles.input} value={editingRuleData.annualAllotment} onChange={e => setEditingRuleData({...editingRuleData, annualAllotment: e.target.value})} type="number" />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>ACCRUAL FREQUENCY</label>
+                <label className={styles.label}>Accrual frequency</label>
                 <select className={styles.select} value={editingRuleData.accrualFrequency} onChange={e => setEditingRuleData({...editingRuleData, accrualFrequency: e.target.value})}>
                   <option value="NONE">On-Demand / None</option>
                   <option value="MONTHLY">Monthly</option>
@@ -719,15 +734,15 @@ const EditPlanModal = ({ plan, mappedRules, types, onClose, onSave }) => {
                 </select>
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>MAX CARRY FORWARD</label>
+                <label className={styles.label}>Max carry forward</label>
                 <input className={styles.input} value={editingRuleData.maxCarryForward} onChange={e => setEditingRuleData({...editingRuleData, maxCarryForward: e.target.value})} type="number" />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>MAX CONSECUTIVE DAYS (OPTIONAL)</label>
+                <label className={styles.label}>Max consecutive days (optional)</label>
                 <input className={styles.input} value={editingRuleData.maxConsecutiveDays} onChange={e => setEditingRuleData({...editingRuleData, maxConsecutiveDays: e.target.value})} type="number" />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>PROOF REQUIRED AFTER (DAYS)</label>
+                <label className={styles.label}>Proof required after (days)</label>
                 <input className={styles.input} value={editingRuleData.proofRequiredAfterDays} onChange={e => setEditingRuleData({...editingRuleData, proofRequiredAfterDays: e.target.value})} type="number" />
               </div>
             </div>
@@ -779,6 +794,10 @@ const EnrollmentTab = ({ plans }) => {
 
   const handleEnroll = (e) => {
     e.preventDefault();
+    if (!enrollForm.staffId) {
+      showToast('Select a staff member', 'error');
+      return;
+    }
     enrollMutation.mutate();
   };
 
@@ -820,7 +839,7 @@ const EnrollmentTab = ({ plans }) => {
           </div>
           <form onSubmit={handleEnroll} className={styles.form}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>SELECT PLAN</label>
+              <label className={styles.label}>Select plan</label>
               <select
                 className={styles.select}
                 value={enrollForm.planId}
@@ -832,18 +851,14 @@ const EnrollmentTab = ({ plans }) => {
               </select>
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>SELECT STAFF MEMBER</label>
-              <select
-                className={styles.select}
+              <StaffPicker
+                label="Staff member"
+                staffList={staffList}
                 value={enrollForm.staffId}
-                onChange={e => setEnrollForm({ ...enrollForm, staffId: e.target.value })}
-                required
-              >
-                <option value="">-- Choose Staff --</option>
-                {!isLoading && staffList.map(s => (
-                  <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>
-                ))}
-              </select>
+                onChange={(staffId) => setEnrollForm({ ...enrollForm, staffId })}
+                placeholder="Search staff"
+                loading={isLoading}
+              />
             </div>
             <button type="submit" className={styles.primaryBtn} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <LuUserPlus size={18} />
@@ -855,8 +870,8 @@ const EnrollmentTab = ({ plans }) => {
         {/* KPI Card */}
         <div className={styles.kpiCard}>
           <div className={styles.kpiLeft}>
-            <div className={styles.kpiLabel}>TOTAL ENROLLMENT</div>
-            <div className={styles.kpiValue}>{directory.length}</div>
+            <div className={styles.kpiLabel}>Enrolled</div>
+            <div className={styles.kpiValue}>{enrolled}/{directory.length}</div>
           </div>
           <div className={styles.kpiRight}>
             <svg viewBox="0 0 36 36" className={styles.donut}>
@@ -876,7 +891,7 @@ const EnrollmentTab = ({ plans }) => {
       {/* RIGHT — Enrollment Directory */}
       <div className={styles.tableCard}>
         <div className={styles.tableCardHeader}>
-          <span className={styles.tableCardTitle}>ENROLLMENT DIRECTORY</span>
+          <span className={styles.tableCardTitle}>Enrollment directory</span>
           <div className={styles.dirHeaderActions}>
             <button type="button" className={styles.iconBtn} aria-label="Search"><LuSearch size={18} /></button>
             <button type="button" className={styles.iconBtn} title="Directory settings" aria-label="Directory settings"><LuSettings size={18} /></button>
@@ -886,10 +901,10 @@ const EnrollmentTab = ({ plans }) => {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>STAFF MEMBER</th>
-              <th>ACTIVE PLAN</th>
-              <th>STATUS</th>
-              <th>ACTIONS</th>
+              <th>Staff member</th>
+              <th>Active plan</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -909,7 +924,7 @@ const EnrollmentTab = ({ plans }) => {
                 <td>{member.planName}</td>
                 <td>
                   <span className={`${styles.statusBadge} ${statusClass(member.status)}`}>
-                    {member.status}
+                    {prettyStatus(member.status)}
                   </span>
                 </td>
                 <td>
@@ -927,13 +942,15 @@ const EnrollmentTab = ({ plans }) => {
           </tbody>
         </table>
 
+        {directory.length > 0 && (
         <div className={styles.tableFooter}>
-          <span className={styles.paginationInfo}>Showing {dirPage * DIR_PAGE_SIZE + 1}-{Math.min((dirPage + 1) * DIR_PAGE_SIZE, directory.length)} of {directory.length} Staff Members</span>
+          <span className={styles.paginationInfo}>Showing {dirPage * DIR_PAGE_SIZE + 1}–{Math.min((dirPage + 1) * DIR_PAGE_SIZE, directory.length)} of {directory.length} staff</span>
           <div className={styles.paginationBtns}>
-            <button className={styles.pageBtnOutline} onClick={() => setDirPage(p => Math.max(0, p - 1))} disabled={dirPage === 0}>PREV</button>
-            <button className={styles.pageBtnFill} onClick={() => setDirPage(p => Math.min(totalPages - 1, p + 1))} disabled={dirPage >= totalPages - 1}>NEXT</button>
+            <button className={styles.pageBtnOutline} onClick={() => setDirPage(p => Math.max(0, p - 1))} disabled={dirPage === 0}>Prev</button>
+            <button className={styles.pageBtnFill} onClick={() => setDirPage(p => Math.min(totalPages - 1, p + 1))} disabled={dirPage >= totalPages - 1}>Next</button>
           </div>
         </div>
+        )}
       </div>
       
       {adjustModal && <AdjustBalanceModal member={adjustModal} onClose={() => setAdjustModal(null)} />}
@@ -986,14 +1003,14 @@ const AdjustBalanceModal = ({ member, onClose }) => {
         <form onSubmit={handleSubmit}>
           <div className={styles.modalBody} style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '24px' }}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>LEAVE TYPE</label>
+              <label className={styles.label}>Leave type</label>
               <select className={styles.select} value={leaveTypeId} onChange={e => setLeaveTypeId(e.target.value)} required>
                 <option value="">-- Select Type --</option>
                 {leaveTypes.map(t => <option key={t.id} value={t.id}>{t.leaveName}</option>)}
               </select>
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>ADJUSTMENT VALUE (e.g. 2 or -1.5)</label>
+              <label className={styles.label}>Adjustment value (e.g. 2 or -1.5)</label>
               <input className={styles.input} type="number" step="0.5" value={adjustmentValue} onChange={e => setAdjustmentValue(e.target.value)} required />
             </div>
           </div>
@@ -1064,7 +1081,7 @@ const OverrideModal = ({ member, onClose }) => {
         <form onSubmit={handleSubmit}>
           <div className={styles.modalBody} style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '24px' }}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>SELECT RULE</label>
+              <label className={styles.label}>Select rule</label>
               <select className={styles.select} value={leavePlanRuleId} onChange={e => setLeavePlanRuleId(e.target.value)} required>
                 <option value="">-- Select Rule --</option>
                 {mappedRules.map(r => (
@@ -1075,7 +1092,7 @@ const OverrideModal = ({ member, onClose }) => {
               </select>
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>NEW MAX CARRY FORWARD LIMIT</label>
+              <label className={styles.label}>New max carry forward limit</label>
               <input className={styles.input} type="number" value={maxCarryForwardOverride} onChange={e => setMaxCarryForwardOverride(e.target.value)} placeholder="e.g. 10" required />
             </div>
           </div>

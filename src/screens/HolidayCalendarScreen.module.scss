@@ -63,8 +63,6 @@
   display: block;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
   color: var(--text-muted);
 }
 
@@ -264,9 +262,7 @@
   text-align: center;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.02em;
   color: var(--text-muted);
-  text-transform: uppercase;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -401,8 +397,6 @@
     color: var(--text-muted);
     font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
     border-bottom: 1px solid var(--border-color);
   }
 
@@ -467,6 +461,10 @@
   font-size: 14px;
   line-height: 1.5;
   background: var(--bg-subtle);
+}
+
+.monthHint {
+  margin: 12px 20px 0;
 }
 
 .drawerForm {

@@ -6,8 +6,9 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig } from '../helpers/dateUtils';
+import { prettyStatus } from '../helpers/displayUtils';
 import { LuCheck, LuX, LuCircle, LuInbox } from 'react-icons/lu';
-import { Drawer, Modal, Button, Checkbox } from '../components/ui';
+import { Drawer, Modal, Button, Checkbox, ConfirmDialog } from '../components/ui';
 
 const ManagerApprovalPortal = () => {
   const [selectedReq, setSelectedReq] = useState(null);
@@ -61,6 +62,7 @@ const ManagerApprovalPortal = () => {
 
   const [rejectPromptReq, setRejectPromptReq] = useState(null);
   const [rejectPromptRemarks, setRejectPromptRemarks] = useState('');
+  const [confirm, setConfirm] = useState(null);
 
   const openDetails = (req) => {
     setSelectedReq(req);
@@ -113,7 +115,7 @@ const ManagerApprovalPortal = () => {
       return; // Stop here, wait for modal submission
     }
     
-    executeAction(action, req, finalRemarks);
+    setConfirm({ mode: 'single', action, req, remarks: finalRemarks });
   };
 
   const executeAction = (action, req, finalRemarks) => {
@@ -124,7 +126,7 @@ const ManagerApprovalPortal = () => {
     actionMutation.mutate(
       { reqId: req.id, endpoint, remarks: finalRemarks },
       {
-        onSuccess: () => showToast(`Request ${action}d successfully`, 'success'),
+        onSuccess: () => showToast(`Request ${action === 'approve' ? 'approved' : 'rejected'} successfully`, 'success'),
         onError: (err) => showToast(err.message || "Action failed", 'error')
       }
     );
@@ -154,7 +156,7 @@ const ManagerApprovalPortal = () => {
       }
     },
     onSuccess: (_, variables) => {
-      showToast(`Bulk ${variables.action}d ${variables.ids.length} requests successfully`, 'success');
+      showToast(`Bulk ${variables.action === 'approve' ? 'approved' : 'rejected'} ${variables.ids.length} requests successfully`, 'success');
       setSelectedIds([]);
       queryClient.invalidateQueries({ queryKey: ['pendingLeaves'] });
       queryClient.invalidateQueries({ queryKey: ['headerNotifLeaves'] });
@@ -172,7 +174,17 @@ const ManagerApprovalPortal = () => {
 
   const handleBulkAction = (action) => {
     if (selectedIds.length === 0) return;
-    bulkActionMutation.mutate({ action, ids: selectedIds });
+    setConfirm({ mode: 'bulk', action, ids: selectedIds });
+  };
+
+  const runConfirm = () => {
+    if (!confirm) return;
+    if (confirm.mode === 'bulk') {
+      bulkActionMutation.mutate({ action: confirm.action, ids: confirm.ids });
+    } else {
+      executeAction(confirm.action, confirm.req, confirm.remarks || '');
+    }
+    setConfirm(null);
   };
 
   const handleSelectAll = (e) => {
@@ -206,13 +218,12 @@ const ManagerApprovalPortal = () => {
     return '';
   };
 
+  const confirmCount = confirm?.mode === 'bulk' ? (confirm.ids?.length || 0) : 1;
+  const confirmVerb = confirm?.action === 'approve' ? 'Approve' : 'Reject';
+
   return (
     <div className={styles.container}>
-      {/* <div className={styles.header}>
-        <div className={styles.titleSection}>
-          <p>Review and process pending leave/regularization requests for your team.</p>
-        </div>
-      </div> */}
+      <p className="screenIntro">Review pending leave and cancellation requests for your team.</p>
 
       <div className={`${styles.tableCard} mp-card`}>
         <div className={styles.tableHeaderSection}>
@@ -253,16 +264,20 @@ const ManagerApprovalPortal = () => {
                   aria-label="Select all leave requests"
                 />
               </th>
-              <th>STAFF NAME</th>
-              <th>LEAVE TYPE</th>
-              <th>DATES</th>
-              <th>TOTAL DAYS</th>
-              <th>STATUS</th>
-              <th>ACTION</th>
+              <th>Staff name</th>
+              <th>Leave type</th>
+              <th>Dates</th>
+              <th>Total days</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {requests.map((req, idx) => {
+            {loadingRequests ? (
+              <tr>
+                <td colSpan="7" className={styles.emptyCell}>Loading pending requests…</td>
+              </tr>
+            ) : requests.map((req) => {
               const staffName = req.staffName || "Unknown Staff";
               return (
               <tr key={req.id} onClick={() => openDetails(req)} className={styles.clickableRow}>
@@ -279,7 +294,6 @@ const ManagerApprovalPortal = () => {
                     <div className={styles.avatar}>{getInitials(staffName)}</div>
                     <div className={styles.empInfo}>
                       <span className={styles.empName}>{staffName}</span>
-                      <span className={styles.empDept}>Leave Application</span>
                     </div>
                   </div>
                 </td>
@@ -289,12 +303,12 @@ const ManagerApprovalPortal = () => {
                     <span>{req.leaveType?.leaveName || 'Leave'}</span>
                   </div>
                 </td>
-                <td>{req.startDate} - {req.endDate}</td>
+                <td>{formatDateByConfig(req.startDate, storeConfig?.dateFormat)} – {formatDateByConfig(req.endDate, storeConfig?.dateFormat)}</td>
                 <td>{req.requestedDays} {req.requestedDays == 1 ? 'Day' : 'Days'}</td>
                 <td>
-                  <span className={styles.kpiBadge + " " + styles.amber} style={{display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', padding: '4px 8px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B', textTransform: 'uppercase', fontWeight: 600}}>
+                  <span className={styles.statusBadge}>
                     <LuCircle size={8} className={styles.statusDot} aria-hidden="true" />
-                    {req.status}
+                    {prettyStatus(req.status)}
                   </span>
                 </td>
                 <td className={styles.actionCell} onClick={e => e.stopPropagation()}>
@@ -308,7 +322,7 @@ const ManagerApprovalPortal = () => {
               </tr>
             );
             })}
-            {requests.length === 0 && (
+            {!loadingRequests && requests.length === 0 && (
               <tr>
                 <td colSpan="7" className={styles.emptyCell}>
                   <div className={styles.emptyState}>
@@ -357,29 +371,29 @@ const ManagerApprovalPortal = () => {
             <div className={styles.modalBody}>
               <div className={styles.leftColumn}>
                 <div>
-                  <h3 className={styles.sectionHeader}>APPLIED LEAVE DETAIL</h3>
+                  <h3 className={styles.sectionHeader}>Applied leave detail</h3>
                   <div className={styles.leaveDetails}>
                     <div className={styles.detailItem}>
-                      <label>LEAVE TYPE</label>
+                      <label>Leave type</label>
                       <p className={styles.val}>{selectedReq.leaveType?.leaveName || 'Leave'}</p>
                     </div>
                     <div className={styles.detailItem}>
-                      <label>TOTAL REQUESTED</label>
+                      <label>Total requested</label>
                       <p className={styles.valLarge}>{selectedReq.requestedDays} {selectedReq.requestedDays == 1 ? 'Day' : 'Days'}</p>
                     </div>
                     <div className={styles.detailItem + " " + styles.fullWidth}>
-                      <label>DATES</label>
-                      <p className={styles.val}>{formatDateByConfig(selectedReq.startDate, storeConfig?.dateFormat)} - {formatDateByConfig(selectedReq.endDate, storeConfig?.dateFormat)}</p>
+                      <label>Dates</label>
+                      <p className={styles.val}>{formatDateByConfig(selectedReq.startDate, storeConfig?.dateFormat)} – {formatDateByConfig(selectedReq.endDate, storeConfig?.dateFormat)}</p>
                     </div>
                     <div className={styles.detailItem + " " + styles.fullWidth}>
-                      <label>REASON</label>
+                      <label>Reason</label>
                       <p className={styles.reasonText}>{selectedReq.reason || 'No reason provided.'}</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className={styles.remarksSection}>
-                  <label>MANAGER REMARKS</label>
+                  <label>Manager remarks</label>
                   <textarea 
                     rows="3" 
                     placeholder="Optional for approval or rejection..."
@@ -391,7 +405,7 @@ const ManagerApprovalPortal = () => {
               
               <div className={styles.rightColumn}>
                 <div>
-                  <h3 className={styles.sectionHeader + " " + styles.amberBar}>BALANCE OVERVIEW</h3>
+                  <h3 className={styles.sectionHeader + " " + styles.amberBar}>Balance overview</h3>
                   <div className={styles.balanceBox}>
                     <div className={styles.balanceRow}>
                       <span>Current Balance</span>
@@ -410,14 +424,14 @@ const ManagerApprovalPortal = () => {
                 </div>
                 
                 <div>
-                  <h3 className={styles.sectionHeader}>LEAVE HISTORY (THIS MONTH)</h3>
+                  <h3 className={styles.sectionHeader}>Leave history (this month)</h3>
                   {leaveHistory.length > 0 ? (
                     <table className={styles.historyTable}>
                       <thead>
                         <tr>
-                          <th>DATES</th>
-                          <th>TYPE</th>
-                          <th>STATUS</th>
+                          <th>Dates</th>
+                          <th>Type</th>
+                          <th>Status</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -427,11 +441,11 @@ const ManagerApprovalPortal = () => {
                             <td>{h.leaveType?.leaveName || 'Leave'}</td>
                             <td>
                               <span style={{
-                                fontSize: '0.65rem', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600,
-                                border: '1px solid ' + (h.status === 'APPROVED' ? 'rgba(0, 167, 111, 0.28)' : 'rgba(245, 158, 11, 0.3)'),
-                                color: h.status === 'APPROVED' ? 'var(--primary-color-dark, #007867)' : '#D97706'
+                                fontSize: '0.65rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 600,
+                                border: '1px solid ' + (h.status === 'APPROVED' ? 'var(--primary-color-alpha)' : 'rgba(168, 100, 8, 0.3)'),
+                                color: h.status === 'APPROVED' ? 'var(--success-color)' : 'var(--warning-color)'
                               }}>
-                                {h.status}
+                                {prettyStatus(h.status)}
                               </span>
                             </td>
                           </tr>
@@ -480,6 +494,21 @@ const ManagerApprovalPortal = () => {
           autoFocus
         />
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(confirm)}
+        title={confirm?.mode === 'bulk'
+          ? `${confirmVerb} ${confirmCount} request${confirmCount === 1 ? '' : 's'}?`
+          : `${confirmVerb} this leave request?`}
+        body={confirm?.mode === 'bulk'
+          ? `${confirmVerb} the selected leave requests. This cannot be undone from this screen.`
+          : `${confirm?.req?.staffName || 'This staff member'} · ${formatDateByConfig(confirm?.req?.startDate, storeConfig?.dateFormat)} – ${formatDateByConfig(confirm?.req?.endDate, storeConfig?.dateFormat)}`}
+        confirmLabel={confirmVerb}
+        danger={confirm?.action === 'reject'}
+        busy={actionMutation.isPending || bulkActionMutation.isPending}
+        onClose={() => { if (!actionMutation.isPending && !bulkActionMutation.isPending) setConfirm(null); }}
+        onConfirm={runConfirm}
+      />
     </div>
   );
 };

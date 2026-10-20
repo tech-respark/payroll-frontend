@@ -1,0 +1,33 @@
+{
+  "name": "Hajiro Design Tokens",
+  "version": "1.0.0",
+  "color": {
+    "brand": {
+      "navy": "#10264D",
+      "blue": "#2477D4",
+      "teal": "#18B7A0",
+      "slate": "#71829D"
+    },
+    "background": {
+      "default": "#F6F9FC",
+      "surface": "#FFFFFF",
+      "subtle": "#EEF3F8"
+    },
+    "text": {
+      "primary": "#17243A",
+      "secondary": "#53657D",
+      "muted": "#71829D",
+      "inverse": "#FFFFFF"
+    },
+    "border": {
+      "default": "#DCE5EF",
+      "strong": "#B8C7D9"
+    },
+    "status": {
+      "success": { "fg": "#16805D", "bg": "#E8F7F0" },
+      "warning": { "fg": "#A86408", "bg": "#FFF4DE" },
+      "danger": { "fg": "#C0394B", "bg": "#FDECEF" },
+      "info": { "fg": "#2477D4", "bg": "#EAF3FE" }
+    }
+  }
+}

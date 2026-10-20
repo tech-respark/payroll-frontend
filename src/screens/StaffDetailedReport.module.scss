@@ -23,32 +23,40 @@
 .filterCard {
   background: var(--bg-card);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px 24px;
   margin-bottom: 24px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: minmax(200px, 1.4fr) 160px 160px minmax(200px, 1fr);
+  gap: 16px 20px;
+  align-items: end;
   box-shadow: var(--shadow-card);
   border: 1px solid var(--border-color);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
 
   .filterGroup {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex: 1;
-    min-width: 180px;
+    min-width: 0;
 
     label {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      color: var(--text-label);
+      text-transform: none;
+      letter-spacing: normal;
     }
 
-    input,
-    select {
+    > input,
+    > select,
+    .searchField input {
       padding: 10px 14px;
       min-height: 42px;
       border: 1px solid var(--input-border);
@@ -98,8 +106,8 @@
   font-weight: 600;
   font-size: 14px;
   padding: 12px 16px;
-  background: rgba(255, 86, 48, 0.08);
-  border: 1px solid rgba(255, 86, 48, 0.24);
+  background: var(--badge-danger-bg);
+  border: 1px solid var(--error-color);
   border-radius: 8px;
 }
 
@@ -126,8 +134,8 @@
       font-size: 12px;
       font-weight: 700;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      text-transform: none;
+      letter-spacing: normal;
       white-space: nowrap;
 
       .thContent {
@@ -198,8 +206,8 @@
   font-weight: 700;
 
   &.blueBadge {
-    background: rgba(0, 184, 217, 0.16);
-    color: var(--info-color);
+    background: var(--badge-info-bg);
+    color: var(--badge-info-fg);
   }
 
   &.greyBadge {
@@ -260,8 +268,8 @@
 }
 
 .badgePresent {
-  background: rgba(34, 197, 94, 0.16);
-  color: var(--success-color);
+  background: var(--badge-success-bg);
+  color: var(--badge-success-fg);
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
@@ -269,8 +277,8 @@
 }
 
 .badgeLeave {
-  background: rgba(255, 86, 48, 0.16);
-  color: var(--error-color);
+  background: var(--badge-danger-bg);
+  color: var(--badge-danger-fg);
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
@@ -278,8 +286,8 @@
 }
 
 .badgeHoliday {
-  background: rgba(255, 171, 0, 0.16);
-  color: var(--warning-color);
+  background: var(--badge-warning-bg);
+  color: var(--badge-warning-fg);
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
@@ -296,8 +304,8 @@
 }
 
 .badgeTime {
-  background: rgba(0, 184, 217, 0.16);
-  color: var(--info-color);
+  background: var(--badge-info-bg);
+  color: var(--badge-info-fg);
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;

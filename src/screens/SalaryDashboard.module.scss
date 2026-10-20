@@ -92,7 +92,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+}
+
+.sidebarSearch {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--text-dark);
+  font-size: 13px;
+  font-family: var(--primary-font);
+  margin-bottom: 16px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-color-alpha);
+  }
 }
 
 .sidebarTitle {
@@ -114,10 +133,10 @@
 }
 
 .filterLabel {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-label);
   font-weight: 600;
   margin-bottom: 8px;
   display: block;
@@ -301,6 +320,10 @@
 
 .cardBody {
   padding: 24px;
+
+  :global(.screenHint) {
+    margin: 16px 0 0;
+  }
 }
 
 .formGrid {
@@ -316,19 +339,19 @@
 }
 
 .inputLabel {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 13px;
+  color: var(--text-label);
   margin-bottom: 8px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .categoryEarning {
   color: var(--success-color);
   font-size: 10px;
   margin-left: 4px;
-  text-transform: uppercase;
+  text-transform: none;
   font-weight: 700;
 }
 
@@ -336,7 +359,7 @@
   color: var(--error-color);
   font-size: 10px;
   margin-left: 4px;
-  text-transform: uppercase;
+  text-transform: none;
   font-weight: 700;
 }
 
@@ -464,8 +487,8 @@
 
 .projectedLabel {
   font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: normal;
   color: var(--text-muted);
   font-weight: 600;
 }

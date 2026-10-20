@@ -130,7 +130,7 @@
 
   &:hover:not(:disabled) {
     color: var(--error-color);
-    background: rgba(255, 86, 48, 0.08);
+    background: var(--badge-danger-bg);
   }
 }
 

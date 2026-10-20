@@ -7,8 +7,9 @@ import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import AttendanceRegularizeModal from '../components/AttendanceRegularizeModal';
 import { formatDateByConfig, todayLocalKey, parseLocalDate } from '../helpers/dateUtils';
+import { formatDisplayDate } from '../helpers/displayUtils';
 import styles from './AttendanceDashboard.module.scss';
-import { Badge } from '../components/ui';
+import { Badge, StaffPicker } from '../components/ui';
 import { LuPencil, LuFolderOpen, LuCalendarDays } from 'react-icons/lu';
 import '../styles/main.scss';
 
@@ -54,12 +55,6 @@ const getStatusLabel = (status) => {
     case 'PH': return 'Public Holiday';
     default: return 'No Record';
   }
-};
-
-const formatDateStr = (dateStr) => {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
 };
 
 const AttendanceDashboard = () => {
@@ -212,7 +207,7 @@ const AttendanceDashboard = () => {
         
         return { balances: balData, pending };
       } catch (e) {
-        console.error("Failed to fetch leave data", e);
+        showToast('Could not load leave balances.', 'error');
         return { balances: [], pending: [] };
       }
     },
@@ -267,7 +262,9 @@ const AttendanceDashboard = () => {
   };
 
   const generateCalendarGrid = () => {
-    if (attendanceData.length === 0) return null;
+    if (attendanceData.length === 0) {
+      return <p className="screenHint">No attendance days for this month yet.</p>;
+    }
     
     const monthIdx = MONTHS.indexOf(selectedMonth);
     const firstDay = new Date(selectedYear, monthIdx, 1).getDay();
@@ -406,7 +403,7 @@ const AttendanceDashboard = () => {
               className={activeBalanceTab === 'pending' ? styles.tabActive : styles.tabInactive}
               onClick={() => setActiveBalanceTab('pending')}
             >
-              Pending Apps
+              Pending requests
               {pendingLeaves.length > 0 && (
                 <span className={styles.pendingBadge}>
                   {pendingLeaves.length}
@@ -420,13 +417,13 @@ const AttendanceDashboard = () => {
               {activeBalanceTab === 'balance' ? (
                 <tr>
                   <th className={styles.leaveTableHeader}>Leave Type</th>
-                  <th className={styles.leaveTableHeader}>Opening</th>
-                  <th className={styles.leaveTableHeader}>Closing</th>
+                  <th className={styles.leaveTableHeader}>Allotted</th>
+                  <th className={styles.leaveTableHeader}>Remaining</th>
                 </tr>
               ) : (
                 <tr>
-                  <th className={styles.leaveTableHeader}>App No</th>
-                  <th className={styles.leaveTableHeader}>App Date</th>
+                  <th className={styles.leaveTableHeader}>Request</th>
+                  <th className={styles.leaveTableHeader}>Submitted</th>
                   <th className={styles.leaveTableHeader}>Type</th>
                   <th className={styles.leaveTableHeader}>From</th>
                   <th className={styles.leaveTableHeader}>To</th>
@@ -452,10 +449,10 @@ const AttendanceDashboard = () => {
                     <td className={styles.leaveType}>
                       <a href="/leave-dashboard" className={styles.leaveAppLink}>{app.id || 'N/A'}</a>
                     </td>
-                    <td className={styles.leaveValue}>{formatDateStr(app.createdAt)}</td>
+                    <td className={styles.leaveValue}>{formatDisplayDate(app.createdAt)}</td>
                     <td className={styles.leaveValue}>{app.leaveType?.leaveCode || 'N/A'}</td>
-                    <td className={styles.leaveValue}>{formatDateStr(app.startDate)}</td>
-                    <td className={styles.leaveValue}>{formatDateStr(app.endDate)}</td>
+                    <td className={styles.leaveValue}>{formatDisplayDate(app.startDate)}</td>
+                    <td className={styles.leaveValue}>{formatDisplayDate(app.endDate)}</td>
                   </tr>
                 )) : (
                   <tr className={styles.leaveTableRow}>
@@ -473,7 +470,7 @@ const AttendanceDashboard = () => {
 
   return (
     <div className="dashboard">
-      
+      <p className="screenIntro">Pick a month and a person. The calendar is the day. The right pane is punches, late or early marks, and leave still available.</p>
       <div className={styles.filterBar}>
         <div className={styles.filterGroup}>
           <label className={styles.filterLabel}>Month</label>
@@ -489,10 +486,13 @@ const AttendanceDashboard = () => {
         </div>
         {hasAccess(['VIEW_OTHER_STAFF']) && (
           <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Staff Member</label>
-            <select value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)} className={styles.filterSelect}>
-              {staffList.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
-            </select>
+            <StaffPicker
+              label="Staff"
+              staffList={staffList}
+              value={selectedStaff}
+              onChange={setSelectedStaff}
+              placeholder="Search staff"
+            />
           </div>
         )}
       </div>

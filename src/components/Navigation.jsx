@@ -87,8 +87,8 @@ const NavGroup = ({
 const groupForPath = (pathname) => {
   if (pathname.startsWith('/staff') || pathname.startsWith('/roles')) return 'Staff';
   if (pathname.startsWith('/shifts')) return 'Shifts';
-  if (pathname.startsWith('/attendance') || pathname.startsWith('/approvals')) return 'Attendance';
-  if (pathname.startsWith('/salary') || pathname.startsWith('/payslips')) return 'Payroll';
+  if (pathname.startsWith('/attendance') || pathname.startsWith('/approvals') || pathname.startsWith('/my-work')) return 'Attendance';
+  if (pathname.startsWith('/salary') || pathname.startsWith('/payslips') || pathname.startsWith('/hospitality')) return 'Payroll';
   if (pathname.startsWith('/reports')) return 'Reports';
   if (
     pathname.startsWith('/leave') ||
@@ -291,6 +291,11 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
                 Attendance
               </NavLink>
             </li>
+            <li>
+              <NavLink to="/my-work" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                My Work
+              </NavLink>
+            </li>
             {hasAccess(['MANAGE_ATTENDANCE']) && (
               <li>
                 <NavLink to="/approvals" activeClassName={styles.activeLink} onClick={handleNavClick}>
@@ -309,7 +314,7 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
         </p>
         <div className={cx(styles.miniDivider, styles.miniDividerSecond)} aria-hidden="true" />
         <ul className={styles.navLinks}>
-          {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY']) && (
+          {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY', 'VIEW_HOSPITALITY', 'MANAGE_HOSPITALITY']) && (
             <NavGroup
               title="Payroll"
               icon={LuWallet}
@@ -330,6 +335,13 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
                   Payslips
                 </NavLink>
               </li>
+              {hasAccess(['MANAGE_SALARY', 'VIEW_HOSPITALITY', 'MANAGE_HOSPITALITY']) && (
+                <li>
+                  <NavLink to="/hospitality" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                    Hospitality Payroll
+                  </NavLink>
+                </li>
+              )}
             </NavGroup>
           )}
 

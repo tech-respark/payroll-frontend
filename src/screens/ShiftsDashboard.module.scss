@@ -99,8 +99,8 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--text-muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     margin: 8px 0;
   }
 
@@ -356,8 +356,8 @@
       font-size: 12px;
       font-weight: 700;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      text-transform: none;
+      letter-spacing: normal;
     }
 
     .filterInput {
@@ -410,8 +410,8 @@
         font-size: 11px;
         font-weight: 700;
         color: var(--text-dark);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        text-transform: none;
+        letter-spacing: normal;
       }
     }
     
@@ -526,7 +526,7 @@
       }
 
       .todayBtn {
-        background: rgba(0, 167, 111, 0.08);
+        background: var(--nav-active-bg);
         color: var(--primary-color);
         height: 100%;
       }
@@ -584,8 +584,8 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--text-muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     align-items: center;
     margin-bottom: 0;
     
@@ -727,6 +727,14 @@
   }
 }
 
+.emptyState {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .rosterFooter {
   display: flex;
   justify-content: flex-end;
@@ -812,8 +820,8 @@
       font-size: 12px;
       font-weight: 700;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      text-transform: none;
+      letter-spacing: normal;
     }
 
     input {
@@ -941,8 +949,8 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .modalSelect {
@@ -1040,8 +1048,8 @@
         font-size: 11px;
         font-weight: 700;
         color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        text-transform: none;
+        letter-spacing: normal;
         display: flex;
         align-items: center;
         justify-content: center;

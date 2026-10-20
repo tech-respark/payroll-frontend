@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig, parseLocalDate } from '../helpers/dateUtils';
-import { Radio } from '../components/ui';
+import { Radio, ConfirmDialog } from '../components/ui';
 import { LuPlane, LuClock, LuCalendarDays } from 'react-icons/lu';
 
 const EmployeeDashboard = () => {
@@ -32,6 +32,7 @@ const EmployeeDashboard = () => {
   const [leaveSession, setLeaveSession] = useState('FULL_DAY');
   const [calculatedDuration, setCalculatedDuration] = useState(0);
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -151,9 +152,7 @@ const EmployeeDashboard = () => {
   };
 
   const handleCancelLeave = (applicationId) => {
-    if (window.confirm("Are you sure you want to cancel this leave application?")) {
-      cancelLeaveMutation.mutate(applicationId);
-    }
+    setCancelTarget(applicationId);
   };
 
   const handleCancel = (e) => {
@@ -178,6 +177,7 @@ const EmployeeDashboard = () => {
 
   return (
     <div className={styles.page}>
+      <p className="screenIntro">Request time off, check remaining balances, and track recent leave. Cancelling an approved request waits for a manager.</p>
       <div className={styles.splitLayout}>
         {/* LEFT PANEL: Leave Application Form */}
         <div className={styles.formCard}>
@@ -188,7 +188,7 @@ const EmployeeDashboard = () => {
 
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>LEAVE TYPE</label>
+              <label className={styles.label}>Leave type</label>
               <select 
                 className={styles.select}
                 value={formData.leaveTypeId} 
@@ -205,7 +205,7 @@ const EmployeeDashboard = () => {
             <div className={styles.formRow}>
               {isOptionalHolidaySelected ? (
                 <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-                  <label className={styles.label}>SELECT OPTIONAL HOLIDAY</label>
+                  <label className={styles.label}>Select optional holiday</label>
                   {optionalHolidays.length > 0 ? (
                     <select
                       className={styles.select}
@@ -219,7 +219,7 @@ const EmployeeDashboard = () => {
                       <option value="">Select a holiday...</option>
                       {optionalHolidays.map(h => (
                         <option key={h.id} value={h.holidayDate}>
-                          {h.holidayName} ({h.holidayDate})
+                          {h.holidayName} ({formatDateByConfig(h.holidayDate, storeConfig?.dateFormat)})
                         </option>
                       ))}
                     </select>
@@ -232,7 +232,7 @@ const EmployeeDashboard = () => {
               ) : (
                 <>
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>START DATE</label>
+                    <label className={styles.label}>Start date</label>
                     <input 
                       type="date" 
                       className={styles.input}
@@ -245,7 +245,7 @@ const EmployeeDashboard = () => {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>END DATE</label>
+                    <label className={styles.label}>End date</label>
                     <input 
                       type="date" 
                       className={styles.input}
@@ -263,7 +263,7 @@ const EmployeeDashboard = () => {
 
             {formData.startDate && formData.endDate && formData.startDate === formData.endDate && !isOptionalHolidaySelected && (
               <div className={styles.formGroup}>
-                <label className={styles.label}>LEAVE SESSION</label>
+                <label className={styles.label}>Leave session</label>
                 <div className={styles.radioGroup}>
                   <Radio card name="leaveSession" value="FIRST_HALF" label="First Half" checked={leaveSession === 'FIRST_HALF'} onChange={e => setLeaveSession(e.target.value)} />
                   <Radio card name="leaveSession" value="SECOND_HALF" label="Second Half" checked={leaveSession === 'SECOND_HALF'} onChange={e => setLeaveSession(e.target.value)} />
@@ -281,7 +281,7 @@ const EmployeeDashboard = () => {
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.label}>REASON FOR LEAVE</label>
+              <label className={styles.label}>Reason for leave</label>
               <textarea 
                 className={styles.textarea}
                 placeholder="Provide a brief explanation for context..."
@@ -364,6 +364,7 @@ const EmployeeDashboard = () => {
               <div className={styles.historyCardHeader}>
                 <span className={styles.historyCardDate}>
                   {formatDateByConfig(req.startDate, storeConfig?.dateFormat)}
+                  {req.endDate ? ` – ${formatDateByConfig(req.endDate, storeConfig?.dateFormat)}` : ''}
                 </span>
                 <StatusBadge status={req.status} />
               </div>
@@ -385,6 +386,20 @@ const EmployeeDashboard = () => {
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={cancelTarget != null}
+        title="Cancel this leave?"
+        body="Pending leave is cancelled immediately. Approved leave waits for a manager."
+        confirmLabel="Cancel leave"
+        danger
+        busy={cancelLeaveMutation.isPending}
+        onClose={() => { if (!cancelLeaveMutation.isPending) setCancelTarget(null); }}
+        onConfirm={() => {
+          cancelLeaveMutation.mutate(cancelTarget, {
+            onSettled: () => setCancelTarget(null),
+          });
+        }}
+      />
     </div>
   );
 };

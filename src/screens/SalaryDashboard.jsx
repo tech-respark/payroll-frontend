@@ -5,13 +5,13 @@ import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useStaffList } from '../hooks/queries';
 import { useStoreConfig } from '../hooks/queries/useStoreConfig';
+import { prettyStatus, staffName } from '../helpers/displayUtils';
 import styles from './SalaryDashboard.module.scss';
 import '../styles/main.scss';
 
 import {
   LuWallet,
   LuCircleMinus,
-  LuCircleCheck,
   LuSave,
   LuChevronRight,
   LuUsers,
@@ -26,10 +26,11 @@ const SalaryDashboard = () => {
 
   return (
     <div className={styles.dashboard}>
+      <p className="screenIntro">Set the recurring salary for a person, then add month-only extras such as bonus or incentive.</p>
       <div className={styles.tabList}>
         {[
-          { id: 'fixed', label: 'Configure Fixed Salary' },
-          { id: 'variable', label: 'Monthly Variables' }
+          { id: 'fixed', label: 'Configure fixed salary' },
+          { id: 'variable', label: 'Monthly variables' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -58,6 +59,7 @@ const SalaryDashboard = () => {
 // ---------------------------------------------------------------------------------------------------------------------
 const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) => {
   const [selectedStaffId, setSelectedStaffId] = useState('');
+  const [staffQuery, setStaffQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
@@ -177,6 +179,11 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
 
   const earnings = components.filter(c => c.componentCategory === 'EARNING');
   const deductions = components.filter(c => c.componentCategory === 'DEDUCTION');
+  const visibleStaff = useMemo(() => {
+    const needle = staffQuery.trim().toLowerCase();
+    if (!needle) return staffList;
+    return staffList.filter((staff) => staffName(staff).toLowerCase().includes(needle));
+  }, [staffList, staffQuery]);
 
   const totalGross = earnings.reduce((sum, c) => sum + (c.includeInTotal !== false ? (Number(c.monthlyValue) || 0) : 0), 0);
   const totalDeductions = deductions.reduce((sum, c) => sum + (c.includeInTotal !== false ? (Number(c.monthlyValue) || 0) : 0), 0);
@@ -187,19 +194,27 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
       <div className={styles.mainLayout}>
         <div className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
-            <h3 className={styles.sidebarTitle}>Staff Selection</h3>
-            <span className={styles.staffCountBadge}>{staffList.length} EMPLOYEES</span>
+            <h3 className={styles.sidebarTitle}>Staff</h3>
+            <span className={styles.staffCountBadge}>{staffList.length} staff</span>
           </div>
+          <input
+            type="search"
+            className={styles.sidebarSearch}
+            placeholder="Search staff"
+            value={staffQuery}
+            onChange={(e) => setStaffQuery(e.target.value)}
+            aria-label="Search staff"
+          />
 
           <div className={styles.staffList}>
-            {staffList.length === 0 ? (
+            {visibleStaff.length === 0 ? (
               <div className={styles.emptyState}>
                 <LuUsers size={32} aria-hidden="true" />
-                <p className={styles.emptyStateTitle}>No staff found</p>
-                <p className={styles.emptyStateHint}>Add employees to configure fixed salary components.</p>
+                <p className={styles.emptyStateTitle}>{staffList.length === 0 ? 'No staff found' : 'No match'}</p>
+                <p className={styles.emptyStateHint}>{staffList.length === 0 ? 'Add employees to configure fixed salary components.' : 'No staff match that name.'}</p>
               </div>
             ) : (
-              staffList.map(staff => (
+              visibleStaff.map(staff => (
                 <div 
                   key={staff.id} 
                   className={`${styles.staffItem} ${selectedStaffId === String(staff.id) ? styles.staffItemActive : ''}`}
@@ -209,8 +224,8 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                     {staff.firstName.charAt(0)}{staff.lastName.charAt(0)}
                   </div>
                   <div className={styles.staffInfo}>
-                    <div className={styles.staffName}>{staff.firstName} {staff.lastName}</div>
-                    <div className={styles.staffRole}>{staff.designation || 'Staff Member'}</div>
+                    <div className={styles.staffName}>{staffName(staff)}</div>
+                    <div className={styles.staffRole}>{staff.designation || 'Staff member'}</div>
                   </div>
                   {selectedStaffId === String(staff.id) && <div className={styles.activeDot}></div>}
                   {selectedStaffId !== String(staff.id) && <LuChevronRight className={styles.arrowIcon} />}
@@ -238,7 +253,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                     <div className={styles.cardIcon}>
                       <LuWallet size={16} />
                     </div>
-                    <h4 className={styles.cardTitleText}>Core Earnings</h4>
+                    <h4 className={styles.cardTitleText}>Earnings</h4>
                   </div>
                 </div>
                 <div className={styles.cardBody}>
@@ -246,6 +261,12 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                     <div className={styles.loadingState}>
                       <span className={styles.inlineSpinner} aria-hidden="true" />
                       Loading components…
+                    </div>
+                  ) : earnings.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <LuWallet size={32} aria-hidden="true" />
+                      <p className={styles.emptyStateTitle}>No earnings</p>
+                      <p className={styles.emptyStateHint}>This store has no fixed earning components yet.</p>
                     </div>
                   ) : (
                     <div className={styles.formGrid}>
@@ -273,7 +294,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                   )}
                 </div>
                 <div className={styles.cardFooter}>
-                  <span className={styles.footerLabel}>Gross Salary Total</span>
+                  <span className={styles.footerLabel}>Gross salary total</span>
                   <span className={styles.footerAmount}>{currencySymbol} {totalGross.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
               </div>
@@ -285,7 +306,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                     <div className={styles.cardIcon}>
                       <LuCircleMinus size={16} />
                     </div>
-                    <h4 className={styles.cardTitleText}>Fixed Deductions</h4>
+                    <h4 className={styles.cardTitleText}>Fixed deductions</h4>
                   </div>
                 </div>
                 <div className={styles.cardBody}>
@@ -293,6 +314,12 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                     <div className={styles.loadingState}>
                       <span className={styles.inlineSpinner} aria-hidden="true" />
                       Loading components…
+                    </div>
+                  ) : deductions.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <LuCircleMinus size={32} aria-hidden="true" />
+                      <p className={styles.emptyStateTitle}>No deductions</p>
+                      <p className={styles.emptyStateHint}>This store has no fixed deduction components yet.</p>
                     </div>
                   ) : (
                     <div className={styles.formGrid}>
@@ -320,7 +347,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
                   )}
                 </div>
                 <div className={styles.cardFooter}>
-                  <span className={styles.footerLabel}>Total Deductions</span>
+                  <span className={styles.footerLabel}>Total deductions</span>
                   <span className={styles.footerAmountDeduction}>{currencySymbol} {totalDeductions.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                 </div>
               </div>
@@ -328,20 +355,17 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
               {/* Projected Take Home Card */}
               <div className={styles.projectedCard}>
                 <div className={styles.projectedLeft}>
-                  <span className={styles.projectedLabel}>PROJECTED NET MONTHLY TAKE HOME</span>
+                  <span className={styles.projectedLabel}>Projected net monthly take home</span>
                   <h2 className={styles.projectedAmount}>{currencySymbol} {netTakeHome.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h2>
                 </div>
                 <div className={styles.projectedRight}>
-                  <div className={styles.complianceChip}>
-                    <LuCircleCheck size={16} /> Compliance Check Passed
-                  </div>
                   {canManage && (
                     <button 
                       className={styles.btnSave} 
                       onClick={handleSave} 
                       disabled={loading || saving}
                     >
-                      <LuSave size={16} /> {saving ? 'Saving...' : 'Save Configuration'}
+                      <LuSave size={16} /> {saving ? 'Saving…' : 'Save configuration'}
                     </button>
                   )}
                 </div>
@@ -359,6 +383,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
 // ---------------------------------------------------------------------------------------------------------------------
 const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) => {
   const [selectedStaffId, setSelectedStaffId] = useState('');
+  const [staffQuery, setStaffQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
@@ -537,23 +562,41 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
     }
   };
 
+  const visibleStaff = useMemo(() => {
+    const needle = staffQuery.trim().toLowerCase();
+    if (!needle) return staffList;
+    return staffList.filter((staff) => staffName(staff).toLowerCase().includes(needle));
+  }, [staffList, staffQuery]);
+
+  const selectedMonthIndex = MONTHS.indexOf(selectedMonth) + 1;
+  const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
+  const isLocked = selectedYear < currentYear || (selectedYear === currentYear && selectedMonthIndex <= recentMonth);
+
   return (
     <div className={styles.mainLayout}>
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <h3 className={styles.sidebarTitle}>Staff Selection</h3>
-          <span className={styles.staffCountBadge}>{staffList.length} EMPLOYEES</span>
+          <h3 className={styles.sidebarTitle}>Staff</h3>
+          <span className={styles.staffCountBadge}>{staffList.length} staff</span>
         </div>
+        <input
+          type="search"
+          className={styles.sidebarSearch}
+          placeholder="Search staff"
+          value={staffQuery}
+          onChange={(e) => setStaffQuery(e.target.value)}
+          aria-label="Search staff"
+        />
 
         <div className={styles.staffList}>
-          {staffList.length === 0 ? (
+          {visibleStaff.length === 0 ? (
             <div className={styles.emptyState}>
               <LuUsers size={32} aria-hidden="true" />
-              <p className={styles.emptyStateTitle}>No staff found</p>
-              <p className={styles.emptyStateHint}>Add employees to assign monthly variables.</p>
+              <p className={styles.emptyStateTitle}>{staffList.length === 0 ? 'No staff found' : 'No match'}</p>
+              <p className={styles.emptyStateHint}>{staffList.length === 0 ? 'Add employees to assign monthly variables.' : 'No staff match that name.'}</p>
             </div>
           ) : (
-            staffList.map(staff => (
+            visibleStaff.map(staff => (
               <div 
                 key={staff.id} 
                 className={`${styles.staffItem} ${selectedStaffId === String(staff.id) ? styles.staffItemActive : ''}`}
@@ -563,8 +606,8 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
                   {staff.firstName.charAt(0)}{staff.lastName.charAt(0)}
                 </div>
                 <div className={styles.staffInfo}>
-                  <div className={styles.staffName}>{staff.firstName} {staff.lastName}</div>
-                  <div className={styles.staffRole}>{staff.designation || 'Staff Member'}</div>
+                  <div className={styles.staffName}>{staffName(staff)}</div>
+                  <div className={styles.staffRole}>{staff.designation || 'Staff member'}</div>
                 </div>
                 {selectedStaffId === String(staff.id) && <div className={styles.activeDot}></div>}
                 {selectedStaffId !== String(staff.id) && <LuChevronRight className={styles.arrowIcon} />}
@@ -588,13 +631,13 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
             <div className={`${styles.card} ${styles.periodCard}`}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitleWrap}>
-                  <h4 className={styles.cardTitleText}>Payroll Period</h4>
+                  <h4 className={styles.cardTitleText}>Payroll period</h4>
                 </div>
               </div>
               <div className={styles.cardBody}>
                 <div className={styles.formGrid}>
                   <div className={styles.formGroup}>
-                    <label className={styles.inputLabel}>Payroll Month</label>
+                    <label className={styles.inputLabel}>Month</label>
                     <div className={styles.inputWrapper}>
                       <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={`${styles.amountInput} ${styles.selectInput}`}>
                         {MONTHS.map((m, idx) => {
@@ -609,7 +652,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
                     </div>
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.inputLabel}>Payroll Year</label>
+                    <label className={styles.inputLabel}>Year</label>
                     <div className={styles.inputWrapper}>
                       <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className={`${styles.amountInput} ${styles.selectInput}`}>
                         {[currentYear - 1, currentYear, currentYear + 1].map(y => (
@@ -619,13 +662,16 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
                     </div>
                   </div>
                 </div>
+                {isLocked && (
+                  <p className="screenHint">This month is locked because payroll has already been calculated. Open a later month to edit variables.</p>
+                )}
               </div>
             </div>
 
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitleWrap}>
-                  <h4 className={styles.cardTitleText}>Assign Monthly Variables</h4>
+                  <h4 className={styles.cardTitleText}>Assign monthly variables</h4>
                 </div>
               </div>
               <div className={styles.cardBody}>
@@ -647,7 +693,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
                         <label className={styles.inputLabel}>
                           {comp.componentName}{' '}
                           <span className={comp.componentCategory === 'EARNING' ? styles.categoryEarning : styles.categoryDeduction}>
-                            {comp.componentCategory}
+                            {prettyStatus(comp.componentCategory)}
                           </span>
                         </label>
                         <div className={styles.inputWrapper}>
@@ -669,36 +715,28 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
               
               <div className={`${styles.cardFooter} ${styles.cardFooterStacked}`}>
                 <div className={styles.footerRow}>
-                  <span className={styles.footerLabel}>Total Earning</span>
+                  <span className={styles.footerLabel}>Total earning</span>
                   <span className={styles.footerAmount}>{currencySymbol} {totals.earning.toLocaleString()}</span>
                 </div>
                 <div className={styles.footerRow}>
-                  <span className={styles.footerLabel}>Total Deduction</span>
+                  <span className={styles.footerLabel}>Total deduction</span>
                   <span className={styles.footerAmountDeduction}>{currencySymbol} {totals.deduction.toLocaleString()}</span>
                 </div>
                 <div className={styles.footerRowLast}>
                   <div>
-                    <span className={`${styles.footerLabel} ${styles.footerNetLabel}`}>Net Salary</span>
+                    <span className={`${styles.footerLabel} ${styles.footerNetLabel}`}>Net salary</span>
                   </div>
                   <div className={styles.footerNetActions}>
                     <span className={`${styles.footerAmount} ${styles.footerNetAmount}`}>{currencySymbol} {totals.net.toLocaleString()}</span>
-                    {(() => {
-                      const selMonthIndex = MONTHS.indexOf(selectedMonth) + 1;
-                      const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
-                      let isLocked = false;
-                      if (selectedYear < currentYear) isLocked = true;
-                      else if (selectedYear === currentYear && selMonthIndex <= recentMonth) isLocked = true;
-        
-                      return canManage && (
-                        <button 
-                          className={styles.btnSave} 
-                          onClick={handleSave} 
-                          disabled={loading || saving || isLocked}
-                        >
-                          <LuSave size={16} /> {saving ? 'Saving...' : 'Save Variables'}
-                        </button>
-                      );
-                    })()}
+                    {canManage && (
+                      <button 
+                        className={styles.btnSave} 
+                        onClick={handleSave} 
+                        disabled={loading || saving || isLocked}
+                      >
+                        <LuSave size={16} /> {saving ? 'Saving…' : 'Save variables'}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

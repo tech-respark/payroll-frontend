@@ -100,8 +100,8 @@
     font-size: 18px;
     font-weight: 800;
     margin: 0;
-    color: var(--sidebar-text);
-    letter-spacing: -0.02em;
+    color: var(--brand-navy);
+    letter-spacing: -0.025em;
     white-space: nowrap;
 
     span {
@@ -485,9 +485,9 @@
     border-color 160ms ease;
 
   &:hover {
-    background: rgba(255, 86, 48, 0.08);
+    background: var(--badge-danger-bg);
     color: var(--error-color);
-    border-color: rgba(255, 86, 48, 0.24);
+    border-color: var(--error-color);
   }
 }
 

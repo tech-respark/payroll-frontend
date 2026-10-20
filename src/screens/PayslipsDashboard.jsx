@@ -5,6 +5,8 @@ import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useStaffList, useStoreConfig } from '../hooks/queries';
 import PayslipBill from '../components/PayslipBill';
+import { StaffPicker } from '../components/ui';
+import { formatDisplayDate } from '../helpers/displayUtils';
 import { LuFileText } from 'react-icons/lu';
 import styles from './PayslipsDashboard.module.scss';
 import '../styles/main.scss';
@@ -111,11 +113,11 @@ const PayslipsDashboard = () => {
 
   return (
     <div className="dashboard">
-      
+      <p className="screenIntro">Preview a stored payslip for one person and one calculated month.</p>
       <div className={`no-print ${styles.payrollCard}`}>
         <div className={`filter-bar ${styles.filterBar}`}>
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Payroll Month</label>
+            <label className={styles.formLabel}>Month</label>
             <select value={selectedMonth} onChange={e => { setSelectedMonth(e.target.value); setPayslipData(null); }} className={styles.formSelect}>
               {getFinancialYearMonths().map((m) => (
                 <option key={m} value={m} disabled={isMonthDisabled(m, selectedYear)}>
@@ -125,7 +127,7 @@ const PayslipsDashboard = () => {
             </select>
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Payroll Year</label>
+            <label className={styles.formLabel}>Year</label>
             <select value={selectedYear} onChange={e => { setSelectedYear(Number(e.target.value)); setPayslipData(null); }} className={styles.formSelect}>
               {[currentYear - 1, currentYear, currentYear + 1].map(y => (
                 <option key={y} value={y} disabled={isYearDisabled(y)}>
@@ -135,26 +137,37 @@ const PayslipsDashboard = () => {
             </select>
           </div>
           <div className={styles.formGroupLarge}>
-            <label className={styles.formLabel}>Select Staff Member</label>
             {staffList.length === 1 ? (
-              <div className={styles.staffReadOnly}>
-                {staffList[0].firstName} {staffList[0].lastName}
-              </div>
+              <>
+                <label className={styles.formLabel}>Staff</label>
+                <div className={styles.staffReadOnly}>
+                  {staffList[0].firstName} {staffList[0].lastName}
+                </div>
+              </>
             ) : (
-              <select value={selectedStaffId} onChange={e => { setSelectedStaffId(e.target.value); setPayslipData(null); }} className={styles.formSelect}>
-                <option value="">-- Select Staff member --</option>
-                {staffList.map(staff => <option key={staff.id} value={staff.id}>{staff.firstName} {staff.lastName}</option>)}
-              </select>
+              <StaffPicker
+                label="Staff"
+                staffList={staffList}
+                value={selectedStaffId}
+                onChange={(id) => { setSelectedStaffId(id); setPayslipData(null); }}
+                placeholder="Search staff"
+              />
             )}
           </div>
           <div className={styles.generateBtnContainer}>
             <button className={`btn btn-primary ${styles.generateBtn} ${generateDisabled ? styles.generateBtnDisabled : ''}`} onClick={handleGenerate} disabled={generateDisabled}>
-              {loading ? 'Generating...' : 'Generate Payslip'}
+              {loading ? 'Generating…' : 'Generate payslip'}
             </button>
           </div>
         </div>
 
-
+        {isSelectionLocked() && (
+          <p className="screenHint">
+            {storeConfig?.payrollLockedUpToDate
+              ? `Payroll is locked through ${formatDisplayDate(storeConfig.payrollLockedUpToDate)}. Choose an earlier month to generate.`
+              : `${selectedMonth} ${selectedYear} has not been calculated yet, so a payslip cannot be generated.`}
+          </p>
+        )}
 
         {payslipData ? (
           <div className={styles.payslipWrapper}>
@@ -164,7 +177,7 @@ const PayslipsDashboard = () => {
           <div className={styles.emptyState}>
             <LuFileText size={32} aria-hidden="true" />
             <p className={styles.emptyStateTitle}>No payslip yet</p>
-            <p className={styles.emptyStateHint}>Choose month, year, and staff, then click Generate Payslip to preview it here.</p>
+            <p className={styles.emptyStateHint}>Choose a calculated month, year, and person, then generate to preview it here.</p>
           </div>
         ) : null}
       </div>

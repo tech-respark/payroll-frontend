@@ -7,7 +7,7 @@
 
 ## Staff Details (`/staff`)
 
-The authenticated landing page is the Staff Details screen. Users without broader staff access are automatically scoped toward their own record.
+The authenticated landing page is the Staff Details screen. Users without broader staff access are automatically scoped toward their own record. The directory is searchable. Reporting manager uses the shared staff picker. Removing a document or experience asks for confirmation before it leaves the form.
 
 The editor groups data into:
 
@@ -15,6 +15,8 @@ The editor groups data into:
 2. Joining & Employment
 3. Banking & Documents
 4. Work Experience
+
+Employment also stores hospitality pay fields: pay cycle, employment type, job codes, overtime multiplier, ESI number, and PAN.
 
 `MANAGE_STAFF` enables create/edit controls and the full store directory. `VIEW_OTHER_STAFF` also enables the directory without write access. Empty joining `Long` fields are sent as `null` on save. After create, child bank/document rows receive the saved staff id.
 

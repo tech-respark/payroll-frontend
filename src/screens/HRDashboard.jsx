@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useHistory } from 'react-router-dom';
 import { apiService } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
+import { formatDisplayDate, formatDisplayWeekday, titleCase } from '../helpers/displayUtils';
+import { parseLocalDate } from '../helpers/dateUtils';
 import styles from './HRDashboard.module.scss';
 import { LuX } from 'react-icons/lu';
 
@@ -15,14 +17,12 @@ const getInitials = (name = '') =>
     .substring(0, 2)
     .toUpperCase();
 
-const formatMissingDate = (dateStr) => {
-  const parsed = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) {
-    return { weekday: '', label: dateStr };
-  }
+const formatWeekBar = (raw) => {
+  const [weekday, iso] = String(raw || '').split('|');
+  const date = parseLocalDate(iso);
   return {
-    weekday: parsed.toLocaleDateString('en-GB', { weekday: 'short' }),
-    label: parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+    weekday: formatDisplayWeekday(iso) || titleCase(weekday),
+    date: date ? date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : (iso || ''),
   };
 };
 
@@ -94,8 +94,11 @@ const HRDashboard = () => {
       ]
     : [];
 
+  const weekDays = metrics.weeklyAttendance || [];
+
   return (
     <div className={styles.dashboardContainer}>
+      <p className="screenIntro">Headcount, today’s attendance, who’s away, and pending leave. Click a weekday for the breakdown.</p>
       <div className={styles.metricsGrid}>
         <div className={styles.metricCard}>
           <div className={styles.metricContent}>
@@ -136,7 +139,7 @@ const HRDashboard = () => {
             role="button"
             tabIndex={0}
           >
-            <span>{showLeaveModal ? 'Hide Away Feed' : 'View Away Feed'}</span>
+            <span>{showLeaveModal ? "Hide who's away" : "Who's away"}</span>
             <span className={styles.arrow}>{showLeaveModal ? '↑' : '→'}</span>
           </div>
           {showLeaveModal && (
@@ -188,6 +191,9 @@ const HRDashboard = () => {
               <h3>Weekly Attendance Overview</h3>
               <span className={styles.cardHint}>Click a day for breakdown</span>
             </div>
+            {weekDays.length === 0 ? (
+              <p className="screenHint">No attendance recorded this week yet.</p>
+            ) : (
             <div className={styles.mockBarChart}>
               <div className={styles.yAxis}>
                 <span>100%</span>
@@ -197,9 +203,10 @@ const HRDashboard = () => {
                 <span>0%</span>
               </div>
               <div className={styles.chartArea}>
-                {metrics.weeklyAttendance?.map((day, idx) => {
+                {weekDays.map((day, idx) => {
                   const total = day.present + day.absent + day.onLeave + day.late || 1;
                   const isActive = selectedDayBreakdown?.date === day.date;
+                  const bar = formatWeekBar(day.date);
                   return (
                     <div key={idx} className={styles.barColumn}>
                       <div
@@ -213,14 +220,15 @@ const HRDashboard = () => {
                         <div className={`${styles.barSegment} ${styles.barPresent}`} style={{ height: `${(day.present / total) * 100}%` }} title={`Present: ${day.present}`} />
                       </div>
                       <div className={styles.barLabel}>
-                        <div className={styles.barDay}>{day.date.split('|')[0]}</div>
-                        <div className={styles.barDate}>{day.date.split('|')[1]}</div>
+                        <div className={styles.barDay}>{bar.weekday}</div>
+                        <div className={styles.barDate}>{bar.date}</div>
                       </div>
                     </div>
                   );
                 })}
               </div>
             </div>
+            )}
             <div className={styles.legend}>
               <div className={styles.legendItem}><div className={styles.dot} style={{ background: '#10B981' }}></div> Present</div>
               <div className={styles.legendItem}><div className={styles.dot} style={{ background: '#8B5CF6' }}></div> Late</div>
@@ -232,8 +240,8 @@ const HRDashboard = () => {
               <div className={styles.inlineDetail} role="region" aria-label="Day breakdown">
                 <div className={styles.inlineDetailHeader}>
                   <div>
-                    <h4>{selectedDayBreakdown.date.split('|')[0]} breakdown</h4>
-                    <p>{selectedDayBreakdown.date.split('|')[1]} · {dayTotal} recorded</p>
+                    <h4>{formatWeekBar(selectedDayBreakdown.date).weekday} breakdown</h4>
+                    <p>{formatWeekBar(selectedDayBreakdown.date).date} · {dayTotal} recorded</p>
                   </div>
                   <button type="button" className={styles.iconButton} onClick={() => setSelectedDayBreakdown(null)} aria-label="Close breakdown">
                     <LuX size={14} aria-hidden="true" />
@@ -285,7 +293,7 @@ const HRDashboard = () => {
                           <div className={styles.actionDesig}>{stat.designation}</div>
                         </div>
                         <div className={styles.actionCount}>
-                          <span>{stat.absentDays}</span> Days AWOL
+                          <span>{stat.absentDays}</span> unplanned {stat.absentDays === 1 ? 'day' : 'days'}
                         </div>
                       </div>
                       {isOpen && (
@@ -293,18 +301,15 @@ const HRDashboard = () => {
                           <p className={styles.awolNote}>No punch and no approved leave on these dates.</p>
                           {stat.awolDates?.length > 0 ? (
                             <ul className={styles.dateList}>
-                              {stat.awolDates.map((dateStr, i) => {
-                                const formatted = formatMissingDate(dateStr);
-                                return (
+                              {stat.awolDates.map((dateStr, i) => (
                                   <li key={i} className={styles.dateRow}>
-                                    <span className={styles.dateWeekday}>{formatted.weekday}</span>
-                                    <span className={styles.dateLabel}>{formatted.label}</span>
+                                    <span className={styles.dateWeekday}>{formatDisplayWeekday(dateStr)}</span>
+                                    <span className={styles.dateLabel}>{formatDisplayDate(dateStr)}</span>
                                   </li>
-                                );
-                              })}
+                              ))}
                             </ul>
                           ) : (
-                            <div className={styles.emptyPanel}>No AWOL dates listed.</div>
+                            <div className={styles.emptyPanel}>No unplanned dates listed.</div>
                           )}
                         </div>
                       )}
@@ -332,7 +337,7 @@ const HRDashboard = () => {
                       {act.staffName}
                       <span> {act.action.toLowerCase()}</span>
                     </p>
-                    <span className={styles.activityTime}>{act.time}</span>
+                    <span className={styles.activityTime}>{formatDisplayDate(act.time)}</span>
                   </div>
                   <div className={styles.activityBadge}>
                     {act.type === 'LeaveRequest' ? 'Leave' : 'System'}

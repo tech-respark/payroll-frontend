@@ -34,6 +34,7 @@ This portal follows a docs-as-code model. It separates product promises, user wo
 - [Shifts and attendance](features/shifts-and-attendance.md)
 - [Leave and holidays](features/leave-and-holidays.md)
 - [Payroll and payslips](features/payroll-and-payslips.md)
+- [Hospitality payroll](features/hospitality-payroll.md)
 - [Reports and HR dashboard](features/reports-and-hr-dashboard.md)
 
 ## Architecture and engineering

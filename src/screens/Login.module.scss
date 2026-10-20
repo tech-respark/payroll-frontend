@@ -9,8 +9,8 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   background:
-    radial-gradient(ellipse at 20% 20%, rgba(0, 167, 111, 0.12), transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(0, 167, 111, 0.06), transparent 45%),
+    radial-gradient(ellipse at 18% 18%, rgb(36 119 212 / 10%), transparent 48%),
+    radial-gradient(ellipse at 82% 82%, rgb(24 183 160 / 8%), transparent 42%),
     var(--bg-color);
   font-family: var(--primary-font);
 }
@@ -48,7 +48,7 @@
 .brand {
   font-family: var(--display-font);
   font-size: 28px;
-  color: var(--text-dark);
+  color: var(--brand-navy);
   margin: 0 0 8px 0;
   font-weight: 800;
   letter-spacing: -0.02em;

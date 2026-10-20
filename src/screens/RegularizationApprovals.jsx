@@ -5,12 +5,12 @@ import styles from './RegularizationApprovals.module.scss';
 import '../styles/main.scss';
 
 const RegularizationApprovals = () => {
-  const { staffList } = useStaffList();
+  const { staffList, isLoading } = useStaffList();
 
   return (
     <div className={`dashboard ${styles.page}`}>
       <div className={`staff-content ${styles.staffContent}`}>
-        <RegularizationDashboard staffList={staffList} />
+        <RegularizationDashboard staffList={staffList} staffLoading={isLoading} />
       </div>
     </div>
   );

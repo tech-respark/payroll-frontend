@@ -2,12 +2,12 @@
 
 > **Audience:** Clients, stakeholders, product, sales, implementation teams  
 > **Purpose:** Describe the verified product scope without implementation detail  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-20  
 > **Source of truth:** Frontend screens/routes and backend controllers/services
 
 ## What Relfor Payroll does
 
-Relfor Payroll is a multi-tenant workforce and payroll application for organizations operating one or more stores or offices. It combines employee records, role-based access, shifts, attendance, leave, salary configuration, payslips, and reporting in one authenticated application. The web UI uses a light-first Minimal-inspired shell (custom Sass + Lucide icons), not a paid UI kit.
+Relfor Payroll is a multi-tenant workforce and payroll application for organizations operating one or more stores or offices. It combines employee records, role-based access, shifts, attendance, leave, salary configuration, payslips, and reporting in one authenticated application. The web UI uses a light-first Hajiro shell (navy / blue / teal tokens, custom Sass + Lucide icons). Product name and logo stay as they are.
 
 The hierarchy is:
 
@@ -32,6 +32,7 @@ flowchart TD
 | Payroll | Fixed and monthly components, formula-based components, attendance-aware monthly calculation |
 | Payslips | Historical payslip data, printable view, PDF generation; backend also exposes managed Excel export |
 | Reporting | Attendance summary, CSV export, staff detail, executive HR metrics |
+| Hospitality | Advances, commission slabs, staff sales import, service-charge pool, statutory payslip lines, labor vs sales, F&F, muster/NEFT, employee clock and shift swap |
 | Integrations | Team Office biometric retrieval, external role/staff import, RabbitMQ notifications, SMTP email |
 
 ## Primary personas

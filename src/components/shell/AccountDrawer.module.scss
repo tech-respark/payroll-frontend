@@ -120,7 +120,7 @@
   }
 
   &:hover {
-    background: rgba(255, 86, 48, 0.08);
+    background: var(--badge-danger-bg);
   }
 }
 

@@ -2,26 +2,40 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
-import { useQueryClient } from '@tanstack/react-query';
 import { useStaffList, useRoles } from '../hooks/queries';
 import { useSaveStaff } from '../hooks/mutations';
 import styles from './StaffDashboard.module.scss';
-import { Button, Switch } from '../components/ui';
+import { Button, Switch, StaffPicker, ConfirmDialog } from '../components/ui';
 import { LuUser } from 'react-icons/lu';
 import '../styles/main.scss';
 
 const StaffDashboard = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
   const { showToast } = useToast();
-  const queryClient = useQueryClient();
-  
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [isNew, setIsNew] = useState(false);
-  const [activeTab, setActiveTab] = useState('personal'); 
+  const [activeTab, setActiveTab] = useState('personal');
+  const [directoryQuery, setDirectoryQuery] = useState('');
+  const [removeTarget, setRemoveTarget] = useState(null); 
   
 
 
-  const emptyJoiningDetailsObj = { staffId: "", employeeCode: "", reportingTo: "", uanNumber: "", workingHours: 0, storeId: storeId };
+  const emptyJoiningDetailsObj = {
+    staffId: "",
+    employeeCode: "",
+    reportingTo: "",
+    uanNumber: "",
+    workingHours: 0,
+    storeId: storeId,
+    payCycle: "MONTHLY",
+    employmentType: "SALARIED",
+    jobCode: "",
+    secondaryJobCode: "",
+    secondaryHourlyRate: "",
+    overtimeMultiplier: 2,
+    esiNumber: "",
+    panNumber: "",
+  };
   const emptyBankAccountDetailsObj = { bankName: '', bankBranch: '', ifscCode: '', accountNumber: '' };
   
   const emptyStaff = {
@@ -52,7 +66,7 @@ const StaffDashboard = () => {
 
   const [formData, setFormData] = useState({ ...emptyStaff });
 
-  const { staffList, rawStaffList, isLoading: isStaffLoading } = useStaffList();
+  const { staffList, isLoading: isStaffLoading } = useStaffList();
   const { roles: rolesList } = useRoles();
 
   const canViewOtherStaff = hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF']);
@@ -89,7 +103,7 @@ const StaffDashboard = () => {
       ...staff, 
       roleId: assignedRole.id || '',
       assignedRoleName: assignedRole.name || '',
-      personnelJoiningDetails: staff.personnelJoiningDetails || { ...emptyJoiningDetailsObj },
+      personnelJoiningDetails: { ...emptyJoiningDetailsObj, ...(staff.personnelJoiningDetails || {}) },
       personnelBankAccountDetails: staff.personnelBankAccountDetails || { ...emptyBankAccountDetailsObj },
       personnelWorkExperienceDetailsList: staff.personnelWorkExperienceDetailsList || [],
       personnelDocumentDetailsList: staff.personnelDocumentDetailsList || [],
@@ -205,7 +219,15 @@ const StaffDashboard = () => {
     </div>
   );
 
+  const visibleStaff = staffList.filter((staff) => {
+    const needle = directoryQuery.trim().toLowerCase();
+    if (!needle) return true;
+    return `${staff.firstName || ''} ${staff.lastName || ''}`.toLowerCase().includes(needle);
+  });
+
   return (
+    <div className={styles.page}>
+      <p className="screenIntro">Open a person to edit their profile, pay cycle, bank details, and documents. Inactive staff cannot sign in.</p>
     <div className={styles.dashboardLayout}>
       
       {/* Left Sidebar: Staff List - ONLY FOR MANAGERS/ADMINS */}
@@ -213,12 +235,25 @@ const StaffDashboard = () => {
       <div className={styles.directoryPanel}>
         {canManageStaff && (
           <button onClick={handleCreateNew} className={styles.newEmployeeBtn}>
-            + New Employee
+            + New employee
           </button>
         )}
-        {isStaffLoading ? <p className={styles.loadingText}>Loading directory...</p> : (
+        <input
+          type="search"
+          className={styles.directorySearch}
+          placeholder="Search staff"
+          value={directoryQuery}
+          onChange={(e) => setDirectoryQuery(e.target.value)}
+          aria-label="Search staff directory"
+        />
+        {isStaffLoading ? <p className={styles.loadingText}>Loading directory…</p> : (
           <ul className={styles.employeeList}>
-            {staffList.map((staff) => (
+            {visibleStaff.length === 0 && (
+              <li className={styles.emptyDirectory}>
+                {staffList.length === 0 ? 'No staff in this store yet.' : 'No staff match that name.'}
+              </li>
+            )}
+            {visibleStaff.map((staff) => (
               <li 
                 key={staff.id} 
                 className={`${styles.employeeItem} ${selectedStaff?.id === staff.id ? styles.activeItem : ''}`}
@@ -253,7 +288,7 @@ const StaffDashboard = () => {
             {/* Profile Header Card */}
             <div className={styles.profileHeader}>
               <div className={styles.largeAvatar}>
-                {isNew ? 'NEW' : getInitials(formData.firstName, formData.lastName)}
+                {isNew ? 'New' : getInitials(formData.firstName, formData.lastName)}
               </div>
               <div className={styles.headerDetails}>
                 <h2 className={styles.profileName}>
@@ -327,26 +362,47 @@ const StaffDashboard = () => {
               {activeTab === 'employment' && (
                 <fieldset disabled={!canManageStaff} className={styles.tabPanel} style={{ border: 'none' }}>
                   <h3 className={styles.sectionTitle}>Employment Details</h3>
+                  <p className={styles.sectionHint}>These fields decide how often the person is paid, overtime, and statutory deductions on the payslip.</p>
                   <div className={styles.formGrid}>
                     <div className={styles.formGroup}><label className={styles.formLabel}>Employee Code</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.employeeCode" value={formData.personnelJoiningDetails.employeeCode} onChange={handleChange} /></div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>Reporting Manager</label>
-                      <select 
-                        className={styles.formSelect} 
-                        name="personnelJoiningDetails.reportingTo" 
-                        value={formData.personnelJoiningDetails.reportingTo || ''} 
-                        onChange={handleChange}
-                      >
-                        <option value="">-- Select Manager --</option>
-                        {staffList.filter(s => s.id !== formData.id).map(staff => (
-                          <option key={staff.id} value={staff.id}>
-                            {staff.firstName} {staff.lastName}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <StaffPicker
+                      label="Reporting manager"
+                      staffList={staffList}
+                      excludeIds={[formData.id]}
+                      value={formData.personnelJoiningDetails.reportingTo || ''}
+                      onChange={(id) => setFormData((prev) => ({
+                        ...prev,
+                        personnelJoiningDetails: { ...prev.personnelJoiningDetails, reportingTo: id },
+                      }))}
+                      placeholder="Search manager"
+                    />
                     <div className={styles.formGroup}><label className={styles.formLabel}>UAN Number</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.uanNumber" value={formData.personnelJoiningDetails.uanNumber} onChange={handleChange} /></div>
                     <div className={styles.formGroup}><label className={styles.formLabel}>Standard Working Hours</label><input type="number" className={styles.formInput} name="personnelJoiningDetails.workingHours" value={formData.personnelJoiningDetails.workingHours} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Pay cycle</label>
+                      <select className={styles.formSelect} name="personnelJoiningDetails.payCycle" value={formData.personnelJoiningDetails.payCycle || 'MONTHLY'} onChange={handleChange}>
+                        <option value="MONTHLY">Monthly</option>
+                        <option value="WEEKLY">Weekly</option>
+                        <option value="DAILY">Daily</option>
+                        <option value="HOURLY">Hourly</option>
+                      </select>
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>Employment type</label>
+                      <select className={styles.formSelect} name="personnelJoiningDetails.employmentType" value={formData.personnelJoiningDetails.employmentType || 'SALARIED'} onChange={handleChange}>
+                        <option value="SALARIED">Salaried</option>
+                        <option value="HOURLY">Hourly</option>
+                        <option value="COMMISSION">Commission</option>
+                        <option value="DAILY_WAGE">Daily wage</option>
+                        <option value="CONSULTANT">Consultant</option>
+                      </select>
+                    </div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Primary job code</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.jobCode" value={formData.personnelJoiningDetails.jobCode || ''} onChange={handleChange} placeholder="Server / Stylist" /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Secondary job code</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.secondaryJobCode" value={formData.personnelJoiningDetails.secondaryJobCode || ''} onChange={handleChange} placeholder="Bartender / Assistant" /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Secondary hourly rate</label><input type="number" className={styles.formInput} name="personnelJoiningDetails.secondaryHourlyRate" value={formData.personnelJoiningDetails.secondaryHourlyRate || ''} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Overtime multiplier</label><input type="number" step="0.1" className={styles.formInput} name="personnelJoiningDetails.overtimeMultiplier" value={formData.personnelJoiningDetails.overtimeMultiplier || 2} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>ESI number</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.esiNumber" value={formData.personnelJoiningDetails.esiNumber || ''} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>PAN</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.panNumber" value={formData.personnelJoiningDetails.panNumber || ''} onChange={handleChange} /></div>
                   </div>
 
                   <label className={styles.weeklyOffLabel}>Weekly Off Days</label>
@@ -357,7 +413,7 @@ const StaffDashboard = () => {
                         onClick={() => handleWeeklyOffToggle(day)}
                         className={formData.weeklyOff.includes(day) ? styles.weeklyOffBtnActive : styles.weeklyOffBtn}
                       >
-                        {day}
+                        {day.charAt(0).toUpperCase() + day.slice(1)}
                       </button>
                     ))}
                   </div>
@@ -388,7 +444,7 @@ const StaffDashboard = () => {
                         <div key={idx} className={styles.docRow}>
                           <div className={styles.docFormGroup}><label className={styles.formLabel}>Document Name</label><input type="text" className={styles.formInput} value={doc.documentName} onChange={e => handleArrayChange('personnelDocumentDetailsList', idx, 'documentName', e.target.value)} placeholder="e.g. Aadhar Card" /></div>
                           <div className={styles.docFormGroup}><label className={styles.formLabel}>Document Number</label><input type="text" className={styles.formInput} value={doc.documentNumber} onChange={e => handleArrayChange('personnelDocumentDetailsList', idx, 'documentNumber', e.target.value)} /></div>
-                          <button type="button" onClick={() => handleRemoveArrayItem('personnelDocumentDetailsList', idx)} className={styles.removeBtn}>✕</button>
+                          <button type="button" onClick={() => setRemoveTarget({ list: 'personnelDocumentDetailsList', index: idx, label: 'document' })} className={styles.removeBtn}>✕</button>
                         </div>
                       ))}
                     </div>
@@ -412,7 +468,7 @@ const StaffDashboard = () => {
                         <div key={idx} className={styles.expRow}>
                           <div className={styles.expHeader}>
                             <h4 className={styles.expTitle}>Experience #{idx + 1}</h4>
-                            <Button type="button" variant="danger" onClick={() => handleRemoveArrayItem('personnelWorkExperienceDetailsList', idx)}>Remove</Button>
+                            <Button type="button" variant="danger" onClick={() => setRemoveTarget({ list: 'personnelWorkExperienceDetailsList', index: idx, label: 'experience' })}>Remove</Button>
                           </div>
                           <div className={styles.formGrid}>
                             <div className={styles.formGroup}><label className={styles.formLabel}>Company Name</label><input type="text" className={styles.formInput} value={exp.companyName} onChange={e => handleArrayChange('personnelWorkExperienceDetailsList', idx, 'companyName', e.target.value)} /></div>
@@ -449,6 +505,19 @@ const StaffDashboard = () => {
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={removeTarget != null}
+        title={removeTarget?.label === 'experience' ? 'Remove this experience?' : 'Remove this document?'}
+        body="This only removes it from the form until you save the profile."
+        confirmLabel="Remove"
+        danger
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => {
+          handleRemoveArrayItem(removeTarget.list, removeTarget.index);
+          setRemoveTarget(null);
+        }}
+      />
+    </div>
   );
 };
 

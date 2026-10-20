@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig, toLocalDateKey, todayLocalKey } from '../helpers/dateUtils';
-import { Drawer, Button, Switch } from '../components/ui';
+import { Drawer, Button, Switch, ConfirmDialog } from '../components/ui';
 import {
   LuPlus,
   LuTrash2,
@@ -52,6 +52,7 @@ export default function HolidayCalendarScreen() {
     holidayDate: '',
     isOptional: false,
   });
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['holidays', tenantId, storeId],
@@ -159,8 +160,14 @@ export default function HolidayCalendarScreen() {
 
   const formatDate = (dateString) => formatDateByConfig(dateString, storeConfig?.dateFormat);
 
+  const monthHolidayCount = Object.keys(holidaysByDate).filter((k) => {
+    const [y, m] = toDateKey(k).split('-').map(Number);
+    return y === viewYear && m === viewMonth + 1;
+  }).length;
+
   return (
     <div className={styles.pageContainer}>
+      <p className="screenIntro">Store holidays used for attendance and optional-holiday leave. Click a day to add one.</p>
       <div className={styles.pageActions}>
         <button type="button" className={styles.primaryBtn} onClick={() => openCreate()}>
           <LuPlus size={18} /> Add holiday
@@ -192,10 +199,7 @@ export default function HolidayCalendarScreen() {
           <span className={styles.metricLabel}>This month</span>
           <div className={styles.metricValueContainer}>
             <span className={styles.metricValueLarge}>
-              {Object.keys(holidaysByDate).filter((k) => {
-                const [y, m] = toDateKey(k).split('-').map(Number);
-                return y === viewYear && m === viewMonth + 1;
-              }).length}
+              {monthHolidayCount}
             </span>
             <span className={styles.metricValueSub}>in {monthLabel.split(' ')[0]}</span>
           </div>
@@ -241,6 +245,10 @@ export default function HolidayCalendarScreen() {
             </button>
           </div>
         </div>
+
+        {viewMode === 'month' && !isLoading && monthHolidayCount === 0 && (
+          <p className={`screenHint ${styles.monthHint}`}>No holidays in {monthLabel}. Click a day to add one.</p>
+        )}
 
         {viewMode === 'month' ? (
           <div className={styles.monthGrid}>
@@ -318,11 +326,7 @@ export default function HolidayCalendarScreen() {
                           <button
                             type="button"
                             className={styles.actionBtn}
-                            onClick={() => {
-                              if (window.confirm(`Delete “${holiday.holidayName}”?`)) {
-                                deleteMutation.mutate(holiday.id);
-                              }
-                            }}
+                            onClick={() => setDeleteTarget(holiday)}
                             title="Delete holiday"
                           >
                             <LuTrash2 size={18} />
@@ -403,11 +407,7 @@ export default function HolidayCalendarScreen() {
                     <button
                       type="button"
                       className={styles.actionBtn}
-                      onClick={() => {
-                        if (window.confirm(`Delete “${h.holidayName}”?`)) {
-                          deleteMutation.mutate(h.id);
-                        }
-                      }}
+                      onClick={() => setDeleteTarget(h)}
                     >
                       <LuTrash2 size={16} />
                     </button>
@@ -418,6 +418,20 @@ export default function HolidayCalendarScreen() {
           )}
         </div>
       </Drawer>
+      <ConfirmDialog
+        open={deleteTarget != null}
+        title="Delete this holiday?"
+        body={deleteTarget ? `Remove “${deleteTarget.holidayName}” from the store calendar.` : ''}
+        confirmLabel="Delete holiday"
+        danger
+        busy={deleteMutation.isPending}
+        onClose={() => { if (!deleteMutation.isPending) setDeleteTarget(null); }}
+        onConfirm={() => {
+          deleteMutation.mutate(deleteTarget.id, {
+            onSettled: () => setDeleteTarget(null),
+          });
+        }}
+      />
     </div>
   );
 }

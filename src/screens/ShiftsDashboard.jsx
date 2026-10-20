@@ -6,10 +6,14 @@ import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig, todayLocalKey, addDaysToDateKey } from '../helpers/dateUtils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useStaffList, useShiftSlots, useStoreSettings, useWeeklyShifts } from '../hooks/queries';
-import { Checkbox } from '../components/ui';
+import { Checkbox, ConfirmDialog, Switch } from '../components/ui';
+import { formatSlot } from '../helpers/displayUtils';
 import { LuClock, LuInfo, LuPlus, LuChevronDown, LuCheck, LuX } from 'react-icons/lu';
 import styles from './ShiftsDashboard.module.scss';
 import '../styles/main.scss';
+
+const DAY_KEYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const dayChip = (day) => day.charAt(0) + day.slice(1).toLowerCase();
 
 const ShiftsDashboard = () => {
   const { tenantId, storeId, user, hasAccess } = useAuth();
@@ -32,7 +36,8 @@ const ShiftsDashboard = () => {
   const [slotName, setSlotName] = useState('');
   const [slotStartTime, setSlotStartTime] = useState('09:00');
   const [slotEndTime, setSlotEndTime] = useState('18:00');
-  const [slotColor, setSlotColor] = useState('#00A76F');
+  const [slotColor, setSlotColor] = useState('#2477D4');
+  const [slotOvernight, setSlotOvernight] = useState(false);
   const [sameForAllDays, setSameForAllDays] = useState(true);
   const [dayWiseTimings, setDayWiseTimings] = useState({
     SUN: { startTime: '09:00', closureTime: '18:00' },
@@ -56,6 +61,8 @@ const ShiftsDashboard = () => {
   const [breakStartTime, setBreakStartTime] = useState('13:00');
   const [breakEndTime, setBreakEndTime] = useState('14:00');
   const [breakType, setBreakType] = useState('Lunch');
+  const [confirmRoster, setConfirmRoster] = useState(false);
+  const [confirmClearBreak, setConfirmClearBreak] = useState(false);
 
   const { staffList } = useStaffList();
   const { storeSettings: storeSettingsData } = useStoreSettings();
@@ -147,7 +154,8 @@ const ShiftsDashboard = () => {
       setSlotName(slot.shiftName);
       setSlotStartTime(slot.startTime);
       setSlotEndTime(slot.endTime);
-      setSlotColor(slot.color || '#00A76F');
+      setSlotColor(slot.color || '#2477D4');
+      setSlotOvernight(Boolean(slot.overnight));
       
       if (slot.dayWiseShiftsTiming && slot.dayWiseShiftsTiming.length > 0) {
         setSameForAllDays(false);
@@ -167,7 +175,8 @@ const ShiftsDashboard = () => {
       setSlotName('');
       setSlotStartTime('09:00');
       setSlotEndTime('18:00');
-      setSlotColor('#00A76F');
+      setSlotColor('#2477D4');
+      setSlotOvernight(false);
       setSameForAllDays(true);
       setDayWiseTimings(defaultDayWise);
     }
@@ -203,6 +212,7 @@ const ShiftsDashboard = () => {
       startTime: slotStartTime,
       endTime: slotEndTime,
       color: slotColor,
+      overnight: slotOvernight || Boolean(slotStartTime && slotEndTime && slotStartTime > slotEndTime),
       tenantId,
       storeId,
       active: true
@@ -415,6 +425,8 @@ const ShiftsDashboard = () => {
   };
 
   return (
+    <>
+    <p className="screenIntro">Create shift templates, then assign them to staff for a date range. Weekly schedule is a read-only view of what was saved.</p>
     <div className={styles.dashboardLayout}>
       
       {/* Internal Tabs */}
@@ -487,7 +499,7 @@ const ShiftsDashboard = () => {
               <div className={styles.settingsFooter}>
                 {canManage && (
                   <button type="submit" className={styles.saveBtn} disabled={saveSettingsMutation.isPending}>
-                    {saveSettingsMutation.isPending ? 'Saving...' : 'SAVE SETTINGS'}
+                    {saveSettingsMutation.isPending ? 'Saving...' : 'Save settings'}
                   </button>
                 )}
               </div>
@@ -536,7 +548,7 @@ const ShiftsDashboard = () => {
                   </div>
                   <div className={styles.cardTime}>
                     <LuClock size={14} />
-                    {slot.startTime} - {slot.endTime}
+                    {slot.startTime} - {slot.endTime}{slot.overnight ? ' · overnight' : ''}
                   </div>
                 </div>
               ))}
@@ -583,6 +595,16 @@ const ShiftsDashboard = () => {
                       </div>
                     </div>
 
+                    <div className={styles.formGroup} style={{ alignSelf: 'flex-end' }}>
+                      <Switch
+                        row
+                        id="overnight-shift"
+                        label="Overnight shift"
+                        hint="End time is the next calendar day."
+                        checked={slotOvernight}
+                        onChange={(e) => setSlotOvernight(e.target.checked)}
+                      />
+                    </div>
                     <div className={styles.formGroup}>
                       <label>End Time</label>
                       <div className={styles.selectWrapper}>
@@ -596,9 +618,9 @@ const ShiftsDashboard = () => {
                   
                   {!sameForAllDays && (
                     <div className={styles.dayRows}>
-                      {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
+                      {DAY_KEYS.map(day => (
                         <div key={day} className={styles.dayRow}>
-                          <div className={styles.dayLabel}>{day}</div>
+                          <div className={styles.dayLabel}>{dayChip(day)}</div>
                           
                           <div className={styles.selectWrapper}>
                             <select 
@@ -675,7 +697,7 @@ const ShiftsDashboard = () => {
 
             <div className={styles.dateSelectorGroup} style={{marginLeft: 'auto'}}>
               <div className={styles.dateLabels}>
-                <label>SELECT DATE</label>
+                <label>Select date</label>
               </div>
               <div className={styles.dateBoxWrapper}>
                 <div className={styles.dateBox}>
@@ -699,15 +721,17 @@ const ShiftsDashboard = () => {
                   aria-label="Select all staff"
                 />
               </div>
-              <div className={styles.headerLabel}>STAFF NAME</div>
-              <div className={styles.headerLabel}>FROM TIME</div>
-              <div className={styles.headerLabel}>TO TIME</div>
-              <div className={styles.center} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>WORKING</div>
-              <div className={styles.center} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>ADD BREAK</div>
+              <div className={styles.headerLabel}>Staff</div>
+              <div className={styles.headerLabel}>From</div>
+              <div className={styles.headerLabel}>To</div>
+              <div className={styles.center} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Working</div>
+              <div className={styles.center} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Break</div>
             </div>
 
             <div className={styles.tableBody}>
-              {staffList.map(staff => {
+              {staffList.length === 0 ? (
+                <div className={styles.emptyState}>No staff in this store yet.</div>
+              ) : staffList.map(staff => {
                 const assignData = bulkAssignments[staff.id] || {};
                 const isSelected = assignData.selected || false;
                 const isWorking = assignData.isWorking ?? true;
@@ -725,7 +749,6 @@ const ShiftsDashboard = () => {
                     
                     <div className={styles.staffInfo}>
                       <span className={styles.name}>{staff.firstName} {staff.lastName}</span>
-                      <span className={styles.role}>Role Name (TBD)</span>
                     </div>
 
                     <div className={styles.selectWrapper}>
@@ -781,15 +804,15 @@ const ShiftsDashboard = () => {
               className={styles.cancelBtn}
               onClick={() => setActiveTab('templates')}
             >
-              CANCEL
+              Cancel
             </button>
             <button 
               type="button" 
               className={styles.saveBtn}
               disabled={generateRosterMutation.isPending}
-              onClick={handleBulkAssignShift}
+              onClick={() => setConfirmRoster(true)}
             >
-              {generateRosterMutation.isPending ? 'SAVING...' : 'SAVE ROSTER'}
+              {generateRosterMutation.isPending ? 'Saving...' : 'Save roster'}
             </button>
           </div>
         </div>
@@ -843,7 +866,7 @@ const ShiftsDashboard = () => {
               <button 
                 type="button" 
                 className={styles.removeBreakBtn}
-                onClick={handleClearBreak}
+                onClick={() => setConfirmClearBreak(true)}
               >
                 Remove Break
               </button>
@@ -872,9 +895,25 @@ const ShiftsDashboard = () => {
       {/* TAB 4: WEEKLY SCHEDULE */}
       {activeTab === 'weekly' && (
         <div className={styles.weeklyContainer}>
+          <div className={styles.rosterTopBar}>
+            <div className={styles.dateSelectorGroup}>
+              <div className={styles.dateLabels}>
+                <label>Select week</label>
+              </div>
+              <div className={styles.dateBoxWrapper}>
+                <div className={styles.dateBox}>
+                  <button type="button" onClick={() => setWeeklyStartDate(addDaysToDateKey(weeklyStartDate, -7))} className={styles.arrowBtn} aria-label="Previous week">&lt;</button>
+                  <div className={styles.dateText}>
+                    {formatDateByConfig(weeklyStartDate, storeConfig?.dateFormat)}
+                  </div>
+                  <button type="button" onClick={() => setWeeklyStartDate(addDaysToDateKey(weeklyStartDate, 7))} className={styles.arrowBtn} aria-label="Next week">&gt;</button>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className={styles.weeklyTable}>
             <div className={styles.tableHeader}>
-              <div className={styles.headerLabel}>STAFF NAME</div>
+              <div className={styles.headerLabel}>Staff</div>
               {[...Array(7)].map((_, i) => {
                 return (
                   <div key={i} className={styles.headerLabel}>
@@ -885,7 +924,9 @@ const ShiftsDashboard = () => {
             </div>
             
             <div className={styles.tableBody}>
-              {staffList.map(staff => {
+              {staffList.length === 0 ? (
+                <div className={styles.emptyState}>No staff in this store yet.</div>
+              ) : staffList.map(staff => {
                 return (
                   <div key={staff.id} className={styles.tableRow}>
                     <div className={styles.staffInfo}>
@@ -900,7 +941,7 @@ const ShiftsDashboard = () => {
                       
                       return (
                         <div key={i} className={styles.center} style={{ fontSize: '13px', fontWeight: '500', color: shift ? (shift.onLeave ? '#ef4444' : shift.weeklyOff ? 'var(--text-muted)' : 'var(--primary-color)') : 'var(--text-muted)' }}>
-                          {shift ? (shift.onLeave ? 'Leave' : shift.weeklyOff ? 'Weekly Off' : shift.slot) : '-'}
+                          {shift ? (shift.onLeave ? 'Leave' : shift.weeklyOff ? 'Weekly Off' : formatSlot(shift.slot)) : '-'}
                         </div>
                       );
                     })}
@@ -913,6 +954,31 @@ const ShiftsDashboard = () => {
       )}
 
     </div>
+    <ConfirmDialog
+      open={confirmRoster}
+      title="Save this roster?"
+      body="Selected staff will be assigned these shifts for the chosen date range."
+      confirmLabel="Save roster"
+      busy={generateRosterMutation.isPending}
+      onClose={() => setConfirmRoster(false)}
+      onConfirm={() => {
+        setConfirmRoster(false);
+        handleBulkAssignShift();
+      }}
+    />
+    <ConfirmDialog
+      open={confirmClearBreak}
+      title="Remove this break?"
+      body="The break times for this staff member will be cleared."
+      confirmLabel="Remove break"
+      danger
+      onClose={() => setConfirmClearBreak(false)}
+      onConfirm={() => {
+        setConfirmClearBreak(false);
+        handleClearBreak();
+      }}
+    />
+    </>
   );
 };
 

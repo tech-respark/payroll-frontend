@@ -36,6 +36,14 @@ export const NAV_COMMANDS = [
     perms: null,
   },
   {
+    id: 'my-work',
+    title: 'My Work',
+    path: '/my-work',
+    group: 'Attendance',
+    keywords: ['clock', 'swap', 'availability'],
+    perms: null,
+  },
+  {
     id: 'approvals',
     title: 'Regularization Approvals',
     path: '/approvals',
@@ -58,6 +66,14 @@ export const NAV_COMMANDS = [
     group: 'Payroll',
     keywords: ['salary slip', 'payroll'],
     perms: ['VIEW_SALARY', 'MANAGE_SALARY'],
+  },
+  {
+    id: 'hospitality',
+    title: 'Hospitality Payroll',
+    path: '/hospitality',
+    group: 'Payroll',
+    keywords: ['tips', 'commission', 'advance', 'fnf', 'pf'],
+    perms: ['MANAGE_SALARY', 'VIEW_HOSPITALITY', 'MANAGE_HOSPITALITY'],
   },
   {
     id: 'reports',

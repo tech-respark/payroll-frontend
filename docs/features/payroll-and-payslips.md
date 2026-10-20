@@ -36,7 +36,7 @@ The code defaults to 30 working days per month and 9.5 hours per day when store/
 
 ## Payslips (`/payslips`)
 
-Visible with `VIEW_SALARY` or `MANAGE_SALARY`. Users select a staff member and period, constrained by store payroll configuration (`recentSummaryCalculatedMonth` / `payrollLockedUpToDate`). The UI fetches historical payslip data and can print or download a generated PDF. The stored recent-month value is updated by vendor attendance retrieval, not by the on-demand month-summary trigger.
+Visible with `VIEW_SALARY` or `MANAGE_SALARY`. Users select a staff member and period, constrained by store payroll configuration (`recentSummaryCalculatedMonth` / `payrollLockedUpToDate`). The UI fetches historical payslip data and can print or download a generated PDF. After a salary run, hospitality lines (`Hosp: `) can be added for overtime, commission, service-charge share, advance recovery, and statutory deductions. See [hospitality payroll](hospitality-payroll.md). The stored recent-month value is updated by vendor attendance retrieval, not by the on-demand month-summary trigger.
 
 The backend also provides a permission-gated Excel endpoint, but the current Payslips screen does not expose an Excel action.
 
@@ -53,6 +53,5 @@ The backend also provides a permission-gated Excel endpoint, but the current Pay
 
 - Formula execution uses MVEL expressions controlled through database configuration; only trusted administrators should manage formulas.
 - The dump contains `absentPenalty` definitions without corresponding formula-rule rows.
-- The “Compliance Check Passed” UI badge is static.
 - Payslip PDF requests currently infer a role ID from a string authority and may fall back to a fixed value.
 - A payslip history row stores calculated JSON/amounts, not PDF file metadata.

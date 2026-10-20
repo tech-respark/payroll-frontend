@@ -4,7 +4,7 @@ import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { useRoles, usePermissionModules } from '../hooks/queries';
-import { Switch } from '../components/ui';
+import { Switch, ConfirmDialog, Badge } from '../components/ui';
 import { LuPlus, LuCircleCheck, LuChevronRight, LuX, LuUserCheck } from 'react-icons/lu';
 import styles from './RoleManagement.module.scss';
 import '../styles/main.scss';
@@ -21,25 +21,14 @@ const RoleManagement = () => {
   const [newRoleName, setNewRoleName] = useState('');
   const [newRoleDesc, setNewRoleDesc] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [saveConfirm, setSaveConfirm] = useState(false);
   
   const queryClient = useQueryClient();
 
   const { permissionGroups: PERMISSION_GROUPS } = usePermissionModules();
   const { roles, isLoading: loadingRoles } = useRoles();
 
-  const handleCreateRole = async (e) => {
-    e.preventDefault();
-    
-    if (!newRoleName) {
-      showToast('Role name is required', 'error');
-      return;
-    }
-
-    if (selectedPermissions.length === 0) {
-      showToast('Please assign at least one permission to this role.', 'error');
-      return;
-    }
-
+  const saveRole = async () => {
     try {
       setLoading(true);
       
@@ -71,7 +60,29 @@ const RoleManagement = () => {
       showToast('An error occurred while saving the role', 'error');
     } finally {
       setLoading(false);
+      setSaveConfirm(false);
     }
+  };
+
+  const handleCreateRole = async (e) => {
+    e.preventDefault();
+    
+    if (!newRoleName) {
+      showToast('Role name is required', 'error');
+      return;
+    }
+
+    if (selectedPermissions.length === 0) {
+      showToast('Please assign at least one permission to this role.', 'error');
+      return;
+    }
+
+    if (editingRoleId) {
+      setSaveConfirm(true);
+      return;
+    }
+
+    await saveRole();
   };
 
   const handleTogglePermission = (permId) => {
@@ -97,10 +108,12 @@ const RoleManagement = () => {
     setNewRoleName('');
     setNewRoleDesc('');
     setSelectedPermissions([]);
+    setSaveConfirm(false);
   };
 
   return (
     <div className={styles.dashboardLayout}>
+      <p className="screenIntro">Create roles and turn on the modules each role can use. Staff pick up these permissions at the next sign-in.</p>
       {/* SPLIT PANEL LAYOUT */}
       <div className={styles.mainContainer}>
 
@@ -119,7 +132,7 @@ const RoleManagement = () => {
               }}
             >
               <LuPlus size={14} />
-              NEW ROLE
+              New role
             </button>
           </div>
           <div className={styles.rolesList}>
@@ -132,6 +145,7 @@ const RoleManagement = () => {
               <div>
                 {roles.map(role => {
                   const perms = role.permissions ? role.permissions.split(',') : [];
+                  const granted = getGrantedCategories(perms);
                   const isActive = editingRoleId === role.id && isModalOpen;
                   return (
                     <div
@@ -154,6 +168,13 @@ const RoleManagement = () => {
                         <div className={styles.roleName}>{role.name}</div>
                         {role.description && <div className={styles.roleDesc}>{role.description}</div>}
                         <div className={styles.rolePermsCount}>{perms.length} permission{perms.length !== 1 ? 's' : ''}</div>
+                        {granted.length > 0 && (
+                          <div className={styles.roleChips}>
+                            {granted.map((cat) => (
+                              <Badge key={cat} variant="info">{cat}</Badge>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -266,6 +287,15 @@ const RoleManagement = () => {
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={saveConfirm}
+        title={`Save changes to ${newRoleName || 'this role'}?`}
+        body="Staff with this role pick up the new permissions at the next sign-in."
+        confirmLabel="Save role"
+        busy={loading}
+        onClose={() => { if (!loading) setSaveConfirm(false); }}
+        onConfirm={saveRole}
+      />
     </div>
   );
 };

@@ -40,8 +40,8 @@ Severity is an engineering prioritization aid, not a production certification.
 
 ## UI and theming
 
-- **Resolved (2026-10-19):** Core chrome migration to the Minimal-inspired design system is complete for navigation, tokens, shared primitives (`Button`, `Input`, `Card`, `Badge`, `Modal`, `Drawer`, `Checkbox`, `Switch`, `Radio`), and high-traffic screens. Remaining UI work is feature-specific (new fields, layouts, or flows), not shell or primitive gaps. See [design system](../architecture/design-system.md).
-- Prefer `var(--primary-color)` for primary actions — never `var(--text-dark)` as a button fill (that token is white in dark mode).
+- **Resolved (2026-10-20):** Product tokens follow Hajiro v1 (navy / blue / teal). Primary actions are blue `#2477D4`; teal is an accent only. Product name and logo files are unchanged. See [design system](../architecture/design-system.md).
+- Prefer `var(--primary-color)` for primary actions — never `var(--text-dark)` as a button fill (it becomes light in dark mode).
 - Shared overlay primitives live in `components/ui` (`Modal` for focused dialogs, `Drawer` for create/edit side panels). Prefer them over one-off `modalOverlay` markup when touching a screen. Body scroll is locked while either is open; the authenticated shell scrolls only inside `main.content`.
 - Shared form controls also live in `components/ui` (`Checkbox`, `Switch`, `Radio`). Use `Switch` for on/off settings (for example staff active, role permissions, optional holiday), `Checkbox` for multi-select lists, and `Radio` (including `card`) for exclusive choices such as leave session.
 - Holiday Calendar is a month/list calendar with a right Drawer for create (not a center modal). Pagination controls in the old table footer were removed with the calendar rebuild.
@@ -51,16 +51,23 @@ Severity is an engineering prioritization aid, not a production certification.
 
 - **Resolved (2026-10-20):** `GET /staffshifts?date=` no longer joins `personnel_details.staff_id` (that column does not exist). Weekly and date roster reads use `staff_shifts` only.
 - **Resolved (2026-10-20):** Roster and report queries treat `staff_shifts.staff_id` as either `personnel_details.id` or `personnel_code` and return canonical `personnel_details.id`, so named staff appear in weekly/report views.
+- **Resolved (2026-10-20):** Hospitality shift-swap approval looks up roster rows by both `personnel_details.id` and `personnel_code`, matching weekly roster reads.
+- **Resolved (2026-10-20):** Hospitality store tools require `MANAGE_SALARY`, `VIEW_HOSPITALITY`, or `MANAGE_HOSPITALITY`. Floor staff with only `VIEW_SALARY` use My Work for their own clock, availability, and swaps. Advance recovery is idempotent per payslip month.
 - **Resolved (2026-10-20):** `GET /leaves/types/{staffId}` returns mapped leave-type fields instead of Hibernate proxies (Jackson no longer 500s).
 - **Resolved (2026-10-20):** In/out history APIs require `staffIds`. A missing list returns `400` instead of a SQL `IN null` 500. Pending-leave cancel returns `Leave cancelled successfully` so the employee toast matches the immediate cancel path.
 - **Resolved (2026-10-20):** `@PreAuthorize` denials return HTTP 403 instead of being swallowed as a generic 500. Staff cannot apply leave for another person. Holiday create/delete require `MANAGE_LEAVES`. HR metrics require `VIEW_HR_DASHBOARD`.
 - **Resolved (2026-10-20):** Shift **Store Hours** tab is reachable for `MANAGE_SHIFTS`. Store open/close is read from the settings object, not treated as an array.
-- Some UI compliance/health/broadcast labels are static.
+- **Resolved (2026-10-20):** Salary no longer shows a static “Compliance Check Passed” chip.
+- Some remaining UI health/broadcast labels are static.
 - **Resolved (2026-10-20):** Leave/attendance actor IDs use `user.staffId` from login/JWT. Fallback `1` was removed.
 - **Resolved (2026-10-20):** Payslip PDF download sends `staffId` as `Userid`. `RoleId` is not a login field; the header is a legacy unused value (`2`).
 - The UI does not expose the backend Excel payslip endpoint.
 - **Resolved (2026-10-20):** Report screens unwrap `{ data: [] }` the same way and never treat a phone number as `staffId`.
 - SMS service is a stub.
+- Hospitality statutory lines are payslip calculations only. They do not generate or submit PF ECR, ESI challan, or Form 16 files.
+- Hospitality sales import is manual or JSON. There is no live Petpooja, POSist, Invoay, or Salonist connector.
+- Hospitality clock-in stores a geo note only. Selfie images are not captured.
+- WhatsApp payslip send uses the existing RabbitMQ notification path and is skipped when the broker is down.
 - **Resolved (2026-10-20):** Monthly Variables save to month-scoped payslip history through `/monthlyCalculationComponents`. Footer totals use `monthlyValue` (with annual/12 fallback) so month-scoped rows do not render as NaN.
 - The payslip month picker disables months after `store_details.recent_summary_calculated_month`. That field is advanced by the vendor attendance handler, not by on-demand `/trigger/calculateMonthWiseSummary`.
 

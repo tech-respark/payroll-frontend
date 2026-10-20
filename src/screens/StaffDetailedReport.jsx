@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
   useReactTable, 
@@ -9,63 +9,43 @@ import {
 import { LuSearch, LuChartColumn } from 'react-icons/lu';
 import { apiService } from '../api/apiService';
 import { toLocalDateKey } from '../helpers/dateUtils';
+import { formatDisplayDate, formatClock, formatSlot, prettyStatus } from '../helpers/displayUtils';
 import { useAuth } from '../context/AuthContext';
-import { useStoreConfig } from '../hooks/queries';
+import { useStaffList, useStoreConfig } from '../hooks/queries';
+import { Badge, StaffPicker } from '../components/ui';
 import styles from './StaffDetailedReport.module.scss';
 
 const EMPTY_ARRAY = [];
 
+const statusVariant = (status) => {
+  const key = String(status || '').toLowerCase();
+  if (key.includes('present') || key === 'p') return 'success';
+  if (key.includes('leave') || key === 'l') return 'info';
+  if (key.includes('holiday') || key.includes('off') || key === 'wo' || key === 'ph') return 'warning';
+  if (key.includes('absent') || key === 'a') return 'danger';
+  return 'default';
+};
+
 export default function StaffDetailedReport() {
   const { tenantId, user } = useAuth();
   const { storeConfig } = useStoreConfig();
+  const { staffList, isLoading: staffLoading } = useStaffList();
 
-  // Default to current month
   const today = new Date();
   const firstDay = toLocalDateKey(new Date(today.getFullYear(), today.getMonth(), 1));
   const lastDay = toLocalDateKey(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
-  // State for date range
+  const queryStaffId = new URLSearchParams(window.location.search).get('staffId');
   const [fromDate, setFromDate] = useState(firstDay);
   const [toDate, setToDate] = useState(lastDay);
-  
-  // State for selected staff, default to logged in user
-  const [selectedStaffId, setSelectedStaffId] = useState(user?.staffId?.toString() || '');
-  
-  // Search query state for the table
+  const [selectedStaffId, setSelectedStaffId] = useState(queryStaffId || user?.staffId?.toString() || '');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch lightweight summary just for the dropdown
-  const { data: staffSummary = EMPTY_ARRAY } = useQuery({
-    queryKey: ['staffSummaryForDropdown', tenantId, storeConfig?.storeId, fromDate, toDate],
-    queryFn: async () => {
-      if (!tenantId || !storeConfig?.storeId) return [];
-      const response = await apiService.post('/staff/report/summary', {
-        tenantId,
-        storeId: storeConfig.storeId,
-        fromDateStr: fromDate,
-        toDateStr: toDate
-      });
-      const rows = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
-      return rows;
-    },
-    enabled: !!tenantId && !!storeConfig?.storeId
-  });
-
-  // Extract staff list for the dropdown
-  const staffOptions = useMemo(() => {
-    if (!Array.isArray(staffSummary)) return [];
-    return staffSummary.map(staff => ({
-      id: staff.staff_id ?? staff.staffId, 
-      name: staff.name
-    })).filter(s => s.id && s.name);
-  }, [staffSummary]);
-
-  // Set default selected staff if none is selected (and user object didn't have ID)
-  React.useEffect(() => {
-    if (staffOptions.length > 0 && !selectedStaffId) {
-      setSelectedStaffId(staffOptions[0].id.toString());
+  useEffect(() => {
+    if (staffList.length > 0 && !selectedStaffId) {
+      setSelectedStaffId(String(staffList[0].id));
     }
-  }, [staffOptions, selectedStaffId]);
+  }, [staffList, selectedStaffId]);
 
   // Fetch the detailed report data for the selected staff member only
   const { data: staffShifts = EMPTY_ARRAY, isLoading, isError } = useQuery({
@@ -90,39 +70,35 @@ export default function StaffDetailedReport() {
     if (!searchQuery) return staffShifts;
     const lowerQuery = searchQuery.toLowerCase();
     return staffShifts.filter(shift => 
-      shift.date?.toLowerCase().includes(lowerQuery) || 
+      shift.date?.toLowerCase().includes(lowerQuery) ||
+      formatDisplayDate(shift.date).toLowerCase().includes(lowerQuery) ||
       shift.slot?.toLowerCase().includes(lowerQuery)
     );
   }, [staffShifts, searchQuery]);
 
   const columns = useMemo(() => [
     {
-      header: 'Sr. No.',
-      id: 'srNo',
-      cell: info => info.row.index + 1
-    },
-    {
       header: 'Date',
       accessorKey: 'date',
-      cell: info => <span className={styles.dateCell}>{info.getValue() || '-'}</span>
+      cell: info => <span className={styles.dateCell}>{formatDisplayDate(info.getValue())}</span>
     },
     {
-      header: 'Shift Time',
+      header: 'Shift time',
       accessorKey: 'slot',
-      cell: info => info.getValue() || '-'
+      cell: info => formatSlot(info.getValue()) || '—'
     },
     {
-      header: 'Check In',
+      header: 'Check in',
       accessorKey: 'checkIn',
-      cell: info => info.getValue() || '-'
+      cell: info => formatClock(info.getValue())
     },
     {
-      header: 'Check Out',
+      header: 'Check out',
       accessorKey: 'checkOut',
-      cell: info => info.getValue() || '-'
+      cell: info => formatClock(info.getValue())
     },
     {
-      header: 'Total Worked (Hrs)',
+      header: 'Hours punched',
       accessorKey: 'hoursWorkedForADayAsPerBiometric',
       cell: info => {
         const val = info.getValue();
@@ -134,9 +110,9 @@ export default function StaffDetailedReport() {
       accessorKey: 'status',
       cell: info => {
         const status = info.getValue();
-        if (!status) return '-';
-        if (status === 'Leave') return 'On Leave';
-        return status;
+        if (!status) return '—';
+        const label = status === 'Leave' ? 'On leave' : prettyStatus(status);
+        return <Badge variant={statusVariant(status)}>{label}</Badge>;
       }
     }
   ], []);
@@ -155,10 +131,21 @@ export default function StaffDetailedReport() {
 
   return (
     <div className={styles.dashboardContainer}>
-    
+      <p className="screenIntro">Day-by-day hours punched for one person in the date range.</p>
       <div className={styles.filterCard}>
         <div className={styles.filterGroup}>
-          <label>From Date</label>
+          <StaffPicker
+            label="Staff"
+            staffList={staffList}
+            value={selectedStaffId}
+            onChange={setSelectedStaffId}
+            placeholder="Search staff"
+            loading={staffLoading}
+          />
+        </div>
+
+        <div className={styles.filterGroup}>
+          <label>From</label>
           <input 
             type="date" 
             value={fromDate}
@@ -168,7 +155,7 @@ export default function StaffDetailedReport() {
         </div>
         
         <div className={styles.filterGroup}>
-          <label>To Date</label>
+          <label>To</label>
           <input 
             type="date" 
             value={toDate}
@@ -178,26 +165,12 @@ export default function StaffDetailedReport() {
         </div>
 
         <div className={styles.filterGroup}>
-          <label>Select Staff Member</label>
-          <select 
-            value={selectedStaffId}
-            onChange={e => setSelectedStaffId(e.target.value)}
-            disabled={staffOptions.length === 0}
-          >
-            <option value="" disabled>Select Staff...</option>
-            {staffOptions.map(opt => (
-              <option key={opt.id} value={opt.id}>{opt.name} ({opt.id})</option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.filterGroup}>
-          <label>Filter Date</label>
+          <label>Search</label>
           <div className={styles.searchField}>
             <LuSearch size={18} className={styles.searchIcon} aria-hidden="true" />
             <input 
-              type="text" 
-              placeholder="Search by date..." 
+              type="search" 
+              placeholder="Search by date or shift" 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -252,8 +225,8 @@ export default function StaffDetailedReport() {
                 <tr>
                   <td colSpan={columns.length} className={styles.emptyCell}>
                     <LuChartColumn />
-                    <h3>No Data Found</h3>
-                    <p>No shift data found for the selected date range and staff.</p>
+                    <h3>No days in this range</h3>
+                    <p>No punches or shifts for this person in the selected dates.</p>
                   </td>
                 </tr>
               )}
@@ -261,7 +234,7 @@ export default function StaffDetailedReport() {
           </table>
         </div>
 
-        {table.getRowModel().rows.length > 0 && (
+        {table.getRowModel().rows.length > 0 && table.getPageCount() > 1 && (
           <div className={styles.pagination}>
             <div className={styles.pageLeft}>
               <button 

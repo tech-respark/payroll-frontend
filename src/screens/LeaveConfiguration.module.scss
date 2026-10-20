@@ -172,8 +172,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .input, .select, .textarea {
@@ -343,7 +341,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-subtle);
 }
@@ -383,9 +380,9 @@
 }
 
 .badgePaid {
-  background: rgba(0, 167, 111, 0.12);
-  color: #00A76F;
-  border: 1px solid rgba(0, 167, 111, 0.24);
+  background: var(--badge-primary-bg);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color-alpha);
 }
 
 .genderBadge {
@@ -539,8 +536,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .listIcon {
@@ -721,8 +716,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   margin-top: 0.5rem;
 }
 
@@ -763,7 +756,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
   margin-bottom: 0.5rem;
 }
 
@@ -858,7 +850,7 @@
 }
 
 .statusActive {
-  background: rgba(0, 167, 111, 0.08);
+  background: var(--nav-active-bg);
   color: var(--text-dark);
   border-left-color: var(--primary-color);
 }
@@ -920,8 +912,8 @@
   margin: 1.5rem;
   padding: 1.25rem;
   border-radius: 8px;
-  background: rgba(0, 167, 111, 0.06);
-  border: 1px solid rgba(0, 167, 111, 0.16);
+  background: var(--primary-color-alpha-soft);
+  border: 1px solid var(--primary-color-alpha);
   display: flex;
   gap: 1rem;
   align-items: center;

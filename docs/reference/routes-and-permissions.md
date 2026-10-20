@@ -12,7 +12,7 @@ Sidebar groups (labels only; routes unchanged):
 - **Overview:** Staff, Shifts, Attendance
 - **Management:** Payroll, Reports, Leave
 
-Icons use Lucide via `react-icons/lu` (for example Leave uses `LuCalendarOff`). The shell is a custom Minimal-inspired layout (280px sidebar, 64px header, light-first theme tokens). No third-party UI kit is required. Form toggles and choice controls should use shared `Checkbox` / `Switch` / `Radio` from `components/ui`.
+Icons use Lucide via `react-icons/lu` (for example Leave uses `LuCalendarOff`). The shell is a Hajiro layout (248px sidebar, 64px header, navy/blue/teal tokens). No third-party UI kit is required. Form toggles and choice controls should use shared `Checkbox` / `Switch` / `Radio` from `components/ui`.
 
 ## Frontend route matrix
 
@@ -26,6 +26,8 @@ Icons use Lucide via `react-icons/lu` (for example Leave uses `LuCalendarOff`). 
 | `/approvals`           | Regularization Approvals | `MANAGE_ATTENDANCE`                    |
 | `/salary`              | Salary Management        | `VIEW_SALARY` or `MANAGE_SALARY`       |
 | `/payslips`            | Payslips                 | `VIEW_SALARY` or `MANAGE_SALARY`       |
+| `/hospitality`         | Hospitality Payroll      | `MANAGE_SALARY`, `VIEW_HOSPITALITY`, or `MANAGE_HOSPITALITY` |
+| `/my-work`             | My Work                  | Authenticated                          |
 | `/reports`             | Attendance Summary       | `VIEW_REPORTS`                         |
 | `/reports/detailed`    | Staff Detailed Report    | `MANAGE_ATTENDANCE` or `MANAGE_SALARY` |
 | `/hr-dashboard`        | HR Dashboard             | `VIEW_HR_DASHBOARD`                    |
@@ -44,6 +46,7 @@ Icons use Lucide via `react-icons/lu` (for example Leave uses `LuCalendarOff`). 
 - Leave: `VIEW_LEAVES`, `MANAGE_LEAVES`
 - Reports: `VIEW_REPORTS`, `MANAGE_REPORTS`
 - Executive: `VIEW_HR_DASHBOARD`
+- Hospitality: `VIEW_HOSPITALITY`, `MANAGE_HOSPITALITY`
 - Backend constant also defines `MANAGE_STORE_SETTINGS`
 
 Additional permission strings appear in historical seed data but are not consistently implemented as controller checks. Do not infer enforcement from a seeded label.
