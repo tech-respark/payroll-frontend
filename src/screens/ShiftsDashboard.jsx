@@ -6,7 +6,7 @@ import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig, todayLocalKey, addDaysToDateKey } from '../helpers/dateUtils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useStaffList, useShiftSlots, useStoreSettings, useWeeklyShifts } from '../hooks/queries';
-import { Checkbox, ConfirmDialog, Switch } from '../components/ui';
+import { Button, Checkbox, ConfirmDialog, Drawer, Input, Switch } from '../components/ui';
 import { formatSlot } from '../helpers/displayUtils';
 import { LuClock, LuInfo, LuPlus, LuChevronDown, LuCheck, LuX } from 'react-icons/lu';
 import styles from './ShiftsDashboard.module.scss';
@@ -33,6 +33,7 @@ const ShiftsDashboard = () => {
 
   // Templates Data
   const [selectedSlotId, setSelectedSlotId] = useState(null);
+  const [templateOpen, setTemplateOpen] = useState(false);
   const [slotName, setSlotName] = useState('');
   const [slotStartTime, setSlotStartTime] = useState('09:00');
   const [slotEndTime, setSlotEndTime] = useState('18:00');
@@ -194,6 +195,7 @@ const ShiftsDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shiftSlots'] });
       showToast(selectedSlotId ? 'Shift updated successfully!' : 'Shift created successfully!', 'success');
+      setTemplateOpen(false);
       if (!selectedSlotId) {
         setSlotName('');
       }
@@ -426,7 +428,6 @@ const ShiftsDashboard = () => {
 
   return (
     <>
-    <p className="screenIntro">Create shift templates, then assign them to staff for a date range. Weekly schedule is a read-only view of what was saved.</p>
     <div className={styles.dashboardLayout}>
       
       {/* Internal Tabs */}
@@ -525,23 +526,26 @@ const ShiftsDashboard = () => {
 
       {/* SHIFT MANAGEMENT */}
       {activeTab === 'templates' && (
-        <div className={styles.shiftLayout}>
-          <div className={styles.shiftSidebar}>
+        <div className={styles.templatePage}>
+          <div className={styles.templateToolbar}>
+            <h3 className={styles.sidebarHeader}>Shift templates</h3>
             {canManage && (
-              <button className={styles.createShiftBtn} onClick={() => handleSelectSlot(null)}>
+              <Button onClick={() => { handleSelectSlot(null); setTemplateOpen(true); }}>
                 <LuPlus size={16} />
-                Create new shift
-              </button>
+                New shift
+              </Button>
             )}
-            <h3 className={styles.sidebarHeader}>Shift Templates</h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {shiftSlots.length === 0 ? <p style={{color: 'var(--text-muted)'}}>No shifts configured yet.</p> : null}
-              {shiftSlots.map(slot => (
-                <div 
-                  key={slot.id} 
-                  className={`${styles.shiftCard} ${selectedSlotId === slot.id ? styles.active : ''}`}
-                  onClick={() => handleSelectSlot(slot)}
+          </div>
+          {shiftSlots.length === 0 ? (
+            <p className={styles.emptyTemplates}>No shifts configured yet. Create a template, then assign it on the roster.</p>
+          ) : (
+            <div className={styles.templateGrid}>
+              {shiftSlots.map((slot) => (
+                <button
+                  type="button"
+                  key={slot.id}
+                  className={`${styles.shiftCard} ${selectedSlotId === slot.id && templateOpen ? styles.active : ''}`}
+                  onClick={() => { handleSelectSlot(slot); setTemplateOpen(true); }}
                 >
                   <div className={styles.cardHeader}>
                     <h4>{slot.shiftName}</h4>
@@ -550,116 +554,112 @@ const ShiftsDashboard = () => {
                     <LuClock size={14} />
                     {slot.startTime} - {slot.endTime}{slot.overnight ? ' · overnight' : ''}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
-          </div>
-          
-          <div className={styles.formPanel}>
-            <div className={styles.panelHeader}>
-              <h3>{selectedSlotId ? 'Update Shift' : 'Create New Shift'}</h3>
-              <p>Define working hours for this shift template.</p>
-            </div>
-            
-            <form onSubmit={handleAddShiftSlot} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-              <div className={styles.panelBody}>
-                <div className={styles.formGroup} style={{ maxWidth: '100%' }}>
-                  <label>Shift Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Morning Shift"
-                    value={slotName} 
-                    onChange={(e) => setSlotName(e.target.value)} 
-                    required 
-                  />
-                </div>
-                
-                <div className={styles.dayWiseContainer}>
-                  <div className={styles.dayWiseHeader}>
-                    <div className={styles.sameForAllDays}>
-                      <Checkbox
-                        id="same-for-all-days"
-                        label="Same For All Days"
-                        checked={sameForAllDays}
-                        onChange={(e) => setSameForAllDays(e.target.checked)}
-                      />
-                    </div>
-                    
-                    <div className={styles.formGroup}>
-                      <label>Start Time</label>
-                      <div className={styles.selectWrapper}>
-                        <select value={slotStartTime} onChange={(e) => setSlotStartTime(e.target.value)} disabled={!sameForAllDays}>
-                          {timeOptions.map(t => <option key={`start-${t}`} value={t}>{t}</option>)}
-                        </select>
-                        <LuChevronDown size={16} className={styles.selectIcon} />
-                      </div>
-                    </div>
+          )}
 
-                    <div className={styles.formGroup} style={{ alignSelf: 'flex-end' }}>
-                      <Switch
-                        row
-                        id="overnight-shift"
-                        label="Overnight shift"
-                        hint="End time is the next calendar day."
-                        checked={slotOvernight}
-                        onChange={(e) => setSlotOvernight(e.target.checked)}
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>End Time</label>
-                      <div className={styles.selectWrapper}>
-                        <select value={slotEndTime} onChange={(e) => setSlotEndTime(e.target.value)} disabled={!sameForAllDays}>
-                          {timeOptions.map(t => <option key={`end-${t}`} value={t}>{t}</option>)}
-                        </select>
-                        <LuChevronDown size={16} className={styles.selectIcon} />
-                      </div>
+          <Drawer
+            open={templateOpen}
+            onClose={() => { if (!saveSlotMutation.isPending) { setTemplateOpen(false); handleSelectSlot(null); } }}
+            title={selectedSlotId ? 'Edit shift' : 'New shift'}
+            subtitle="Define working hours for this template."
+            width={560}
+            footer={(
+              <>
+                <Button variant="outline" onClick={() => { setTemplateOpen(false); handleSelectSlot(null); }} disabled={saveSlotMutation.isPending}>
+                  Cancel
+                </Button>
+                {canManage && (
+                  <Button type="submit" form="shift-template-form" disabled={saveSlotMutation.isPending}>
+                    {saveSlotMutation.isPending ? 'Saving…' : 'Save shift'}
+                  </Button>
+                )}
+              </>
+            )}
+          >
+            <form id="shift-template-form" onSubmit={handleAddShiftSlot} className={styles.drawerForm}>
+              <Input
+                label="Shift name"
+                placeholder="e.g. Morning Shift"
+                value={slotName}
+                onChange={(e) => setSlotName(e.target.value)}
+                required
+              />
+
+              <div className={styles.dayWiseContainer}>
+                <div className={styles.dayWiseHeader}>
+                  <div className={styles.sameForAllDays}>
+                    <Checkbox
+                      id="same-for-all-days"
+                      label="Same for all days"
+                      checked={sameForAllDays}
+                      onChange={(e) => setSameForAllDays(e.target.checked)}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="shift-start-time">Start time</label>
+                    <div className={styles.selectWrapper}>
+                      <select id="shift-start-time" value={slotStartTime} onChange={(e) => setSlotStartTime(e.target.value)} disabled={!sameForAllDays}>
+                        {timeOptions.map((t) => <option key={`start-${t}`} value={t}>{t}</option>)}
+                      </select>
+                      <LuChevronDown size={16} className={styles.selectIcon} />
                     </div>
                   </div>
-                  
-                  {!sameForAllDays && (
-                    <div className={styles.dayRows}>
-                      {DAY_KEYS.map(day => (
-                        <div key={day} className={styles.dayRow}>
-                          <div className={styles.dayLabel}>{dayChip(day)}</div>
-                          
-                          <div className={styles.selectWrapper}>
-                            <select 
-                              value={dayWiseTimings[day].startTime} 
-                              onChange={(e) => setDayWiseTimings(prev => ({ ...prev, [day]: { ...prev[day], startTime: e.target.value } }))}
-                            >
-                              {timeOptions.map(t => <option key={`${day}-start-${t}`} value={t}>{t}</option>)}
-                            </select>
-                            <LuChevronDown size={16} className={styles.selectIcon} />
-                          </div>
 
-                          <div className={styles.selectWrapper}>
-                            <select 
-                              value={dayWiseTimings[day].closureTime} 
-                              onChange={(e) => setDayWiseTimings(prev => ({ ...prev, [day]: { ...prev[day], closureTime: e.target.value } }))}
-                            >
-                              {timeOptions.map(t => <option key={`${day}-end-${t}`} value={t}>{t}</option>)}
-                            </select>
-                            <LuChevronDown size={16} className={styles.selectIcon} />
-                          </div>
-                        </div>
-                      ))}
+                  <div className={styles.formGroup}>
+                    <label htmlFor="shift-end-time">End time</label>
+                    <div className={styles.selectWrapper}>
+                      <select id="shift-end-time" value={slotEndTime} onChange={(e) => setSlotEndTime(e.target.value)} disabled={!sameForAllDays}>
+                        {timeOptions.map((t) => <option key={`end-${t}`} value={t}>{t}</option>)}
+                      </select>
+                      <LuChevronDown size={16} className={styles.selectIcon} />
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              <div className={styles.panelFooter}>
-                <button type="button" className={styles.cancelBtn} onClick={() => handleSelectSlot(null)}>
-                  Cancel
-                </button>
-                {canManage && (
-                  <button type="submit" className={styles.saveBtn} disabled={saveSlotMutation.isPending}>
-                    {saveSlotMutation.isPending ? 'Saving…' : 'Save shift'}
-                  </button>
+                  <div className={styles.overnightField}>
+                    <Switch
+                      row
+                      id="overnight-shift"
+                      label="Overnight shift"
+                      hint="End time is the next calendar day."
+                      checked={slotOvernight}
+                      onChange={(e) => setSlotOvernight(e.target.checked)}
+                    />
+                  </div>
+                </div>
+
+                {!sameForAllDays && (
+                  <div className={styles.dayRows}>
+                    {DAY_KEYS.map((day) => (
+                      <div key={day} className={styles.dayRow}>
+                        <div className={styles.dayLabel}>{dayChip(day)}</div>
+                        <div className={styles.selectWrapper}>
+                          <select
+                            value={dayWiseTimings[day].startTime}
+                            onChange={(e) => setDayWiseTimings((prev) => ({ ...prev, [day]: { ...prev[day], startTime: e.target.value } }))}
+                          >
+                            {timeOptions.map((t) => <option key={`${day}-start-${t}`} value={t}>{t}</option>)}
+                          </select>
+                          <LuChevronDown size={16} className={styles.selectIcon} />
+                        </div>
+                        <div className={styles.selectWrapper}>
+                          <select
+                            value={dayWiseTimings[day].closureTime}
+                            onChange={(e) => setDayWiseTimings((prev) => ({ ...prev, [day]: { ...prev[day], closureTime: e.target.value } }))}
+                          >
+                            {timeOptions.map((t) => <option key={`${day}-end-${t}`} value={t}>{t}</option>)}
+                          </select>
+                          <LuChevronDown size={16} className={styles.selectIcon} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </form>
-          </div>
+          </Drawer>
         </div>
       )}
 

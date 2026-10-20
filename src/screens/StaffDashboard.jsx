@@ -226,8 +226,7 @@ const StaffDashboard = () => {
   });
 
   return (
-    <div className={styles.page}>
-      <p className="screenIntro">Open a person to edit their profile, pay cycle, bank details, and documents. Inactive staff cannot sign in.</p>
+    <div className={canViewOtherStaff ? styles.page : `${styles.page} ${styles.pageSelf}`}>
     <div className={styles.dashboardLayout}>
       
       {/* Left Sidebar: Staff List - ONLY FOR MANAGERS/ADMINS */}
@@ -283,9 +282,11 @@ const StaffDashboard = () => {
           </div>
         ) : (
           <form onSubmit={handleSave} className={styles.profileContent}>
-            {!canManageStaff && <div className={styles.readOnlyBanner}>You are viewing your profile in read-only mode. Contact HR to request changes.</div>}
-            
-            {/* Profile Header Card */}
+            {canViewOtherStaff && !canManageStaff && (
+              <div className={styles.readOnlyBanner}>You are viewing this profile in read-only mode. Contact HR to request changes.</div>
+            )}
+
+            {canViewOtherStaff && (
             <div className={styles.profileHeader}>
               <div className={styles.largeAvatar}>
                 {isNew ? 'New' : getInitials(formData.firstName, formData.lastName)}
@@ -301,6 +302,7 @@ const StaffDashboard = () => {
                 </div>
               </div>
             </div>
+            )}
 
               {renderTabs()}
 
@@ -485,22 +487,15 @@ const StaffDashboard = () => {
               
 
 
-              {/* Form Actions Footer */}
+              {canViewOtherStaff && (
               <div className={styles.actionsRow}>
                 <Button type="button" variant="outline" onClick={() => {
-                  if (!canViewOtherStaff) {
-                    const me = staffList.find(s => String(s.id) === String(user?.staffId));
-                    if (me) {
-                      handleSelectStaff(me);
-                      setIsNew(false);
-                      return;
-                    }
-                  }
                   setSelectedStaff(null);
                   setIsNew(false);
                 }}>Cancel</Button>
                 {canManageStaff && <Button type="submit" variant="primary" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Profile'}</Button>}
               </div>
+              )}
             </form>
           )}
         </div>

@@ -83,6 +83,49 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbarHint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.kpiInline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+
+  strong {
+    color: var(--text-dark);
+    font-size: 18px;
+  }
+}
+
+.metricHint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }

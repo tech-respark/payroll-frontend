@@ -154,7 +154,6 @@ const ReportsDashboard = () => {
 
   return (
     <div className={styles.dashboardContainer}>
-      <p className="screenIntro">Compare hours planned on the roster with hours punched for each person in the date range.</p>
       <div className={styles.filterCard}>
         
         <div className={styles.filterGroup}>

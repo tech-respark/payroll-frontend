@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStaffList } from '../hooks/queries';
 import { Badge, Button, Card, CardBody, CardHeader, Drawer, Input, Modal, StaffPicker, Switch } from '../components/ui';
+import { usePageHelp } from '../context/PageHelpContext';
 import styles from './HospitalityDashboard.module.scss';
 
 const MONTHS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
@@ -57,12 +58,10 @@ export default function HospitalityDashboard() {
   const currentTab = TABS.find((item) => item.id === tab);
   const showPeriod = tab === 'labor' || tab === 'exports';
   const invalidate = (key) => queryClient.invalidateQueries({ queryKey: [key] });
+  usePageHelp(currentTab?.hint);
 
   return (
     <div className={styles.page}>
-      <div className={styles.intro}>
-        <p>Store-level extras for salons and restaurants. Record advances, sales, and rates here. When payslips already exist, open Apply &amp; export.</p>
-      </div>
       <div className={styles.toolbar}>
         <div className={styles.tabs} role="tablist" aria-label="Hospitality tools">
           {TABS.map((item) => (
@@ -88,7 +87,6 @@ export default function HospitalityDashboard() {
           </label>
         )}
       </div>
-      {currentTab && <p className={styles.tabHint}>{currentTab.hint}</p>}
 
       {tab === 'advances' && <AdvancesTab qs={qs} canManage={canManage} staffList={staffList} showToast={showToast} invalidate={invalidate} />}
       {tab === 'commission' && <CommissionTab qs={qs} canManage={canManage} staffList={staffList} showToast={showToast} invalidate={invalidate} />}
@@ -496,6 +494,7 @@ function StatutoryTab({ qs, canManage, showToast, invalidate }) {
 
 function LaborTab({ qs, month, year, canManage, showToast, invalidate }) {
   const [sale, setSale] = useState({ saleDate: new Date().toISOString().slice(0, 10), netSales: '', covers: '' });
+  const [saleOpen, setSaleOpen] = useState(false);
   const [showQuietDays, setShowQuietDays] = useState(false);
   const range = monthRange(month, year);
   const { data = [], isLoading } = useQuery({
@@ -526,34 +525,35 @@ function LaborTab({ qs, month, year, canManage, showToast, invalidate }) {
     onSuccess: () => {
       invalidate('hospitality-labor');
       showToast('Outlet sales saved', 'success');
+      setSaleOpen(false);
       setSale((prev) => ({ ...prev, netSales: '', covers: '' }));
     },
     onError: (err) => showToast(err.message, 'error'),
   });
 
+  const openSale = (row) => {
+    const fallbackDate = sale.saleDate;
+    setSale({
+      saleDate: row?.saleDate || fallbackDate,
+      netSales: row?.netSales != null && Number(row.netSales) > 0 ? String(row.netSales) : '',
+      covers: row?.covers != null ? String(row.covers) : '',
+    });
+    setSaleOpen(true);
+  };
+
   return (
     <div className={styles.stack}>
-      {canManage && (
-        <Card>
-          <CardHeader>Record outlet sales</CardHeader>
-          <CardBody>
-            <div className={styles.inline}>
-              <Input containerClassName={styles.compactField} label="Date" type="date" value={sale.saleDate} onChange={(e) => setSale((prev) => ({ ...prev, saleDate: e.target.value }))} />
-              <Input containerClassName={styles.compactField} label="Net sales" type="number" min="0" value={sale.netSales} onChange={(e) => setSale((prev) => ({ ...prev, netSales: e.target.value }))} />
-              <Input containerClassName={styles.compactField} label="Covers / tickets" type="number" min="0" value={sale.covers} onChange={(e) => setSale((prev) => ({ ...prev, covers: e.target.value }))} />
-              <Button onClick={() => save.mutate()}>Save sales</Button>
-            </div>
-          </CardBody>
-        </Card>
-      )}
       <Card>
         <CardHeader>
           <div className={styles.headerRow}>
             <span>Labor as percent of sales</span>
-            <label className={styles.checkLabel}>
-              <input type="checkbox" checked={showQuietDays} onChange={(e) => setShowQuietDays(e.target.checked)} />
-              Show empty days
-            </label>
+            <div className={styles.inline}>
+              <label className={styles.checkLabel}>
+                <input type="checkbox" checked={showQuietDays} onChange={(e) => setShowQuietDays(e.target.checked)} />
+                Show empty days
+              </label>
+              {canManage && <Button onClick={() => openSale()}>Record sales</Button>}
+            </div>
           </div>
         </CardHeader>
         <CardBody>
@@ -565,11 +565,15 @@ function LaborTab({ qs, month, year, canManage, showToast, invalidate }) {
               <div className={styles.summaryItem}><strong>{totals.sales > 0 ? `${((totals.labor / totals.sales) * 100).toFixed(1)}%` : '—'}</strong> labor %</div>
             </div>
           )}
-          <DataTable loading={isLoading} empty="No labor or sales yet for this month. Save outlet sales above after service.">
+          <DataTable loading={isLoading} empty="No labor or sales yet for this month. Record outlet sales after service.">
             <thead><tr><th>Date</th><th>Sales</th><th>Labor</th><th>Hours</th><th>Labor %</th></tr></thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.saleDate}>
+                <tr
+                  key={row.saleDate}
+                  className={canManage ? styles.clickableRow : undefined}
+                  onClick={canManage ? () => openSale(row) : undefined}
+                >
                   <td>{formatDate(row.saleDate)}</td>
                   <td>{money(row.netSales)}</td>
                   <td>{money(row.laborCost)}</td>
@@ -581,6 +585,22 @@ function LaborTab({ qs, month, year, canManage, showToast, invalidate }) {
           </DataTable>
         </CardBody>
       </Card>
+      <Drawer
+        open={saleOpen}
+        onClose={() => setSaleOpen(false)}
+        title="Record outlet sales"
+        footer={(
+          <>
+            <Button variant="outline" onClick={() => setSaleOpen(false)}>Cancel</Button>
+            <Button onClick={() => save.mutate()}>Save sales</Button>
+          </>
+        )}
+      >
+        <p className={styles.hint}>Enter the day’s outlet net sales so labor percent can calculate. Covers are optional.</p>
+        <Input label="Date" type="date" value={sale.saleDate} onChange={(e) => setSale((prev) => ({ ...prev, saleDate: e.target.value }))} />
+        <Input label="Net sales" type="number" min="0" value={sale.netSales} onChange={(e) => setSale((prev) => ({ ...prev, netSales: e.target.value }))} />
+        <Input label="Covers / tickets" type="number" min="0" value={sale.covers} onChange={(e) => setSale((prev) => ({ ...prev, covers: e.target.value }))} />
+      </Drawer>
     </div>
   );
 }

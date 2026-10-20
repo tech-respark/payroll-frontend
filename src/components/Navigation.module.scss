@@ -8,7 +8,7 @@
   left: 0;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--sidebar-border);
   color: var(--sidebar-text);
   z-index: 1201;
   font-family: var(--primary-font);
@@ -27,12 +27,13 @@
     .sectionLabel,
     .miniDivider,
     .navGroupHeader,
+    .navItem,
     .navGroupTitle,
     .chevronWrap,
     .navSubList,
     .navSubListOpen,
-    .storeCard,
-    .storeDetails,
+    .docsButton,
+    .docsLabel,
     .logoutButton,
     .logoutLabel,
     .navBrand,
@@ -51,12 +52,13 @@
   gap: 12px;
   flex-shrink: 0;
   position: relative;
+  border-bottom: 1px solid var(--sidebar-border);
   transition: padding var(--nav-motion), gap var(--nav-motion);
 }
 
 .brandLogo {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background: var(--primary-color);
   border-radius: 10px;
   display: flex;
@@ -114,8 +116,9 @@
 .collapseBtn {
   margin-left: auto;
   margin-right: 16px;
+  appearance: none;
   background: transparent;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--sidebar-border);
   color: var(--sidebar-text-muted);
   cursor: pointer;
   width: 26px;
@@ -136,8 +139,8 @@
   visibility: visible;
 
   &:hover {
-    background: var(--bg-hover);
-    color: var(--text-dark);
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text);
   }
 }
 
@@ -149,7 +152,8 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1px solid var(--border-color);
+  appearance: none;
+  border: 1px solid var(--sidebar-border);
   background: var(--sidebar-bg);
   color: var(--sidebar-text-muted);
   display: flex;
@@ -179,6 +183,8 @@
 
 .navScroll {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 16px 16px;
@@ -186,22 +192,23 @@
   scrollbar-width: none;
   transition: padding var(--nav-motion);
 
+
   &::-webkit-scrollbar {
     display: none;
   }
 }
 
 .sectionLabel {
-  margin: 12px 0 6px 12px;
+  margin: 14px 0 8px 12px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.5;
   text-transform: uppercase;
   color: var(--text-disabled);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   min-height: 16px;
   max-height: 24px;
-  opacity: 0.85;
+  opacity: 1;
   overflow: hidden;
   white-space: nowrap;
   transition:
@@ -218,7 +225,7 @@
 .miniDivider {
   height: 0;
   margin: 0 8px;
-  background: var(--border-color);
+  background: var(--sidebar-border);
   opacity: 0;
   overflow: hidden;
   transition:
@@ -238,6 +245,11 @@
   transition: align-items var(--nav-motion);
 }
 
+.navSpacer {
+  flex: 1 1 auto;
+  min-height: 16px;
+}
+
 .navGroup {
   margin: 0;
   width: 100%;
@@ -250,12 +262,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 2px 8px 2px 10px;
-  height: 48px;
+  height: 44px;
   cursor: pointer;
   color: var(--sidebar-text-muted);
+  appearance: none;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   transition:
     width var(--nav-motion),
     padding var(--nav-motion),
@@ -267,13 +280,51 @@
 
   &:hover {
     color: var(--sidebar-text);
-    background: var(--bg-hover);
+    background: var(--sidebar-hover);
+  }
+}
+
+.navItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 2px 8px 2px 10px;
+  height: 44px;
+  color: var(--sidebar-text-muted);
+  background: transparent;
+  border-radius: 10px;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition:
+    width var(--nav-motion),
+    padding var(--nav-motion),
+    border-radius var(--nav-motion),
+    background 160ms ease,
+    color 160ms ease,
+    justify-content var(--nav-motion);
+  font-family: var(--primary-font);
+
+  &:hover {
+    color: var(--sidebar-text);
+    background: var(--sidebar-hover);
+  }
+}
+
+.navItemActive {
+  background: var(--nav-active-bg);
+  color: var(--nav-active-color);
+  font-weight: 600;
+
+  &:hover {
+    background: var(--nav-active-bg);
+    color: var(--nav-active-color);
   }
 }
 
 .navGroupHeaderActive {
   background: var(--nav-active-bg);
   color: var(--nav-active-color);
+  font-weight: 600;
 
   &:hover {
     background: var(--nav-active-bg);
@@ -296,7 +347,7 @@
 
 .navGroupTitle {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -321,7 +372,7 @@
 }
 
 .chevron {
-  color: var(--text-disabled);
+  color: var(--sidebar-text-muted);
 }
 
 .navSubList {
@@ -350,20 +401,20 @@
   a {
     display: flex;
     align-items: center;
-    padding: 8px 10px 8px 44px;
+    padding: 8px 12px 8px 46px;
     min-height: 36px;
     color: var(--sidebar-text-muted);
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
-    border-radius: 8px;
+    border-radius: 10px;
     transition: background 160ms ease, color 160ms ease;
     line-height: 1.4;
     white-space: nowrap;
 
     &:hover {
       color: var(--sidebar-text);
-      background: var(--bg-hover);
+      background: var(--sidebar-hover);
     }
 
     &.activeLink {
@@ -391,88 +442,35 @@
 }
 
 .navFooter {
-  padding: 16px;
-  border-top: 1px solid var(--border-color);
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--sidebar-border);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 12px;
+  gap: 4px;
   transition: padding var(--nav-motion), align-items var(--nav-motion);
 }
 
-.storeCard {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--bg-subtle);
-  border-radius: 12px;
-  overflow: hidden;
-  transition:
-    padding var(--nav-motion),
-    gap var(--nav-motion),
-    background var(--nav-motion),
-    justify-content var(--nav-motion);
-}
-
-.storeIconWrap {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--nav-active-bg);
-  color: var(--primary-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.storeDetails {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  opacity: 1;
-  max-width: 180px;
-  overflow: hidden;
-  transition:
-    opacity 160ms ease,
-    max-width var(--nav-motion);
-}
-
-.storeName {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--sidebar-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 170px;
-}
-
-.storeLabel {
-  font-size: 12px;
-  color: var(--sidebar-text-muted);
-  margin-top: 2px;
-  white-space: nowrap;
-}
-
-.logoutButton {
+.docsButton {
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   height: 40px;
+  appearance: none;
   background: transparent;
-  border: 1px solid var(--border-color);
+  border: none;
   color: var(--sidebar-text-muted);
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
   font-family: var(--primary-font);
   cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 12px;
   overflow: hidden;
   transition:
     width var(--nav-motion),
@@ -481,13 +479,54 @@
     border-radius var(--nav-motion),
     gap var(--nav-motion),
     background 160ms ease,
-    color 160ms ease,
-    border-color 160ms ease;
+    color 160ms ease;
+
+  &:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text);
+  }
+}
+
+.docsLabel {
+  white-space: nowrap;
+  opacity: 1;
+  max-width: 130px;
+  overflow: hidden;
+  transition:
+    opacity 140ms ease,
+    max-width var(--nav-motion);
+}
+
+.logoutButton {
+  width: 100%;
+  padding: 8px 10px;
+  height: 40px;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--sidebar-text-muted);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--primary-font);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  overflow: hidden;
+  transition:
+    width var(--nav-motion),
+    height var(--nav-motion),
+    padding var(--nav-motion),
+    border-radius var(--nav-motion),
+    gap var(--nav-motion),
+    background 160ms ease,
+    color 160ms ease;
 
   &:hover {
     background: var(--badge-danger-bg);
     color: var(--error-color);
-    border-color: var(--error-color);
   }
 }
 
@@ -571,7 +610,8 @@
     width: 100%;
   }
 
-  .navGroupHeader {
+  .navGroupHeader,
+  .navItem {
     width: 48px;
     min-width: 48px;
     max-width: 48px;
@@ -605,26 +645,7 @@
     align-items: center;
   }
 
-  .storeCard {
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    gap: 0;
-    background: transparent;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
-  }
-
-  .storeIconWrap {
-    width: 40px;
-    height: 40px;
-  }
-
-  .storeDetails {
-    display: none;
-  }
-
+  .docsButton,
   .logoutButton {
     width: 48px;
     height: 48px;
@@ -632,6 +653,7 @@
     padding: 0;
     border-radius: 10px;
     gap: 0;
+    justify-content: center;
   }
 
   .miniDividerSecond {
@@ -639,6 +661,7 @@
     margin-bottom: 4px;
   }
 
+  .docsLabel,
   .logoutLabel {
     opacity: 0;
     max-width: 0;
@@ -660,7 +683,6 @@
     .collapseBtn,
     .navGroupTitle,
     .chevronWrap,
-    .storeDetails,
     .logoutLabel,
     .sectionLabel {
       display: revert;
@@ -679,7 +701,7 @@
       width: 26px;
       margin-left: auto;
       margin-right: 16px;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--sidebar-border);
     }
 
     .sectionLabel {
@@ -722,14 +744,15 @@
       align-items: stretch;
     }
 
-    .navGroupHeader {
+    .navGroupHeader,
+    .navItem {
       width: 100%;
       min-width: 0;
       max-width: none;
       flex: none;
       padding: 2px 8px 2px 10px;
       justify-content: space-between;
-      border-radius: 8px;
+      border-radius: 10px;
     }
 
     .navGroupHeaderLeft {
@@ -737,19 +760,14 @@
       justify-content: flex-start;
     }
 
-    .storeCard {
-      padding: 12px;
-      gap: 12px;
-      background: var(--bg-subtle);
-      justify-content: flex-start;
-    }
-
+    .docsButton,
     .logoutButton {
       width: 100%;
       height: 40px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      gap: 12px;
+      justify-content: flex-start;
     }
 
     .navFooter {

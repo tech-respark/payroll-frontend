@@ -70,6 +70,16 @@
   flex-shrink: 0;
 }
 
+.headerCompact {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  padding: 12px 12px 0 0;
+  border-bottom: 0;
+  background: transparent;
+}
+
 .headerText {
   min-width: 0;
 }
@@ -127,6 +137,10 @@
   flex: 1;
   min-height: 0;
   overscroll-behavior: contain;
+}
+
+.drawerBodyCompact {
+  padding: 16px 16px 20px;
 }
 
 .footer {

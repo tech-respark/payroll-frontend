@@ -30,7 +30,7 @@ flowchart LR
 
 ## Frontend structure
 
-`main.jsx` mounts provider layers in this order: Query Client, Theme, Toast, Auth, Router. `App.jsx` renders login or the authenticated shell and lazy-loads each feature screen. Theme defaults to light; Hajiro design tokens live in `src/styles/hajiro-theme.css` and `src/styles/main.scss` plus `Navigation` / `TopHeader` (248px sidebar, 88px mini rail, 64px header, 24px content gutters). Header chrome includes ⌘K command palette, approval notifications drawer, and account drawer (`src/components/shell/`).
+`main.jsx` mounts provider layers in this order: Query Client, Theme, Toast, Auth, Router. `App.jsx` renders login, the authenticated payroll shell, or the standalone `/docs` help center, and lazy-loads each feature screen. Theme defaults to light; Hajiro design tokens live in `src/styles/hajiro-theme.css` and `src/styles/main.scss` plus `Navigation` / `TopHeader` (248px sidebar, 88px mini rail, 64px header, 24px content gutters). Header chrome includes ⌘K command palette, approval notifications drawer, and account drawer (`src/components/shell/`). User-facing articles live in `src/docs/` and open from the sidebar footer **Documentation** control.
 
 Shared UI primitives live under `src/components/ui` (`Button`, `Input`, `Card`, `Badge`, `Modal`, `Drawer`, `Checkbox`, `Switch`, `Radio`). Screens should use these for overlays and binary/choice controls instead of raw browser checkboxes, radios, or ad-hoc SVG icons. Decorative and navigation icons use Lucide via `react-icons/lu`. Token names, shell sizes, `.mp-*` utilities, and styling rules are documented in [design system](design-system.md).
 
@@ -40,7 +40,7 @@ TanStack Query defaults to one-minute staleness, one retry, and refetch on focus
 
 ## Backend structure
 
-The backend is layered into controllers, services, repositories, JPA entities, DTOs/models, security, vendor handlers, and schedulers.
+The backend is layered into controllers, services, repositories, JPA entities, DTOs/models, security, vendor handlers, and schedulers. Store-wide activity events are a dedicated `activity` package: services call `ActivityRecorder` in the same transaction as the mutation; `ActivityRequestFilter` attaches IP, user-agent, and correlation id. The UI reads `GET /activity` with `VIEW_ACTIVITY_LOG`.
 
 ```mermaid
 flowchart LR

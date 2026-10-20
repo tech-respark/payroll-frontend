@@ -5,18 +5,16 @@ import { apiService } from '../api/apiService';
 import { useStaffList } from '../hooks/queries';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { StaffPicker, ConfirmDialog } from '../components/ui';
+import { Button, Drawer, StaffPicker, ConfirmDialog } from '../components/ui';
 import { prettyStatus } from '../helpers/displayUtils';
+import { usePageHelp } from '../context/PageHelpContext';
 import {
   LuPencil,
   LuPlus,
   LuSearch,
-  LuLayoutGrid,
-  LuList,
   LuArrowLeftRight,
   LuUserPlus,
   LuTrash2,
-  LuSettings,
 } from 'react-icons/lu';
 
 const LeaveConfiguration = () => {
@@ -46,15 +44,15 @@ const LeaveConfiguration = () => {
     { id: 'plans', label: 'Leave Plans & Rules' },
     { id: 'enrollment', label: 'Staff Enrollment' },
   ];
+  const tabHelp = {
+    types: 'Define leave categories staff can request. Click a type to edit it.',
+    plans: 'Group types into plans and set allotment, accrual, and carry-forward rules.',
+    enrollment: 'Assign a leave plan to each person. Adjust balances or override carry-forward when needed.',
+  };
+  usePageHelp(tabHelp[activeTab]);
 
   return (
     <div className={styles.page}>
-      <p className="screenIntro">
-        {activeTab === 'types' && 'Define leave categories staff can request. Click a type to edit it.'}
-        {activeTab === 'plans' && 'Group types into plans and set allotment, accrual, and carry-forward rules.'}
-        {activeTab === 'enrollment' && 'Assign a leave plan to each person. Adjust balances or override carry-forward when needed.'}
-      </p>
-
       {/* Tabs */}
       <div className={styles.tabBar}>
         {TABS.map(tab => (
@@ -86,9 +84,10 @@ const LeaveTypesTab = ({ types }) => {
   const { showToast } = useToast();
   const [formData, setFormData] = useState({ leaveCode: '', leaveName: '', description: '', paid: true, applicableGender: 'ALL' });
   const [editingType, setEditingType] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
-  const PAGE_SIZE = 4;
+  const PAGE_SIZE = 10;
 
   const filtered = types.filter(t =>
     t.leaveName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -103,6 +102,7 @@ const LeaveTypesTab = ({ types }) => {
     onSuccess: () => {
       showToast('Leave Type created!', 'success');
       setFormData({ leaveCode: '', leaveName: '', description: '', paid: true, applicableGender: 'ALL' });
+      setFormOpen(false);
       queryClient.invalidateQueries({ queryKey: ['leaveTypes'] });
     },
     onError: (err) => showToast(err.message || 'Failed to create Leave Type', 'error')
@@ -114,6 +114,7 @@ const LeaveTypesTab = ({ types }) => {
       showToast('Leave Type updated!', 'success');
       setFormData({ leaveCode: '', leaveName: '', description: '', paid: true, applicableGender: 'ALL' });
       setEditingType(null);
+      setFormOpen(false);
       queryClient.invalidateQueries({ queryKey: ['leaveTypes'] });
     },
     onError: (err) => showToast(err.message || 'Failed to update Leave Type', 'error')
@@ -137,113 +138,45 @@ const LeaveTypesTab = ({ types }) => {
       paid: type.paid !== false,
       applicableGender: type.applicableGender || 'ALL'
     });
+    setFormOpen(true);
   };
 
   const handleCancelEdit = () => {
     setEditingType(null);
     setFormData({ leaveCode: '', leaveName: '', description: '', paid: true, applicableGender: 'ALL' });
+    setFormOpen(false);
   };
 
+  const openCreate = () => {
+    handleCancelEdit();
+    setFormOpen(true);
+  };
+
+  const saving = createTypeMutation.isPending || editTypeMutation.isPending;
+
   return (
-    <div className={styles.splitLayout}>
-      {/* LEFT — Create Form */}
-      <div className={styles.formCard}>
-        <div className={styles.formCardHeader}>
-          <span className={styles.formCardIcon}>
-            {editingType ? <LuPencil size={20} /> : <LuPlus size={20} />}
-          </span>
-          <span className={styles.formCardTitle}>{editingType ? 'Edit Leave Type' : 'Create New Leave Type'}</span>
+    <div className={styles.stack}>
+      <div className={styles.toolbar}>
+        <div className={styles.searchBox}>
+          <LuSearch size={16} className={styles.searchIcon} aria-hidden />
+          <input
+            className={styles.searchInput}
+            placeholder="Search types"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+          />
         </div>
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Code (e.g. SL)</label>
-              <input
-                className={styles.input}
-                placeholder="SL"
-                value={formData.leaveCode}
-                onChange={e => setFormData({ ...formData, leaveCode: e.target.value })}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Leave type</label>
-              <select
-                className={styles.select}
-                value={formData.paid}
-                onChange={e => setFormData({ ...formData, paid: e.target.value === 'true' })}
-              >
-                <option value="true">Paid Leave</option>
-                <option value="false">Unpaid Leave</option>
-              </select>
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Name (e.g. Sick Leave)</label>
-              <input
-                className={styles.input}
-                placeholder="Sick Leave"
-                value={formData.leaveName}
-                onChange={e => setFormData({ ...formData, leaveName: e.target.value })}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Gender applicability</label>
-              <select
-                className={styles.select}
-                value={formData.applicableGender}
-                onChange={e => setFormData({ ...formData, applicableGender: e.target.value })}
-              >
-                <option value="ALL">All Genders</option>
-                <option value="MALE">Male Only</option>
-                <option value="FEMALE">Female Only</option>
-              </select>
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Description</label>
-            <textarea
-              className={styles.textarea}
-              placeholder="Optional description for staff reference..."
-              value={formData.description}
-              onChange={e => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
-            />
-          </div>
-
-          <div className={styles.formBtnRow}>
-            <button type="submit" className={styles.primaryBtn} disabled={createTypeMutation.isPending || editTypeMutation.isPending}>
-              {createTypeMutation.isPending || editTypeMutation.isPending ? 'Saving...' : editingType ? 'Update Type' : 'Save Type'}
-            </button>
-            {editingType && (
-              <button type="button" className={styles.secondaryBtn} onClick={handleCancelEdit}>
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
+        <Button onClick={openCreate}>
+          <LuPlus size={16} />
+          New leave type
+        </Button>
       </div>
 
-      {/* RIGHT — Existing Types Table */}
       <div className={styles.tableCard}>
         <div className={styles.tableCardHeader}>
           <div className={styles.tableCardTitleRow}>
-            <span className={styles.tableCardTitle}>Existing Types</span>
-            <span className={styles.countBadge}>{String(types.length).padStart(2, '0')} Total</span>
-          </div>
-          <div className={styles.searchBox}>
-            <LuSearch size={16} className={styles.searchIcon} aria-hidden />
-            <input
-              className={styles.searchInput}
-              placeholder="Quick Search..."
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(0); }}
-            />
+            <span className={styles.tableCardTitle}>Leave types</span>
+            <span className={styles.countBadge}>{types.length} total</span>
           </div>
         </div>
 
@@ -288,6 +221,81 @@ const LeaveTypesTab = ({ types }) => {
         </div>
         )}
       </div>
+
+      <Drawer
+        open={formOpen}
+        onClose={handleCancelEdit}
+        title={editingType ? 'Edit leave type' : 'New leave type'}
+        subtitle="Staff see this name when they request time off."
+        footer={(
+          <>
+            <Button variant="outline" onClick={handleCancelEdit} disabled={saving}>Cancel</Button>
+            <Button type="submit" form="leave-type-form" disabled={saving}>
+              {saving ? 'Saving…' : editingType ? 'Update type' : 'Save type'}
+            </Button>
+          </>
+        )}
+      >
+        <form id="leave-type-form" onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Code (e.g. SL)</label>
+              <input
+                className={styles.input}
+                placeholder="SL"
+                value={formData.leaveCode}
+                onChange={(e) => setFormData({ ...formData, leaveCode: e.target.value })}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Leave type</label>
+              <select
+                className={styles.select}
+                value={formData.paid}
+                onChange={(e) => setFormData({ ...formData, paid: e.target.value === 'true' })}
+              >
+                <option value="true">Paid leave</option>
+                <option value="false">Unpaid leave</option>
+              </select>
+            </div>
+          </div>
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Name (e.g. Sick Leave)</label>
+              <input
+                className={styles.input}
+                placeholder="Sick Leave"
+                value={formData.leaveName}
+                onChange={(e) => setFormData({ ...formData, leaveName: e.target.value })}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Gender applicability</label>
+              <select
+                className={styles.select}
+                value={formData.applicableGender}
+                onChange={(e) => setFormData({ ...formData, applicableGender: e.target.value })}
+              >
+                <option value="ALL">All genders</option>
+                <option value="MALE">Male only</option>
+                <option value="FEMALE">Female only</option>
+              </select>
+            </div>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Description</label>
+            <textarea
+              className={styles.textarea}
+              placeholder="Optional description for staff"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={4}
+            />
+          </div>
+        </form>
+      </Drawer>
     </div>
   );
 };
@@ -300,8 +308,9 @@ const LeavePlansTab = ({ plans, types }) => {
   const { showToast } = useToast();
   const [planForm, setPlanForm] = useState({ planName: '', effectiveYear: new Date().getFullYear() });
   const [ruleForm, setRuleForm] = useState({ planId: '', leaveTypeId: '', annualAllotment: '', maxConsecutiveDays: '', proofRequiredAfterDays: '', allowNegativeBalance: false, accrualFrequency: 'NONE', maxCarryForward: '' });
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [editModal, setEditModal] = useState(null); // plan object
+  const [createPlanOpen, setCreatePlanOpen] = useState(false);
+  const [mapRuleOpen, setMapRuleOpen] = useState(false);
+  const [editModal, setEditModal] = useState(null);
   const [ruleToDelete, setRuleToDelete] = useState(null);
   const queryClient = useQueryClient();
 
@@ -319,6 +328,7 @@ const LeavePlansTab = ({ plans, types }) => {
     onSuccess: () => {
       showToast('Plan created!', 'success');
       setPlanForm({ planName: '', effectiveYear: new Date().getFullYear() });
+      setCreatePlanOpen(false);
       queryClient.invalidateQueries({ queryKey: ['leavePlans'] });
     },
     onError: (err) => showToast(err.message || 'Failed to create Plan', 'error')
@@ -329,6 +339,7 @@ const LeavePlansTab = ({ plans, types }) => {
     onSuccess: () => {
       showToast('Rule mapped successfully!', 'success');
       setRuleForm({ planId: ruleForm.planId, leaveTypeId: '', annualAllotment: '', maxConsecutiveDays: '', proofRequiredAfterDays: '', allowNegativeBalance: false, accrualFrequency: 'NONE', maxCarryForward: '' });
+      setMapRuleOpen(false);
       queryClient.invalidateQueries({ queryKey: ['leaveRules', ruleForm.planId] });
     },
     onError: (err) => showToast(err.message || 'Failed to map rule', 'error')
@@ -365,170 +376,64 @@ const LeavePlansTab = ({ plans, types }) => {
 
   return (
     <>
-      <div className={styles.plansLayout}>
-        {/* LEFT — Create Plan + Active Plans */}
-        <div className={styles.plansLeft}>
-          <div className={styles.formCard}>
-            <div className={styles.formCardHeader}>
-              <span className={styles.formCardIcon}><LuLayoutGrid size={20} /></span>
-              <span className={styles.formCardTitle}>Create Leave Plan</span>
-            </div>
-            <form onSubmit={handlePlanSubmit} className={styles.form}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Plan name</label>
-                <input
-                  className={styles.input}
-                  placeholder="e.g. Special Leave Plan"
-                  value={planForm.planName}
-                  onChange={e => setPlanForm({ ...planForm, planName: e.target.value })}
-                  required
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Effective year</label>
-                <select
-                  className={styles.select}
-                  value={planForm.effectiveYear}
-                  onChange={e => setPlanForm({ ...planForm, effectiveYear: parseInt(e.target.value) })}
-                >
-                  {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-              </div>
-              <button type="submit" className={styles.primaryBtn}>Create Plan</button>
-            </form>
-          </div>
-
-          {/* Active Plans List */}
-          <div className={styles.activePlansCard}>
-            <div className={styles.activePlansHeader}>
-              <span className={styles.activePlansTitle}>Active plans</span>
-              <span className={styles.listIcon}><LuList size={18} /></span>
-            </div>
-            <div className={styles.plansList}>
-              {plans.length === 0 && <div className={styles.emptyPlans}>No plans created yet.</div>}
-              {plans.map((plan, idx) => (
-                <div
-                  key={plan.id}
-                  className={`${styles.planItem} ${ruleForm.planId === String(plan.id) ? styles.planItemActive : ''}`}
-                  onClick={() => { handlePlanSelect(String(plan.id)); setEditModal(plan); }}
-                >
-                  <div className={styles.planIndex}>{String(idx + 1).padStart(2, '0')}</div>
-                  <div className={styles.planInfo}>
-                    <div className={styles.planName}>{plan.planName}</div>
-                    <div className={styles.planDesc}>{plan.description || 'Standard Corporate Policy'}</div>
-                  </div>
-                  <span className={styles.yearChip}>{plan.effectiveYear}</span>
-                </div>
-              ))}
-            </div>
+      <div className={styles.stack}>
+        <div className={styles.toolbar}>
+          <span className={styles.toolbarHint}>
+            {ruleForm.planId
+              ? `Rules for ${plans.find((p) => String(p.id) === String(ruleForm.planId))?.planName || 'selected plan'}`
+              : 'Select a plan to see its rules'}
+          </span>
+          <div className={styles.toolbarActions}>
+            <Button variant="outline" onClick={() => setMapRuleOpen(true)} disabled={!ruleForm.planId && plans.length === 0}>
+              Map rule
+            </Button>
+            <Button onClick={() => setCreatePlanOpen(true)}>
+              <LuPlus size={16} />
+              New plan
+            </Button>
           </div>
         </div>
 
-        {/* RIGHT — Map Rules */}
+        <div className={styles.activePlansCard}>
+          <div className={styles.activePlansHeader}>
+            <span className={styles.activePlansTitle}>Active plans</span>
+          </div>
+          <div className={styles.plansList}>
+            {plans.length === 0 && <div className={styles.emptyPlans}>No plans yet. Create a plan, then map leave types to it.</div>}
+            {plans.map((plan, idx) => (
+              <div
+                key={plan.id}
+                className={`${styles.planItem} ${ruleForm.planId === String(plan.id) ? styles.planItemActive : ''}`}
+                onClick={() => handlePlanSelect(String(plan.id))}
+              >
+                <div className={styles.planIndex}>{String(idx + 1).padStart(2, '0')}</div>
+                <div className={styles.planInfo}>
+                  <div className={styles.planName}>{plan.planName}</div>
+                  <div className={styles.planDesc}>{plan.description || 'Standard policy'}</div>
+                </div>
+                <span className={styles.yearChip}>{plan.effectiveYear}</span>
+                <button
+                  type="button"
+                  className={styles.iconBtn}
+                  title="Edit plan"
+                  aria-label="Edit plan"
+                  onClick={(e) => { e.stopPropagation(); handlePlanSelect(String(plan.id)); setEditModal(plan); }}
+                >
+                  <LuPencil size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className={styles.rulesCard}>
           <div className={styles.rulesCardHeader}>
             <div className={styles.rulesCardTitleRow}>
               <span className={styles.rulesIcon}><LuArrowLeftRight size={20} /></span>
-              <span className={styles.formCardTitle}>Map Rules to Plan</span>
+              <span className={styles.formCardTitle}>Mapped rules</span>
             </div>
-            <span className={styles.sandwichChip}>e.g. Sandwich Rule Configuration</span>
           </div>
 
-          <form onSubmit={handleRuleSubmit} className={styles.form}>
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Select plan</label>
-                <select
-                  className={styles.select}
-                  value={ruleForm.planId}
-                  onChange={e => handlePlanSelect(e.target.value)}
-                  required
-                >
-                  <option value="">-- Choose Plan --</option>
-                  {plans.map(p => <option key={p.id} value={p.id}>{p.planName} ({p.effectiveYear})</option>)}
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Select leave type</label>
-                <select
-                  className={styles.select}
-                  value={ruleForm.leaveTypeId}
-                  onChange={e => setRuleForm({ ...ruleForm, leaveTypeId: e.target.value })}
-                  required
-                >
-                  <option value="">-- Choose Type --</option>
-                  {types.map(t => <option key={t.id} value={t.id}>{t.leaveName}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Annual allotment</label>
-                <input
-                  className={styles.input}
-                  type="number"
-                  step="0.5"
-                  placeholder="13"
-                  value={ruleForm.annualAllotment}
-                  onChange={e => setRuleForm({ ...ruleForm, annualAllotment: e.target.value })}
-                  required
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Accrual frequency</label>
-                <select
-                  className={styles.select}
-                  value={ruleForm.accrualFrequency}
-                  onChange={e => setRuleForm({ ...ruleForm, accrualFrequency: e.target.value })}
-                >
-                  <option value="NONE">On-Demand / None</option>
-                  <option value="MONTHLY">Monthly</option>
-                  <option value="QUARTERLY">Quarterly</option>
-                  <option value="ANNUALLY">Annually</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Max carry forward</label>
-                <input
-                  className={styles.input}
-                  type="number"
-                  placeholder="e.g. 5"
-                  value={ruleForm.maxCarryForward}
-                  onChange={e => setRuleForm({ ...ruleForm, maxCarryForward: e.target.value })}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Max consecutive days (optional)</label>
-                <input
-                  className={styles.input}
-                  type="number"
-                  placeholder="e.g. 3"
-                  value={ruleForm.maxConsecutiveDays}
-                  onChange={e => setRuleForm({ ...ruleForm, maxConsecutiveDays: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className={styles.ruleFormFooter}>
-              <div className={styles.formGroup} style={{ flex: 1 }}>
-                <label className={styles.label}>Proof required after (days)</label>
-                <input
-                  className={styles.input}
-                  type="number"
-                  placeholder="e.g. 2"
-                  value={ruleForm.proofRequiredAfterDays}
-                  onChange={e => setRuleForm({ ...ruleForm, proofRequiredAfterDays: e.target.value })}
-                />
-              </div>
-              <button type="submit" className={styles.mapRuleBtn}>+ Map Rule</button>
-            </div>
-          </form>
-
-          {/* Mapped Rules Table */}
           <table className={styles.table}>
             <thead>
               <tr>
@@ -567,7 +472,146 @@ const LeavePlansTab = ({ plans, types }) => {
         </div>
       </div>
 
-      {/* Edit Plan Modal */}
+      <Drawer
+        open={createPlanOpen}
+        onClose={() => setCreatePlanOpen(false)}
+        title="New leave plan"
+        subtitle="Group leave types into a policy staff can be enrolled on."
+        footer={(
+          <>
+            <Button variant="outline" onClick={() => setCreatePlanOpen(false)}>Cancel</Button>
+            <Button type="submit" form="leave-plan-form" disabled={createPlanMutation.isPending}>
+              {createPlanMutation.isPending ? 'Saving…' : 'Create plan'}
+            </Button>
+          </>
+        )}
+      >
+        <form id="leave-plan-form" onSubmit={handlePlanSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Plan name</label>
+            <input
+              className={styles.input}
+              placeholder="e.g. Special Leave Plan"
+              value={planForm.planName}
+              onChange={(e) => setPlanForm({ ...planForm, planName: e.target.value })}
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Effective year</label>
+            <select
+              className={styles.select}
+              value={planForm.effectiveYear}
+              onChange={(e) => setPlanForm({ ...planForm, effectiveYear: parseInt(e.target.value, 10) })}
+            >
+              {[2024, 2025, 2026, 2027].map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+        </form>
+      </Drawer>
+
+      <Drawer
+        open={mapRuleOpen}
+        onClose={() => setMapRuleOpen(false)}
+        title="Map rule to plan"
+        subtitle="Set allotment and accrual for one leave type."
+        width={560}
+        footer={(
+          <>
+            <Button variant="outline" onClick={() => setMapRuleOpen(false)}>Cancel</Button>
+            <Button type="submit" form="map-rule-form" disabled={mapRuleMutation.isPending}>
+              {mapRuleMutation.isPending ? 'Saving…' : 'Map rule'}
+            </Button>
+          </>
+        )}
+      >
+        <form id="map-rule-form" onSubmit={handleRuleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Plan</label>
+            <select
+              className={styles.select}
+              value={ruleForm.planId}
+              onChange={(e) => handlePlanSelect(e.target.value)}
+              required
+            >
+              <option value="">Choose plan</option>
+              {plans.map((p) => <option key={p.id} value={p.id}>{p.planName} ({p.effectiveYear})</option>)}
+            </select>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Leave type</label>
+            <select
+              className={styles.select}
+              value={ruleForm.leaveTypeId}
+              onChange={(e) => setRuleForm({ ...ruleForm, leaveTypeId: e.target.value })}
+              required
+            >
+              <option value="">Choose type</option>
+              {types.map((t) => <option key={t.id} value={t.id}>{t.leaveName}</option>)}
+            </select>
+          </div>
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Annual allotment</label>
+              <input
+                className={styles.input}
+                type="number"
+                step="0.5"
+                placeholder="13"
+                value={ruleForm.annualAllotment}
+                onChange={(e) => setRuleForm({ ...ruleForm, annualAllotment: e.target.value })}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Accrual frequency</label>
+              <select
+                className={styles.select}
+                value={ruleForm.accrualFrequency}
+                onChange={(e) => setRuleForm({ ...ruleForm, accrualFrequency: e.target.value })}
+              >
+                <option value="NONE">On-demand / none</option>
+                <option value="MONTHLY">Monthly</option>
+                <option value="QUARTERLY">Quarterly</option>
+                <option value="ANNUALLY">Annually</option>
+              </select>
+            </div>
+          </div>
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Max carry forward</label>
+              <input
+                className={styles.input}
+                type="number"
+                placeholder="e.g. 5"
+                value={ruleForm.maxCarryForward}
+                onChange={(e) => setRuleForm({ ...ruleForm, maxCarryForward: e.target.value })}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Max consecutive days</label>
+              <input
+                className={styles.input}
+                type="number"
+                placeholder="e.g. 3"
+                value={ruleForm.maxConsecutiveDays}
+                onChange={(e) => setRuleForm({ ...ruleForm, maxConsecutiveDays: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Proof required after (days)</label>
+            <input
+              className={styles.input}
+              type="number"
+              placeholder="e.g. 2"
+              value={ruleForm.proofRequiredAfterDays}
+              onChange={(e) => setRuleForm({ ...ruleForm, proofRequiredAfterDays: e.target.value })}
+            />
+          </div>
+        </form>
+      </Drawer>
+
       <ConfirmDialog
         open={ruleToDelete != null}
         title="Remove this rule?"
@@ -767,10 +811,11 @@ const EnrollmentTab = ({ plans }) => {
   const { showToast } = useToast();
   const { staffList = [], isLoading } = useStaffList();
   const [enrollForm, setEnrollForm] = useState({ planId: '', staffId: '' });
+  const [assignOpen, setAssignOpen] = useState(false);
   const [dirPage, setDirPage] = useState(0);
   const [adjustModal, setAdjustModal] = useState(null);
   const [overrideModal, setOverrideModal] = useState(null);
-  const DIR_PAGE_SIZE = 4;
+  const DIR_PAGE_SIZE = 10;
   const queryClient = useQueryClient();
 
   const { data: enrollments = [] } = useQuery({
@@ -787,6 +832,7 @@ const EnrollmentTab = ({ plans }) => {
     onSuccess: () => {
       showToast('Staff successfully enrolled in plan!', 'success');
       setEnrollForm({ planId: '', staffId: '' });
+      setAssignOpen(false);
       queryClient.invalidateQueries({ queryKey: ['enrollments'] });
     },
     onError: (err) => showToast(err.message || 'Failed to enroll staff', 'error')
@@ -829,73 +875,22 @@ const EnrollmentTab = ({ plans }) => {
   };
 
   return (
-    <div className={styles.enrollLayout}>
-      {/* LEFT */}
-      <div className={styles.enrollLeft}>
-        <div className={styles.formCard}>
-          <div className={styles.formCardHeader}>
-            <span className={styles.formCardIcon}><LuUserPlus size={20} /></span>
-            <span className={styles.formCardTitle}>Assign Leave Plan</span>
-          </div>
-          <form onSubmit={handleEnroll} className={styles.form}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Select plan</label>
-              <select
-                className={styles.select}
-                value={enrollForm.planId}
-                onChange={e => setEnrollForm({ ...enrollForm, planId: e.target.value })}
-                required
-              >
-                <option value="">-- Choose Plan --</option>
-                {plans.map(p => <option key={p.id} value={p.id}>{p.planName} ({p.effectiveYear})</option>)}
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <StaffPicker
-                label="Staff member"
-                staffList={staffList}
-                value={enrollForm.staffId}
-                onChange={(staffId) => setEnrollForm({ ...enrollForm, staffId })}
-                placeholder="Search staff"
-                loading={isLoading}
-              />
-            </div>
-            <button type="submit" className={styles.primaryBtn} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <LuUserPlus size={18} />
-              Enroll Staff
-            </button>
-          </form>
+    <div className={styles.stack}>
+      <div className={styles.toolbar}>
+        <div className={styles.kpiInline}>
+          <span className={styles.kpiLabel}>Enrolled</span>
+          <strong>{enrolled}/{directory.length}</strong>
+          <span className={styles.metricHint}>{enrollPct}%</span>
         </div>
-
-        {/* KPI Card */}
-        <div className={styles.kpiCard}>
-          <div className={styles.kpiLeft}>
-            <div className={styles.kpiLabel}>Enrolled</div>
-            <div className={styles.kpiValue}>{enrolled}/{directory.length}</div>
-          </div>
-          <div className={styles.kpiRight}>
-            <svg viewBox="0 0 36 36" className={styles.donut}>
-              <circle className={styles.donutBg} cx="18" cy="18" r="15.9" />
-              <circle
-                className={styles.donutFill}
-                cx="18" cy="18" r="15.9"
-                strokeDasharray={`${enrollPct} ${100 - enrollPct}`}
-                strokeDashoffset="25"
-              />
-            </svg>
-            <span className={styles.donutLabel}>{enrollPct}%</span>
-          </div>
-        </div>
+        <Button onClick={() => setAssignOpen(true)}>
+          <LuUserPlus size={16} />
+          Assign plan
+        </Button>
       </div>
 
-      {/* RIGHT — Enrollment Directory */}
       <div className={styles.tableCard}>
         <div className={styles.tableCardHeader}>
           <span className={styles.tableCardTitle}>Enrollment directory</span>
-          <div className={styles.dirHeaderActions}>
-            <button type="button" className={styles.iconBtn} aria-label="Search"><LuSearch size={18} /></button>
-            <button type="button" className={styles.iconBtn} title="Directory settings" aria-label="Directory settings"><LuSettings size={18} /></button>
-          </div>
         </div>
 
         <table className={styles.table}>
@@ -953,6 +948,44 @@ const EnrollmentTab = ({ plans }) => {
         )}
       </div>
       
+      <Drawer
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        title="Assign leave plan"
+        subtitle="Enroll one person onto a plan."
+        footer={(
+          <>
+            <Button variant="outline" onClick={() => setAssignOpen(false)}>Cancel</Button>
+            <Button type="submit" form="enroll-form" disabled={enrollMutation.isPending}>
+              {enrollMutation.isPending ? 'Saving…' : 'Enroll staff'}
+            </Button>
+          </>
+        )}
+      >
+        <form id="enroll-form" onSubmit={handleEnroll} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Plan</label>
+            <select
+              className={styles.select}
+              value={enrollForm.planId}
+              onChange={(e) => setEnrollForm({ ...enrollForm, planId: e.target.value })}
+              required
+            >
+              <option value="">Choose plan</option>
+              {plans.map((p) => <option key={p.id} value={p.id}>{p.planName} ({p.effectiveYear})</option>)}
+            </select>
+          </div>
+          <StaffPicker
+            label="Staff member"
+            staffList={staffList}
+            value={enrollForm.staffId}
+            onChange={(staffId) => setEnrollForm({ ...enrollForm, staffId })}
+            placeholder="Search staff"
+            loading={isLoading}
+          />
+        </form>
+      </Drawer>
+
       {adjustModal && <AdjustBalanceModal member={adjustModal} onClose={() => setAdjustModal(null)} />}
       {overrideModal && <OverrideModal member={overrideModal} plans={plans} onClose={() => setOverrideModal(null)} />}
     </div>

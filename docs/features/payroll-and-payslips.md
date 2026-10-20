@@ -12,7 +12,9 @@ Visible with `VIEW_SALARY` or `MANAGE_SALARY`. Write operations require `MANAGE_
 The screen separates:
 
 - **Configure Fixed Salary:** persistent per-person salary structure
-- **Monthly Variables:** month/year-scoped additions or deductions. Load uses `GET /personnelSalaryComponentsForMonth`; save uses `POST /monthlyCalculationComponents` into `personnel_payslip_history`. Fixed save no longer deletes monthly-calculated rows, and component IDs are compared with `Objects.equals`.
+- **Monthly Variables:** month/year-scoped additions or deductions. Month and year sit on the card header, not a separate period card. Load uses `GET /personnelSalaryComponentsForMonth`; save uses `POST /monthlyCalculationComponents` into `personnel_payslip_history`. Fixed save no longer deletes monthly-calculated rows, and component IDs are compared with `Objects.equals`.
+
+The staff directory column is hidden when the signed-in user only has one person in the list (typical staff self-view). Master-detail stays for managers who can pick among multiple staff.
 
 Definitions can be earnings or deductions and fixed or formula-based. `priority_index` controls evaluation order. A definition scoped to `store_id = 0` is used as a tenant-level fallback where repository queries support it.
 
@@ -36,7 +38,7 @@ The code defaults to 30 working days per month and 9.5 hours per day when store/
 
 ## Payslips (`/payslips`)
 
-Visible with `VIEW_SALARY` or `MANAGE_SALARY`. Users select a staff member and period, constrained by store payroll configuration (`recentSummaryCalculatedMonth` / `payrollLockedUpToDate`). The UI fetches historical payslip data and can print or download a generated PDF. After a salary run, hospitality lines (`Hosp: `) can be added for overtime, commission, service-charge share, advance recovery, and statutory deductions. See [hospitality payroll](hospitality-payroll.md). The stored recent-month value is updated by vendor attendance retrieval, not by the on-demand month-summary trigger.
+Visible with `VIEW_SALARY` or `MANAGE_SALARY`. Month, year, and **Generate** sit on the card header. The staff picker is only shown when the user can see other people. Period is constrained by store payroll configuration (`recentSummaryCalculatedMonth` / `payrollLockedUpToDate`). The UI fetches historical payslip data and can print or download a generated PDF. After a salary run, hospitality lines (`Hosp: `) can be added for overtime, commission, service-charge share, advance recovery, and statutory deductions. See [hospitality payroll](hospitality-payroll.md). The stored recent-month value is updated by vendor attendance retrieval, not by the on-demand month-summary trigger.
 
 The backend also provides a permission-gated Excel endpoint, but the current Payslips screen does not expose an Excel action.
 

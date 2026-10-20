@@ -9,6 +9,7 @@ Start at the [documentation portal](docs/README.md).
 - [Product overview](docs/product/product-overview.md) — what the platform does and who it serves
 - [Client and sales guide](docs/product/client-and-sales-guide.md) — positioning, implementation scope, and qualification
 - [Feature guides](docs/features/README.md) — workflows grouped by product module
+- [User help center](docs/features/user-help-center.md) — in-app `/docs` guide for signed-in users
 - [System architecture](docs/architecture/system-architecture.md) — components and request/data flows
 - [API reference](docs/reference/api-reference.md) — verified HTTP surface
 - [Local development](docs/operations/local-development.md) — run the complete stack

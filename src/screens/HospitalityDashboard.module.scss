@@ -106,6 +106,14 @@
   }
 }
 
+.clickableRow {
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bg-hover);
+  }
+}
+
 .grid,
 .inline,
 .statFields {
@@ -133,12 +141,14 @@
 
 .select,
 .textarea {
-  min-height: 40px;
+  width: 100%;
+  min-height: 42px;
   border: 1px solid var(--input-border);
   border-radius: 8px;
   padding: 0 12px;
   background: transparent;
   color: var(--text-dark);
+  box-sizing: border-box;
 }
 
 .textarea {
@@ -352,12 +362,18 @@
 
 .staffPicker {
   position: relative;
-  min-width: 220px;
-  flex: 1 1 220px;
+  width: 100%;
+  min-width: 0;
+  flex: none;
 }
 
 .staffControl {
   position: relative;
+  width: 100%;
+
+  .select {
+    padding-right: 36px;
+  }
 }
 
 .clearStaff {

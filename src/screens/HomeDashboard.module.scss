@@ -1,0 +1,251 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.greeting {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-dark);
+}
+
+.today,
+.muted,
+.lead {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lead {
+  margin-bottom: 16px;
+}
+
+.grid,
+.queueGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.queueGrid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.cardTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+
+  > span:first-child {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.balanceList {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--text-muted);
+
+    strong {
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+  }
+}
+
+.sectionLabel {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-disabled);
+}
+
+.shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shortcut,
+.queueCard {
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-dark);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-dark);
+  }
+}
+
+.queueCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+
+  &:hover {
+    background: var(--bg-hover);
+  }
+}
+
+.queueLabel,
+.queueHint,
+.queueAction {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.queueLabel {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-disabled);
+}
+
+.queueValue {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-dark);
+  line-height: 1.15;
+}
+
+.queueAction {
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.activityList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li + li .activityRow {
+    border-top: 1px solid var(--border-color);
+  }
+}
+
+.activityRow {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 24px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bg-hover);
+  }
+
+  @media (max-width: 720px) {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+  }
+}
+
+.activityAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.activityCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.activitySummary {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.activityMeta,
+.activityWhen {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.activityWhen {
+  white-space: nowrap;
+
+  @media (max-width: 720px) {
+    display: none;
+  }
+}

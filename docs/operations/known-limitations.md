@@ -26,8 +26,9 @@ Severity is an engineering prioritization aid, not a production certification.
 - **Resolved (2026-10-20):** A 403 from a permitted screen no longer wipes the session; only 401 logs the user out. Unauthenticated API calls (missing/invalid JWT) return 401; authenticated permission denials return 403.
 - **Resolved (2026-10-20):** Shift GET endpoints accept `VIEW_SHIFTS` or `MANAGE_SHIFTS`; writes stay `MANAGE_SHIFTS`. Report POSTs accept `VIEW_REPORTS`, `MANAGE_ATTENDANCE`, `MANAGE_SALARY`, or `MANAGE_SHIFTS`.
 - **Resolved (2026-10-20):** `MANAGE_STAFF` sees the full store directory (same as `VIEW_OTHER_STAFF`). Role list GET is authenticated; role create/update still require `MANAGE_ROLES`; assign allows `MANAGE_STAFF`.
-- **Resolved (2026-10-20):** Unknown or permission-denied routes redirect to `/staff`.
+- **Resolved (2026-10-20):** Unknown or permission-denied routes redirect to `/home`.
 - **Resolved (2026-10-20):** HR dashboard “View Approvals” goes to `/leave-approvals` only with `MANAGE_LEAVES`.
+- **Resolved (2026-10-20):** Payroll sidebar children match their routes. Hospitality-only roles no longer see Salary or Payslips links that bounced to `/home`. `VIEW_ACTIVITY_LOG` is an Activity route gate only, not an operations-home gate.
 
 ## Data and schema
 
@@ -46,6 +47,10 @@ Severity is an engineering prioritization aid, not a production certification.
 - Shared form controls also live in `components/ui` (`Checkbox`, `Switch`, `Radio`). Use `Switch` for on/off settings (for example staff active, role permissions, optional holiday), `Checkbox` for multi-select lists, and `Radio` (including `card`) for exclusive choices such as leave session.
 - Holiday Calendar is a month/list calendar with a right Drawer for create (not a center modal). Pagination controls in the old table footer were removed with the calendar rebuild.
 - Header notifications (`NotificationsDrawer`) are an approval inbox only (pending leave + regularization counts). For `VIEW_HR_DASHBOARD`, leave counts come from `/admin/dashboard/metrics` because `/leaves/applications/pending` can return an empty list while metrics still report pending work. There is no push/realtime channel or personal status feed in the UI.
+
+- Activity log starts empty until new mutations occur; it does not backfill older leave, role, or payroll rows. `leave_application_logs` remains a leave-workflow table, not the store-wide history.
+- Existing roles receive `VIEW_ACTIVITY_LOG` only when they already have `MANAGE_ROLES` or `VIEW_HR_DASHBOARD`. Other roles must be granted it on Roles & Permissions, then the user must sign in again.
+- Not every legacy POST is captured (for example report exports, appointment booked-slot writes, and break-time writes). Unknown-username sign-in failures are stored without a store, so they do not appear in the store activity log. New product work should call `ActivityRecorder`.
 
 ## Feature behavior
 

@@ -260,10 +260,21 @@
   }
   
   .actionCell {
-    display: flex;
-    gap: 8px;
+    width: 1%;
+    text-align: right;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .actionButtons {
+    display: inline-flex;
+    align-items: center;
     justify-content: flex-end;
-    padding-right: 24px;
+    gap: 8px;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
   }
   
   .iconBtn {

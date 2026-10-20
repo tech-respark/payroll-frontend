@@ -4,6 +4,22 @@
 
 export const NAV_COMMANDS = [
   {
+    id: 'home',
+    title: 'Home',
+    path: '/home',
+    group: 'Overview',
+    keywords: ['dashboard', 'today', 'overview', 'start'],
+    perms: null,
+  },
+  {
+    id: 'activity',
+    title: 'Activity log',
+    path: '/activity',
+    group: 'Overview',
+    keywords: ['audit', 'history', 'who changed', 'events'],
+    perms: ['VIEW_ACTIVITY_LOG'],
+  },
+  {
     id: 'staff',
     title: 'Staff Details',
     path: '/staff',
@@ -47,9 +63,41 @@ export const NAV_COMMANDS = [
     id: 'approvals',
     title: 'Regularization Approvals',
     path: '/approvals',
-    group: 'Attendance',
-    keywords: ['regularize', 'corrections', 'pending'],
-    perms: ['MANAGE_ATTENDANCE', 'APPROVE_ATTENDANCE'],
+    group: 'Approvals',
+    keywords: ['regularize', 'corrections', 'pending', 'approvals'],
+    perms: ['MANAGE_ATTENDANCE'],
+  },
+  {
+    id: 'my-leaves',
+    title: 'My Leaves',
+    path: '/leave-dashboard',
+    group: 'Leave',
+    keywords: ['apply', 'balance', 'pto'],
+    perms: null,
+  },
+  {
+    id: 'leave-approvals',
+    title: 'Leave Approvals',
+    path: '/leave-approvals',
+    group: 'Approvals',
+    keywords: ['pending', 'approve', 'approvals'],
+    perms: ['MANAGE_LEAVES'],
+  },
+  {
+    id: 'leave-config',
+    title: 'Leave Configuration',
+    path: '/leave-configuration',
+    group: 'Leave',
+    keywords: ['policy', 'balances'],
+    perms: ['MANAGE_LEAVES'],
+  },
+  {
+    id: 'holidays',
+    title: 'Holiday Calendar',
+    path: '/settings/holidays',
+    group: 'Leave',
+    keywords: ['calendar', 'public holiday'],
+    perms: ['MANAGE_LEAVES'],
   },
   {
     id: 'salary',
@@ -91,52 +139,18 @@ export const NAV_COMMANDS = [
     keywords: ['detailed', 'export'],
     perms: ['MANAGE_ATTENDANCE', 'MANAGE_SALARY'],
   },
-  {
-    id: 'hr',
-    title: 'HR Dashboard',
-    path: '/hr-dashboard',
-    group: 'Leave',
-    keywords: ['executive', 'overview', 'headcount'],
-    perms: ['VIEW_HR_DASHBOARD'],
-  },
-  {
-    id: 'leave-config',
-    title: 'Leave Configuration',
-    path: '/leave-configuration',
-    group: 'Leave',
-    keywords: ['policy', 'balances'],
-    perms: ['MANAGE_LEAVES'],
-  },
-  {
-    id: 'holidays',
-    title: 'Holiday Calendar',
-    path: '/settings/holidays',
-    group: 'Leave',
-    keywords: ['calendar', 'public holiday'],
-    perms: ['MANAGE_LEAVES', 'MANAGE_HOLIDAYS'],
-  },
-  {
-    id: 'my-leaves',
-    title: 'My Leaves',
-    path: '/leave-dashboard',
-    group: 'Leave',
-    keywords: ['apply', 'balance', 'pto'],
-    perms: null,
-  },
-  {
-    id: 'leave-approvals',
-    title: 'Leave Approvals',
-    path: '/leave-approvals',
-    group: 'Leave',
-    keywords: ['pending', 'approve'],
-    perms: ['MANAGE_LEAVES', 'APPROVE_LEAVES'],
-  },
 ];
 
 export function getAccessibleCommands(hasAccess) {
+  const isSelfProfile = !hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF']);
   return NAV_COMMANDS.filter((cmd) => {
     if (!cmd.perms) return true;
     return hasAccess(cmd.perms);
+  }).map((cmd) => {
+    if (cmd.id === 'staff' && isSelfProfile) {
+      return { ...cmd, title: 'Profile', group: 'Account', keywords: ['profile', 'account', 'details'] };
+    }
+    return cmd;
   });
 }
 

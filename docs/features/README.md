@@ -9,12 +9,15 @@
 
 | Module | Routes | Guide |
 | --- | --- | --- |
+| Home | `/home` | [Home](home.md) |
+| Activity log | `/activity` | [Activity log](activity-log.md) |
 | Staff and access | `/staff`, `/roles` | [Staff and roles](staff-and-roles.md) |
-| Shifts and attendance | `/shifts`, `/attendance`, `/approvals` | [Shifts and attendance](shifts-and-attendance.md) |
-| Leave and holidays | `/leave-dashboard`, `/leave-approvals`, `/leave-configuration`, `/settings/holidays` | [Leave and holidays](leave-and-holidays.md) |
+| Shifts and attendance | `/shifts`, `/attendance`, `/approvals` (Regularization lives under the Approvals nav group) | [Shifts and attendance](shifts-and-attendance.md) |
+| Leave and holidays | `/leave-dashboard`, `/leave-approvals` (Leave Approvals lives under the Approvals nav group), `/leave-configuration`, `/settings/holidays` | [Leave and holidays](leave-and-holidays.md) |
 | Salary and payroll output | `/salary`, `/payslips` | [Payroll and payslips](payroll-and-payslips.md) |
 | Hospitality payroll | `/hospitality`, `/my-work` | [Hospitality payroll](hospitality-payroll.md) |
-| Analytics | `/reports`, `/reports/detailed`, `/hr-dashboard` | [Reports and HR dashboard](reports-and-hr-dashboard.md) |
+| Analytics | `/reports`, `/reports/detailed` (HR snapshot lives on `/home`; `/hr-dashboard` redirects there) | [Reports and HR dashboard](reports-and-hr-dashboard.md) |
+| User help center | `/docs`, `/docs/:slug` | [User help center](user-help-center.md) |
 
 ## Reading a feature guide
 

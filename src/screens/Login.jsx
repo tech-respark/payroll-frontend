@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
@@ -14,6 +14,11 @@ const Login = () => {
   const { login } = useAuth();
   const { showToast } = useToast();
   const history = useHistory();
+  const location = useLocation();
+  const nextPath = (() => {
+    const raw = new URLSearchParams(location.search).get('next');
+    return raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/home';
+  })();
 
   // Forgot Password States
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -43,13 +48,15 @@ const Login = () => {
       if (response && response.success) {
         login(response);
         showToast('Login successful!', 'success');
-        history.push('/staff');
+        history.push(nextPath);
       } else {
         showToast(response?.message || 'Invalid credentials. Please try again.', 'error');
       }
     } catch (err) {
       console.error('Login error:', err);
-      showToast('Failed to connect to the server.', 'error');
+      const message = err?.message || '';
+      const offline = !message || /failed to fetch|network response was not ok/i.test(message);
+      showToast(offline ? 'Failed to connect to the server.' : message, 'error');
     } finally {
       setLoading(false);
     }

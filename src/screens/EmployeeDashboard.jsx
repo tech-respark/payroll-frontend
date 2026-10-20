@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import styles from './EmployeeDashboard.module.scss';
@@ -8,33 +8,61 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreConfig } from '../hooks/queries';
 import { formatDateByConfig, parseLocalDate } from '../helpers/dateUtils';
-import { Radio, ConfirmDialog } from '../components/ui';
-import { LuPlane, LuClock, LuCalendarDays } from 'react-icons/lu';
+import { Button, Modal, Radio, ConfirmDialog } from '../components/ui';
+import { LuPlus } from 'react-icons/lu';
+
+const FILTERS = [
+  { id: 'ALL', label: 'All' },
+  { id: 'PENDING', label: 'Pending' },
+  { id: 'APPROVED', label: 'Approved' },
+  { id: 'CLOSED', label: 'Closed' },
+];
+
+const emptyForm = {
+  leaveTypeId: '',
+  startDate: '',
+  endDate: '',
+  reason: '',
+};
+
+const sessionLabel = (session) => {
+  if (session === 'FIRST_HALF') return 'First half';
+  if (session === 'SECOND_HALF') return 'Second half';
+  return null;
+};
+
+const matchesFilter = (status, filter) => {
+  const value = String(status || '').toUpperCase();
+  if (filter === 'ALL') return true;
+  if (filter === 'PENDING') return value === 'PENDING' || value === 'CANCELLATION_REQUESTED';
+  if (filter === 'APPROVED') return value === 'APPROVED';
+  if (filter === 'CLOSED') return value === 'CANCELLED' || value === 'REJECTED';
+  return true;
+};
 
 const EmployeeDashboard = () => {
   const { user, tenantId, storeId } = useAuth();
   const { storeConfig } = useStoreConfig();
   const staffId = user?.staffId;
   const { showToast } = useToast();
-
   const location = useLocation();
+  const queryClient = useQueryClient();
+
   const searchParams = new URLSearchParams(location.search);
   const initialStartDate = searchParams.get('startDate') || '';
   const initialEndDate = searchParams.get('endDate') || '';
+  const applyNow = searchParams.get('apply') === '1';
 
-  // Form State
   const [formData, setFormData] = useState({
-    leaveTypeId: '',
+    ...emptyForm,
     startDate: initialStartDate,
     endDate: initialEndDate,
-    reason: ''
   });
   const [leaveSession, setLeaveSession] = useState('FULL_DAY');
   const [calculatedDuration, setCalculatedDuration] = useState(0);
-  const [showAllHistory, setShowAllHistory] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(() => Boolean(initialStartDate || initialEndDate || applyNow));
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [cancelTarget, setCancelTarget] = useState(null);
-
-  const queryClient = useQueryClient();
 
   const { data: history = [], isLoading: loadingHistory } = useQuery({
     queryKey: ['leaveHistory', staffId],
@@ -42,7 +70,7 @@ const EmployeeDashboard = () => {
       const res = await apiService.get(`/leaves/applications/staff/${staffId}`);
       return Array.isArray(res) ? res : [];
     },
-    enabled: !!staffId
+    enabled: !!staffId,
   });
 
   const { data: balances = [], isLoading: loadingBalances } = useQuery({
@@ -57,31 +85,44 @@ const EmployeeDashboard = () => {
         annualAllotment: b.annualAllotment || 20,
       }));
     },
-    enabled: !!staffId
+    enabled: !!staffId,
   });
 
   const { data: storeHolidaysRaw = [] } = useQuery({
     queryKey: ['holidays', tenantId, storeId],
     queryFn: () => apiService.get(`/holidays?tenantId=${tenantId}&storeId=${storeId}`),
-    enabled: !!tenantId && !!storeId
+    enabled: !!tenantId && !!storeId,
   });
-  
+
   const storeHolidaysList = Array.isArray(storeHolidaysRaw) ? storeHolidaysRaw : (storeHolidaysRaw?.data || []);
-  const optionalHolidays = storeHolidaysList.filter(h => h.isOptional === true);
-  
-  const selectedLeaveType = balances.find(b => String(b.id) === String(formData.leaveTypeId));
+  const optionalHolidays = storeHolidaysList.filter((h) => h.isOptional === true);
+
+  const selectedLeaveType = balances.find((b) => String(b.id) === String(formData.leaveTypeId));
   const isOptionalHolidaySelected = selectedLeaveType?.code === 'OH';
 
-  const loading = loadingHistory || loadingBalances;
+  const visibleHistory = useMemo(() => {
+    const rows = [...history].sort((a, b) => String(b.startDate || '').localeCompare(String(a.startDate || '')));
+    return rows.filter((req) => matchesFilter(req.status, statusFilter));
+  }, [history, statusFilter]);
 
-  // Duration Calculation Logic
+  const pendingCount = history.filter((req) => matchesFilter(req.status, 'PENDING')).length;
+
+  useEffect(() => {
+    const start = searchParams.get('startDate') || '';
+    const end = searchParams.get('endDate') || '';
+    const apply = searchParams.get('apply') === '1';
+    if (!start && !end && !apply) return;
+    setFormData((prev) => ({ ...prev, startDate: start || prev.startDate, endDate: end || prev.endDate }));
+    setRequestOpen(true);
+  }, [location.search]);
+
   useEffect(() => {
     if (formData.startDate && formData.endDate) {
       const start = parseLocalDate(formData.startDate);
       const end = parseLocalDate(formData.endDate);
       if (start && end && end >= start) {
         const diffTime = Math.abs(end - start);
-        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         if (diffDays === 1 && (leaveSession === 'FIRST_HALF' || leaveSession === 'SECOND_HALF')) {
           diffDays = 0.5;
         }
@@ -94,11 +135,18 @@ const EmployeeDashboard = () => {
     }
   }, [formData.startDate, formData.endDate, leaveSession]);
 
+  const resetForm = () => {
+    setFormData({ ...emptyForm });
+    setLeaveSession('FULL_DAY');
+    setCalculatedDuration(0);
+  };
+
   const submitLeaveMutation = useMutation({
     mutationFn: (payload) => apiService.post(`/leaves/apply`, payload),
     onSuccess: () => {
-      showToast("Leave request submitted successfully!", 'success');
-      handleCancel();
+      showToast('Leave request submitted successfully!', 'success');
+      setRequestOpen(false);
+      resetForm();
       queryClient.invalidateQueries({ queryKey: ['leaveBalances', staffId] });
       queryClient.invalidateQueries({ queryKey: ['leaveHistory', staffId] });
       queryClient.invalidateQueries({ queryKey: ['pendingLeaves'] });
@@ -107,15 +155,14 @@ const EmployeeDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ['hrDashboardMetrics'] });
     },
     onError: (err) => {
-      console.error(err);
       showToast(err.message || 'Error submitting leave request', 'error');
-    }
+    },
   });
 
   const cancelLeaveMutation = useMutation({
     mutationFn: (applicationId) => apiService.post(`/leaves/${applicationId}/cancel`, {
-      staffId: staffId,
-      remarks: "Cancelled by employee"
+      staffId,
+      remarks: 'Cancelled by employee',
     }),
     onSuccess: (data) => {
       const requested = data?.status === 'CANCELLATION_REQUESTED'
@@ -130,262 +177,293 @@ const EmployeeDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ['leaveData'] });
     },
     onError: (err) => {
-      console.error(err);
-      showToast(err.message || "Failed to cancel leave", "error");
-    }
+      showToast(err.message || 'Failed to cancel leave', 'error');
+    },
   });
 
+  const closeRequest = () => {
+    if (submitLeaveMutation.isPending) return;
+    setRequestOpen(false);
+    resetForm();
+  };
+
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!staffId) {
       showToast('Your staff profile is missing. Please sign in again.', 'error');
       return;
     }
-    const payload = {
+    submitLeaveMutation.mutate({
       ...formData,
       staffId,
       tenantId,
       storeId,
       leaveSession: isOptionalHolidaySelected ? 'FULL_DAY' : leaveSession,
-    };
-    submitLeaveMutation.mutate(payload);
-  };
-
-  const handleCancelLeave = (applicationId) => {
-    setCancelTarget(applicationId);
-  };
-
-  const handleCancel = (e) => {
-    if (e) e.preventDefault();
-    setFormData({
-      leaveTypeId: '',
-      startDate: '',
-      endDate: '',
-      reason: ''
     });
-    setLeaveSession('FULL_DAY');
-    setCalculatedDuration(0);
   };
 
-  const getLeaveTypeClass = (name) => {
-    const lower = name?.toLowerCase() || '';
-    if (lower.includes('sick')) return styles.badgeSick;
-    if (lower.includes('casual')) return styles.badgeCasual;
-    if (lower.includes('unpaid') || lower.includes('lwp')) return styles.badgeUnpaid;
-    return styles.badgeDefault;
+  const formatRange = (req) => {
+    const start = formatDateByConfig(req.startDate, storeConfig?.dateFormat);
+    const end = req.endDate ? formatDateByConfig(req.endDate, storeConfig?.dateFormat) : '';
+    if (!end || end === start) return start;
+    return `${start} – ${end}`;
   };
 
   return (
     <div className={styles.page}>
-      <p className="screenIntro">Request time off, check remaining balances, and track recent leave. Cancelling an approved request waits for a manager.</p>
-      <div className={styles.splitLayout}>
-        {/* LEFT PANEL: Leave Application Form */}
-        <div className={styles.formCard}>
-          <div className={styles.formCardHeader}>
-            <span className={styles.formCardIcon}><LuPlane size={18} strokeWidth={2} /></span>
-            <span className={styles.formCardTitle}>Request Time Off</span>
-          </div>
-
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Leave type</label>
-              <select 
-                className={styles.select}
-                value={formData.leaveTypeId} 
-                onChange={e => setFormData({...formData, leaveTypeId: e.target.value})}
-                required
-              >
-                <option value="">Select a leave type</option>
-                {balances.map(t => (
-                  <option key={t.id} value={t.id}>{t.type} ({t.available} days left)</option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formRow}>
-              {isOptionalHolidaySelected ? (
-                <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-                  <label className={styles.label}>Select optional holiday</label>
-                  {optionalHolidays.length > 0 ? (
-                    <select
-                      className={styles.select}
-                      value={formData.startDate}
-                      onChange={e => {
-                        setFormData({...formData, startDate: e.target.value, endDate: e.target.value});
-                        setLeaveSession('FULL_DAY');
-                      }}
-                      required
-                    >
-                      <option value="">Select a holiday...</option>
-                      {optionalHolidays.map(h => (
-                        <option key={h.id} value={h.holidayDate}>
-                          {h.holidayName} ({formatDateByConfig(h.holidayDate, storeConfig?.dateFormat)})
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className={styles.formHintError}>
-                      No optional holidays available to choose from.
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Start date</label>
-                    <input 
-                      type="date" 
-                      className={styles.input}
-                      value={formData.startDate} 
-                      onChange={e => {
-                        setFormData({...formData, startDate: e.target.value});
-                        if (e.target.value !== formData.endDate) setLeaveSession('FULL_DAY');
-                      }}
-                      required
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>End date</label>
-                    <input 
-                      type="date" 
-                      className={styles.input}
-                      value={formData.endDate} 
-                      onChange={e => {
-                        setFormData({...formData, endDate: e.target.value});
-                        if (e.target.value !== formData.startDate) setLeaveSession('FULL_DAY');
-                      }}
-                      required
-                    />
-                  </div>
-                </>
+      <div className={styles.toolbar}>
+        <div className={styles.filters} role="tablist" aria-label="Filter leave requests">
+          {FILTERS.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === filter.id}
+              className={statusFilter === filter.id ? styles.filterActive : styles.filterBtn}
+              onClick={() => setStatusFilter(filter.id)}
+            >
+              {filter.label}
+              {filter.id === 'PENDING' && pendingCount > 0 && (
+                <span className={styles.filterCount}>{pendingCount}</span>
               )}
-            </div>
-
-            {formData.startDate && formData.endDate && formData.startDate === formData.endDate && !isOptionalHolidaySelected && (
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Leave session</label>
-                <div className={styles.radioGroup}>
-                  <Radio card name="leaveSession" value="FIRST_HALF" label="First Half" checked={leaveSession === 'FIRST_HALF'} onChange={e => setLeaveSession(e.target.value)} />
-                  <Radio card name="leaveSession" value="SECOND_HALF" label="Second Half" checked={leaveSession === 'SECOND_HALF'} onChange={e => setLeaveSession(e.target.value)} />
-                  <Radio card name="leaveSession" value="FULL_DAY" label="Full Day" checked={leaveSession === 'FULL_DAY'} onChange={e => setLeaveSession(e.target.value)} />
-                </div>
-              </div>
-            )}
-
-            <div className={styles.calculationRow}>
-              <span className={styles.calcIcon}><LuClock size={18} strokeWidth={2} /></span>
-              <div className={styles.calcText}>
-                <span className={styles.calcLabel}>Calculated Duration</span>
-                <span className={styles.calcDays}>{calculatedDuration.toFixed(1)} Days</span>
-              </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Reason for leave</label>
-              <textarea 
-                className={styles.textarea}
-                placeholder="Provide a brief explanation for context..."
-                value={formData.reason}
-                onChange={e => setFormData({...formData, reason: e.target.value})}
-                required
-                rows={3}
-              ></textarea>
-            </div>
-
-            <div className={styles.formActions}>
-              <button type="button" className={styles.cancelBtn} onClick={handleCancel}>Clear Form</button>
-              <button type="submit" className={styles.submitBtn} disabled={submitLeaveMutation.isPending || (isOptionalHolidaySelected && optionalHolidays.length === 0)}>
-                {submitLeaveMutation.isPending ? 'Submitting...' : 'Submit Request'}
-              </button>
-            </div>
-          </form>
+            </button>
+          ))}
         </div>
-
-        {/* RIGHT PANEL: Balances & History */}
-        <div className={styles.contextPanel}>
-          
-          {/* Leave Balances Widget */}
-          <div className={styles.balancesWidget}>
-            <div className={styles.widgetHeader}>
-              <span className={styles.widgetTitle}>Available Balances</span>
-            </div>
-            
-            <div className={styles.balancesGrid}>
-              {loading ? (
-                <div className={styles.emptyState}>Loading balances...</div>
-              ) : balances.length > 0 ? balances.map((b) => (
-                <div key={b.id} className={styles.balanceCard}>
-                  <div className={styles.balanceInfo}>
-                    <span className={`${styles.balanceBadge} ${getLeaveTypeClass(b.type)}`}>{b.code}</span>
-                    <span className={styles.balanceName}>{b.type}</span>
-                  </div>
-                  <div className={styles.balanceValues}>
-                    <span className={styles.balanceAvailable}>{b.available.toFixed(1)}</span>
-                    <span className={styles.balanceUnit}>/ {b.annualAllotment} days</span>
-                  </div>
-                  <div className={styles.progressBarBg}>
-                    <div 
-                      className={styles.progressBarFill} 
-                      style={{ width: `${Math.min((b.available / b.annualAllotment) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              )) : (
-                <div className={styles.emptyState}>No leave balances found.</div>
-              )}
-            </div>
-          </div>
-
-          </div>
-        </div>
-
-      {/* BOTTOM PANEL: Leave History Widget */}
-      <div className={styles.bottomSection}>
-          <div className={styles.widgetHeaderRow}>
-            <div className={styles.widgetHeaderLeft}>
-              <span className={styles.widgetTitleIcon}><LuCalendarDays size={18} strokeWidth={2} /></span>
-              <span className={styles.widgetTitle}>Recent Leave Requests</span>
-            </div>
-            {history.length > 3 && (
-              <button 
-                className={styles.viewAllLink}
-                onClick={() => setShowAllHistory(!showAllHistory)}
-              >
-                {showAllHistory ? 'View Less' : 'View All History'}
-              </button>
-            )}
-          </div>
-          
-          <div className={styles.historyCardsContainer}>
-            {loadingHistory ? (
-              <div className={styles.emptyState}>Loading history...</div>
-            ) : history.length > 0 ? (showAllHistory ? history : history.slice(0, 3)).map((req, i) => (
-            <div key={i} className={styles.historyCard}>
-              <div className={styles.historyCardHeader}>
-                <span className={styles.historyCardDate}>
-                  {formatDateByConfig(req.startDate, storeConfig?.dateFormat)}
-                  {req.endDate ? ` – ${formatDateByConfig(req.endDate, storeConfig?.dateFormat)}` : ''}
-                </span>
-                <StatusBadge status={req.status} />
-              </div>
-              <div className={styles.historyCardDetails}>
-                {req.leaveType?.leaveName || req.leaveType?.name || 'Leave'} • {req.requestedDays} {req.requestedDays === 1 ? 'Day' : 'Days'}
-              </div>
-              {(req.status === 'PENDING' || req.status === 'APPROVED') && (
-                <button 
-                  className={styles.cancelActionBtn} 
-                  onClick={() => handleCancelLeave(req.id)}
-                  disabled={cancelLeaveMutation.isPending}
-                >
-                  {cancelLeaveMutation.isPending ? 'Cancelling...' : 'Cancel Leave'}
-                </button>
-              )}
-            </div>
-          )) : (
-            <div className={styles.emptyState}>No recent leave requests found.</div>
-          )}
-        </div>
+        <Button onClick={() => setRequestOpen(true)}>
+          <LuPlus size={16} strokeWidth={2} />
+          Request leave
+        </Button>
       </div>
+
+      <section className={styles.metricsRow} aria-label="Available balances">
+        {loadingBalances ? (
+          <div className={styles.metricCard}>
+            <span className={styles.metricLabel}>Balances</span>
+            <span className={styles.metricHint}>Loading…</span>
+          </div>
+        ) : balances.length > 0 ? balances.map((balance) => {
+          const usedPct = balance.annualAllotment
+            ? Math.min((balance.available / balance.annualAllotment) * 100, 100)
+            : 0;
+          return (
+            <div key={balance.id} className={styles.metricCard}>
+              <div className={styles.metricTop}>
+                <span className={styles.metricLabel}>{balance.type}</span>
+                <span className={styles.metricCode}>{balance.code}</span>
+              </div>
+              <div className={styles.metricValueRow}>
+                <span className={styles.metricValue}>{Number(balance.available).toFixed(1)}</span>
+                <span className={styles.metricHint}>of {balance.annualAllotment} days</span>
+              </div>
+              <div className={styles.progressTrack} aria-hidden>
+                <div className={styles.progressFill} style={{ width: `${usedPct}%` }} />
+              </div>
+            </div>
+          );
+        }) : (
+          <div className={styles.metricCard}>
+            <span className={styles.metricLabel}>Balances</span>
+            <span className={styles.metricHint}>No leave balances found.</span>
+          </div>
+        )}
+      </section>
+
+      <section className={styles.listCard}>
+        <div className={styles.listHeader}>
+          <h2 className={styles.listTitle}>Leave requests</h2>
+          <span className={styles.listMeta}>
+            {visibleHistory.length} {visibleHistory.length === 1 ? 'request' : 'requests'}
+          </span>
+        </div>
+
+        {loadingHistory ? (
+          <div className={styles.emptyState}>Loading requests…</div>
+        ) : visibleHistory.length > 0 ? (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Dates</th>
+                  <th>Type</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {visibleHistory.map((req) => {
+                  const half = sessionLabel(req.leaveSession);
+                  const typeName = req.leaveType?.leaveName || req.leaveType?.name || 'Leave';
+                  const canCancel = req.status === 'PENDING' || req.status === 'APPROVED';
+                  return (
+                    <tr key={req.id || `${req.startDate}-${req.status}`}>
+                      <td>
+                        <div className={styles.dateCell}>{formatRange(req)}</div>
+                        {req.reason && <div className={styles.reasonCell}>{req.reason}</div>}
+                      </td>
+                      <td>{typeName}</td>
+                      <td>
+                        {req.requestedDays} {req.requestedDays === 1 ? 'day' : 'days'}
+                        {half ? ` · ${half}` : ''}
+                      </td>
+                      <td><StatusBadge status={req.status} /></td>
+                      <td className={styles.actionCell}>
+                        {canCancel && (
+                          <Button
+                            variant="outline"
+                            onClick={() => setCancelTarget(req.id)}
+                            disabled={cancelLeaveMutation.isPending}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            {history.length === 0
+              ? 'No leave requests yet. Request leave when you need time off.'
+              : 'No requests in this filter.'}
+          </div>
+        )}
+      </section>
+
+      <Modal
+        open={requestOpen}
+        onClose={closeRequest}
+        title="Request leave"
+        subtitle="Choose a type and dates. Half-day is available when start and end are the same day."
+        size="lg"
+        footer={(
+          <>
+            <Button variant="outline" onClick={closeRequest} disabled={submitLeaveMutation.isPending}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="leave-request-form"
+              disabled={submitLeaveMutation.isPending || (isOptionalHolidaySelected && optionalHolidays.length === 0)}
+            >
+              {submitLeaveMutation.isPending ? 'Submitting…' : 'Submit request'}
+            </Button>
+          </>
+        )}
+      >
+        <form id="leave-request-form" className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="leave-type">Leave type</label>
+            <select
+              id="leave-type"
+              className={styles.select}
+              value={formData.leaveTypeId}
+              onChange={(e) => setFormData({ ...formData, leaveTypeId: e.target.value })}
+              required
+            >
+              <option value="">Select a leave type</option>
+              {balances.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.type} ({type.available} days left)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.formRow}>
+            {isOptionalHolidaySelected ? (
+              <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
+                <label className={styles.label} htmlFor="optional-holiday">Optional holiday</label>
+                {optionalHolidays.length > 0 ? (
+                  <select
+                    id="optional-holiday"
+                    className={styles.select}
+                    value={formData.startDate}
+                    onChange={(e) => {
+                      setFormData({ ...formData, startDate: e.target.value, endDate: e.target.value });
+                      setLeaveSession('FULL_DAY');
+                    }}
+                    required
+                  >
+                    <option value="">Select a holiday</option>
+                    {optionalHolidays.map((holiday) => (
+                      <option key={holiday.id} value={holiday.holidayDate}>
+                        {holiday.holidayName} ({formatDateByConfig(holiday.holidayDate, storeConfig?.dateFormat)})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className={styles.formHintError}>No optional holidays are available to choose from.</p>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} htmlFor="leave-start">Start date</label>
+                  <input
+                    id="leave-start"
+                    type="date"
+                    className={styles.input}
+                    value={formData.startDate}
+                    onChange={(e) => {
+                      setFormData({ ...formData, startDate: e.target.value });
+                      if (e.target.value !== formData.endDate) setLeaveSession('FULL_DAY');
+                    }}
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} htmlFor="leave-end">End date</label>
+                  <input
+                    id="leave-end"
+                    type="date"
+                    className={styles.input}
+                    value={formData.endDate}
+                    onChange={(e) => {
+                      setFormData({ ...formData, endDate: e.target.value });
+                      if (e.target.value !== formData.startDate) setLeaveSession('FULL_DAY');
+                    }}
+                    required
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          {formData.startDate && formData.endDate && formData.startDate === formData.endDate && !isOptionalHolidaySelected && (
+            <div className={styles.formGroup}>
+              <span className={styles.label}>Leave session</span>
+              <div className={styles.radioGroup}>
+                <Radio card name="leaveSession" value="FIRST_HALF" label="First half" checked={leaveSession === 'FIRST_HALF'} onChange={(e) => setLeaveSession(e.target.value)} />
+                <Radio card name="leaveSession" value="SECOND_HALF" label="Second half" checked={leaveSession === 'SECOND_HALF'} onChange={(e) => setLeaveSession(e.target.value)} />
+                <Radio card name="leaveSession" value="FULL_DAY" label="Full day" checked={leaveSession === 'FULL_DAY'} onChange={(e) => setLeaveSession(e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          <div className={styles.durationRow}>
+            <span className={styles.durationLabel}>Calculated duration</span>
+            <span className={styles.durationValue}>{calculatedDuration.toFixed(1)} days</span>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="leave-reason">Reason</label>
+            <textarea
+              id="leave-reason"
+              className={styles.textarea}
+              placeholder="Add a short note for your manager"
+              value={formData.reason}
+              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              required
+              rows={3}
+            />
+          </div>
+        </form>
+      </Modal>
+
       <ConfirmDialog
         open={cancelTarget != null}
         title="Cancel this leave?"

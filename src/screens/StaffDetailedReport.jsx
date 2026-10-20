@@ -131,7 +131,6 @@ export default function StaffDetailedReport() {
 
   return (
     <div className={styles.dashboardContainer}>
-      <p className="screenIntro">Day-by-day hours punched for one person in the date range.</p>
       <div className={styles.filterCard}>
         <div className={styles.filterGroup}>
           <StaffPicker

@@ -41,7 +41,7 @@ There is no database row-level security. Every service/repository path must enfo
 ## Current security risks
 
 - Leave approve/reject and cancellation decisions require `MANAGE_LEAVES`. Employees can apply only for their own `staffId` unless they have `MANAGE_LEAVES`. Holiday writes require `MANAGE_LEAVES`. HR metrics require `VIEW_HR_DASHBOARD`. Flagging regularization requests requires `MANAGE_ATTENDANCE`. Staff-scoped leave, payslip, salary-component, attendance history, and regularization writes require self or the matching `MANAGE_*` authority. `GET /personnel/all` returns the caller only unless `MANAGE_STAFF` or `VIEW_OTHER_STAFF`. Role list GET requires `MANAGE_ROLES` or `MANAGE_STAFF`. Password updates require `MANAGE_STAFF`. Denied `@PreAuthorize` checks return HTTP 403.
-- Attendance retrieve and monthly-summary triggers require `MANAGE_ATTENDANCE`. Salary calculate requires `MANAGE_SALARY`. External staff sync requires `MANAGE_STAFF`. Store-hours writes require `MANAGE_SHIFTS` or `MANAGE_STORE_SETTINGS`.
+- Attendance retrieve and monthly-summary triggers require `MANAGE_ATTENDANCE`. Salary calculate requires `MANAGE_SALARY`. External staff sync requires `MANAGE_STAFF`. Store-hours writes require `MANAGE_SHIFTS` or `MANAGE_STORE_SETTINGS`. Activity log reads require `VIEW_ACTIVITY_LOG` and are tenant/store scoped. The table is append-only (no update/delete API; MySQL triggers reject mutation).
 - Previously committed secrets and JWT values must still be rotated wherever they were deployed.
 - New externally synced users cannot log in until password reset or an admin password set.
 - Browser session data is stored in `localStorage`.

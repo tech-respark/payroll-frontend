@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useStaffList, useStoreConfig } from '../hooks/queries';
 import PayslipBill from '../components/PayslipBill';
-import { StaffPicker } from '../components/ui';
+import { Button, StaffPicker } from '../components/ui';
 import { formatDisplayDate } from '../helpers/displayUtils';
 import { LuFileText } from 'react-icons/lu';
 import styles from './PayslipsDashboard.module.scss';
@@ -36,7 +35,7 @@ const PayslipsDashboard = () => {
 
   const [payslipData, setPayslipData] = useState(null);
   const { storeConfig } = useStoreConfig();
-  const { staffList } = useStaffList();
+  const { staffList, isLoading: staffLoading } = useStaffList();
 
   useEffect(() => {
     if (staffList.length > 0 && !selectedStaffId) {
@@ -110,54 +109,53 @@ const PayslipsDashboard = () => {
   };
 
   const generateDisabled = loading || !selectedStaffId || isSelectionLocked();
+  const canPickStaff = hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF']);
+  const canViewOthers = canPickStaff && (staffLoading || staffList.length > 1);
 
   return (
     <div className="dashboard">
-      <p className="screenIntro">Preview a stored payslip for one person and one calculated month.</p>
       <div className={`no-print ${styles.payrollCard}`}>
-        <div className={`filter-bar ${styles.filterBar}`}>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Month</label>
-            <select value={selectedMonth} onChange={e => { setSelectedMonth(e.target.value); setPayslipData(null); }} className={styles.formSelect}>
+        <div className={styles.toolbar}>
+          <h3 className={styles.toolbarTitle}>Payslip</h3>
+          <div className={styles.headerControls}>
+            {canViewOthers && (
+              <StaffPicker
+                label=""
+                className={styles.headerStaff}
+                staffList={staffList}
+                value={selectedStaffId}
+                onChange={(id) => { setSelectedStaffId(id); setPayslipData(null); }}
+                placeholder="Search staff"
+                ariaLabel="Staff"
+              />
+            )}
+            <select
+              value={selectedMonth}
+              onChange={e => { setSelectedMonth(e.target.value); setPayslipData(null); }}
+              className={styles.headerSelect}
+              aria-label="Month"
+            >
               {getFinancialYearMonths().map((m) => (
                 <option key={m} value={m} disabled={isMonthDisabled(m, selectedYear)}>
                   {m}
                 </option>
               ))}
             </select>
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Year</label>
-            <select value={selectedYear} onChange={e => { setSelectedYear(Number(e.target.value)); setPayslipData(null); }} className={styles.formSelect}>
+            <select
+              value={selectedYear}
+              onChange={e => { setSelectedYear(Number(e.target.value)); setPayslipData(null); }}
+              className={styles.headerSelect}
+              aria-label="Year"
+            >
               {[currentYear - 1, currentYear, currentYear + 1].map(y => (
                 <option key={y} value={y} disabled={isYearDisabled(y)}>
                   {y}
                 </option>
               ))}
             </select>
-          </div>
-          <div className={styles.formGroupLarge}>
-            {staffList.length === 1 ? (
-              <>
-                <label className={styles.formLabel}>Staff</label>
-                <div className={styles.staffReadOnly}>
-                  {staffList[0].firstName} {staffList[0].lastName}
-                </div>
-              </>
-            ) : (
-              <StaffPicker
-                label="Staff"
-                staffList={staffList}
-                value={selectedStaffId}
-                onChange={(id) => { setSelectedStaffId(id); setPayslipData(null); }}
-                placeholder="Search staff"
-              />
-            )}
-          </div>
-          <div className={styles.generateBtnContainer}>
-            <button className={`btn btn-primary ${styles.generateBtn} ${generateDisabled ? styles.generateBtnDisabled : ''}`} onClick={handleGenerate} disabled={generateDisabled}>
-              {loading ? 'Generating…' : 'Generate payslip'}
-            </button>
+            <Button onClick={handleGenerate} disabled={generateDisabled}>
+              {loading ? 'Generating…' : 'Generate'}
+            </Button>
           </div>
         </div>
 
@@ -177,7 +175,11 @@ const PayslipsDashboard = () => {
           <div className={styles.emptyState}>
             <LuFileText size={32} aria-hidden="true" />
             <p className={styles.emptyStateTitle}>No payslip yet</p>
-            <p className={styles.emptyStateHint}>Choose a calculated month, year, and person, then generate to preview it here.</p>
+            <p className={styles.emptyStateHint}>
+              {canPickStaff
+                ? 'Choose a calculated month, year, and person, then generate to preview it here.'
+                : 'Choose a calculated month, then generate to preview it here.'}
+            </p>
           </div>
         ) : null}
       </div>

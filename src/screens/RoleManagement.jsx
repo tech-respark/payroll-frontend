@@ -4,8 +4,8 @@ import { apiService } from '../api/apiService';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { useRoles, usePermissionModules } from '../hooks/queries';
-import { Switch, ConfirmDialog, Badge } from '../components/ui';
-import { LuPlus, LuCircleCheck, LuChevronRight, LuX, LuUserCheck } from 'react-icons/lu';
+import { Switch, ConfirmDialog, Badge, Drawer, Button } from '../components/ui';
+import { LuPlus, LuCircleCheck, LuChevronRight } from 'react-icons/lu';
 import styles from './RoleManagement.module.scss';
 import '../styles/main.scss';
 
@@ -113,7 +113,6 @@ const RoleManagement = () => {
 
   return (
     <div className={styles.dashboardLayout}>
-      <p className="screenIntro">Create roles and turn on the modules each role can use. Staff pick up these permissions at the next sign-in.</p>
       {/* SPLIT PANEL LAYOUT */}
       <div className={styles.mainContainer}>
 
@@ -184,109 +183,76 @@ const RoleManagement = () => {
           </div>
         </div>
 
-        {/* RIGHT: CREATE / EDIT FORM */}
-        <div className={styles.formContainer}>
-          {isModalOpen ? (
-            <>
-              
-              {/* Form Header */}
-              <div className={styles.formHeader}>
-                <div>
-                  <h3 className={styles.formTitle}>
-                    {editingRoleId ? `Edit: ${newRoleName}` : 'Create New Role'}
-                  </h3>
-                  <p className={styles.formSubtitle}>Configure permissions below.</p>
-                </div>
-                <button 
-                  onClick={closeModal}
-                  className={styles.closeBtn}
-                >
-                  <LuX size={20} />
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateRole} className={styles.formContent}>
-                {/* Name & Description row */}
-                <div className={styles.formRow}>
-                  <div>
-                    <label className={styles.formLabel}>Role Name <span className={styles.requiredAsterisk}>*</span></label>
-                    <input 
-                      type="text" 
-                      value={newRoleName} 
-                      onChange={e => setNewRoleName(e.target.value)} 
-                      className={styles.formInput} 
-                      placeholder="e.g. Store Manager" 
-                    />
-                  </div>
-                  <div>
-                    <label className={styles.formLabel}>Description <span className={styles.optionalText}>(optional)</span></label>
-                    <input 
-                      type="text" 
-                      value={newRoleDesc} 
-                      onChange={e => setNewRoleDesc(e.target.value)} 
-                      className={styles.formInput} 
-                      placeholder="What is this role for?"
-                    />
-                  </div>
-                </div>
-
-                <h4 className={styles.modulesTitle}>Access Modules</h4>
-                
-                <div className={styles.modulesGrid}>
-                  {PERMISSION_GROUPS.map((group, idx) => (
-                    <div key={idx} className={styles.moduleCard}>
-                      <div className={styles.moduleHeader}>
-                        <div className={styles.moduleTitle}>{group.category}</div>
-                      </div>
-                      <div className={styles.moduleBody}>
-                        {group.permissions.map(perm => {
-                          const isSelected = selectedPermissions.includes(perm.id);
-                          return (
-                            <div key={perm.id} className={styles.permissionRow}>
-                              <Switch
-                                id={`perm-${perm.id}`}
-                                checked={isSelected}
-                                onChange={() => handleTogglePermission(perm.id)}
-                                label={perm.label}
-                                className={styles.permissionSwitch}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className={styles.formFooter}>
-                  <button 
-                    type="button" 
-                    onClick={closeModal}
-                    className={styles.cancelBtn}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={loading}
-                    className={styles.saveBtn}
-                  >
-                    {loading ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              </form>
-            </>
-          ) : (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>
-                <LuUserCheck size={40} strokeWidth={1.5} />
-              </div>
-              <h3 className={styles.emptyTitle}>Select a Role to Manage</h3>
-              <p className={styles.emptyText}>Choose a role from the left list to view and edit permissions, or create a brand new role.</p>
-            </div>
-          )}
-        </div>
       </div>
+
+      <Drawer
+        open={isModalOpen}
+        onClose={closeModal}
+        title={editingRoleId ? `Edit ${newRoleName || 'role'}` : 'New role'}
+        subtitle="Turn on the modules this role can use. Staff pick these up at the next sign-in."
+        width={640}
+        footer={(
+          <>
+            <Button variant="outline" onClick={closeModal} disabled={loading}>Cancel</Button>
+            <Button type="submit" form="role-form" disabled={loading}>
+              {loading ? 'Saving…' : 'Save role'}
+            </Button>
+          </>
+        )}
+      >
+        <form id="role-form" onSubmit={handleCreateRole} className={styles.formContent}>
+          <div className={styles.formRow}>
+            <div>
+              <label className={styles.formLabel}>Role name <span className={styles.requiredAsterisk}>*</span></label>
+              <input
+                type="text"
+                value={newRoleName}
+                onChange={(e) => setNewRoleName(e.target.value)}
+                className={styles.formInput}
+                placeholder="e.g. Store Manager"
+              />
+            </div>
+            <div>
+              <label className={styles.formLabel}>Description <span className={styles.optionalText}>(optional)</span></label>
+              <input
+                type="text"
+                value={newRoleDesc}
+                onChange={(e) => setNewRoleDesc(e.target.value)}
+                className={styles.formInput}
+                placeholder="What is this role for?"
+              />
+            </div>
+          </div>
+
+          <h4 className={styles.modulesTitle}>Access modules</h4>
+
+          <div className={styles.modulesGrid}>
+            {PERMISSION_GROUPS.map((group, idx) => (
+              <div key={idx} className={styles.moduleCard}>
+                <div className={styles.moduleHeader}>
+                  <div className={styles.moduleTitle}>{group.category}</div>
+                </div>
+                <div className={styles.moduleBody}>
+                  {group.permissions.map((perm) => {
+                    const isSelected = selectedPermissions.includes(perm.id);
+                    return (
+                      <div key={perm.id} className={styles.permissionRow}>
+                        <Switch
+                          id={`perm-${perm.id}`}
+                          checked={isSelected}
+                          onChange={() => handleTogglePermission(perm.id)}
+                          label={perm.label}
+                          className={styles.permissionSwitch}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </form>
+      </Drawer>
       <ConfirmDialog
         open={saveConfirm}
         title={`Save changes to ${newRoleName || 'this role'}?`}

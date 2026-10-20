@@ -167,7 +167,6 @@ export default function HolidayCalendarScreen() {
 
   return (
     <div className={styles.pageContainer}>
-      <p className="screenIntro">Store holidays used for attendance and optional-holiday leave. Click a day to add one.</p>
       <div className={styles.pageActions}>
         <button type="button" className={styles.primaryBtn} onClick={() => openCreate()}>
           <LuPlus size={18} /> Add holiday

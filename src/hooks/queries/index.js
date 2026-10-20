@@ -9,3 +9,5 @@ export { useSalaryComponentDefinitions }  from './useSalaryComponentDefinitions'
 export { usePersonnelSalaryComponents }   from './usePersonnelSalaryComponents';
 export { useWeeklyShifts }                from './useWeeklyShifts';
 export { useHeaderNotifications }         from './useHeaderNotifications';
+export { useStaffHome, useOperationsHome } from './useHomeDashboard';
+export { useActivityLog, useActivityCatalog } from './useActivityLog';

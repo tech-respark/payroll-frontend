@@ -168,7 +168,11 @@ Prefix: `/hospitality`. Tenant and store come from query parameters and are over
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/admin/dashboard/metrics` | HR metrics |
+| GET | `/home/staff` | Aggregated staff home for the JWT staff id. Authenticated. Pay month is omitted when the store has no calculated month. |
+| GET | `/home/operations?includeSnapshot=` | Aggregated operations home. Requires an operations permission (`VIEW_OTHER_STAFF`, `MANAGE_*`, `VIEW_REPORTS`, `VIEW_HR_DASHBOARD`, or hospitality). `VIEW_ACTIVITY_LOG` is not sufficient. Snapshot only with `VIEW_HR_DASHBOARD`. |
+| GET | `/activity?module=&action=&q=&from=&to=&page=&size=` | Store activity page (server-paged); `VIEW_ACTIVITY_LOG` |
+| GET | `/activity/catalog` | Module and action filter catalog; `VIEW_ACTIVITY_LOG` |
+| GET | `/admin/dashboard/metrics` | HR snapshot; `VIEW_HR_DASHBOARD` |
 | POST | `/trigger/retrieveAttendanceData` | On-demand vendor retrieval; `MANAGE_ATTENDANCE` |
 | POST | `/trigger/calculateMonthWiseSummary` | Build monthly summary; `MANAGE_ATTENDANCE` |
 | POST | `/trigger/calculateSalary` | Run salary calculation; `MANAGE_SALARY` |

@@ -223,7 +223,6 @@ const ManagerApprovalPortal = () => {
 
   return (
     <div className={styles.container}>
-      <p className="screenIntro">Review pending leave and cancellation requests for your team.</p>
 
       <div className={`${styles.tableCard} mp-card`}>
         <div className={styles.tableHeaderSection}>
@@ -269,7 +268,7 @@ const ManagerApprovalPortal = () => {
               <th>Dates</th>
               <th>Total days</th>
               <th>Status</th>
-              <th>Action</th>
+              <th className={styles.actionCell}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -312,12 +311,14 @@ const ManagerApprovalPortal = () => {
                   </span>
                 </td>
                 <td className={styles.actionCell} onClick={e => e.stopPropagation()}>
-                  <button className={styles.iconBtn} onClick={() => handleAction('approve', req)} title="Approve" aria-label="Approve">
-                    <LuCheck size={16} aria-hidden="true" />
-                  </button>
-                  <button className={styles.iconBtnReject} onClick={() => handleAction('reject', req)} title="Reject" aria-label="Reject">
-                    <LuX size={16} aria-hidden="true" />
-                  </button>
+                  <div className={styles.actionButtons}>
+                    <button className={styles.iconBtn} onClick={() => handleAction('approve', req)} title="Approve" aria-label="Approve">
+                      <LuCheck size={16} aria-hidden="true" />
+                    </button>
+                    <button className={styles.iconBtnReject} onClick={() => handleAction('reject', req)} title="Reject" aria-label="Reject">
+                      <LuX size={16} aria-hidden="true" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             );

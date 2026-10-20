@@ -468,35 +468,10 @@ const AttendanceDashboard = () => {
     );
   };
 
+  const canViewOthers = hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF']);
+
   return (
     <div className="dashboard">
-      <p className="screenIntro">Pick a month and a person. The calendar is the day. The right pane is punches, late or early marks, and leave still available.</p>
-      <div className={styles.filterBar}>
-        <div className={styles.filterGroup}>
-          <label className={styles.filterLabel}>Month</label>
-          <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={styles.filterSelect}>
-            {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </div>
-        <div className={styles.filterGroup}>
-          <label className={styles.filterLabel}>Year</label>
-          <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className={styles.filterSelect}>
-            {[currentYear - 1, currentYear, currentYear + 1].map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-        {hasAccess(['VIEW_OTHER_STAFF']) && (
-          <div className={styles.filterGroup}>
-            <StaffPicker
-              label="Staff"
-              staffList={staffList}
-              value={selectedStaff}
-              onChange={setSelectedStaff}
-              placeholder="Search staff"
-            />
-          </div>
-        )}
-      </div>
-
       <div className={styles.calendarContainer}>
         
         {/* Left Pane: Calendar */}
@@ -506,8 +481,34 @@ const AttendanceDashboard = () => {
               <LuCalendarDays size={18} />
               My Datebook
             </h3>
-            <div className={styles.calendarMonthYear}>
-              {selectedMonth} {selectedYear}
+            <div className={styles.headerControls}>
+              {canViewOthers && (
+                <StaffPicker
+                  label=""
+                  className={styles.headerStaff}
+                  staffList={staffList}
+                  value={selectedStaff}
+                  onChange={setSelectedStaff}
+                  placeholder="Search staff"
+                  ariaLabel="Staff"
+                />
+              )}
+              <select
+                value={selectedMonth}
+                onChange={e => setSelectedMonth(e.target.value)}
+                className={styles.headerSelect}
+                aria-label="Month"
+              >
+                {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <select
+                value={selectedYear}
+                onChange={e => setSelectedYear(Number(e.target.value))}
+                className={styles.headerSelect}
+                aria-label="Year"
+              >
+                {[currentYear - 1, currentYear, currentYear + 1].map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
             </div>
           </div>
           

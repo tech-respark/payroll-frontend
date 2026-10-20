@@ -26,7 +26,7 @@ const formatWeekBar = (raw) => {
   };
 };
 
-const HRDashboard = () => {
+const HRDashboard = ({ embedded = false, metrics: metricsProp }) => {
   const history = useHistory();
   const { tenantId, storeId, hasAccess } = useAuth();
   const leaveCardRef = useRef(null);
@@ -34,7 +34,7 @@ const HRDashboard = () => {
   const [selectedDayBreakdown, setSelectedDayBreakdown] = useState(null);
   const [selectedAwolEmployee, setSelectedAwolEmployee] = useState(null);
 
-  const { data: metrics, isLoading, isError } = useQuery({
+  const metricsQuery = useQuery({
     queryKey: ['hrDashboardMetrics', tenantId, storeId],
     queryFn: async () => apiService.get('/admin/dashboard/metrics', {
       Tenantid: String(tenantId),
@@ -42,8 +42,11 @@ const HRDashboard = () => {
       'X-TenantID': String(tenantId),
       'X-StoreID': String(storeId),
     }),
-    enabled: !!tenantId && !!storeId,
+    enabled: !metricsProp && !!tenantId && !!storeId,
   });
+  const metrics = metricsProp || metricsQuery.data;
+  const isLoading = !metricsProp && metricsQuery.isLoading;
+  const isError = !metricsProp && metricsQuery.isError;
 
   useEffect(() => {
     if (!showLeaveModal) return undefined;
@@ -98,7 +101,6 @@ const HRDashboard = () => {
 
   return (
     <div className={styles.dashboardContainer}>
-      <p className="screenIntro">Headcount, today’s attendance, who’s away, and pending leave. Click a weekday for the breakdown.</p>
       <div className={styles.metricsGrid}>
         <div className={styles.metricCard}>
           <div className={styles.metricContent}>
@@ -325,7 +327,7 @@ const HRDashboard = () => {
 
         <div className={styles.chartCard}>
           <div className={styles.cardHeading}>
-            <h3>Recent Activity</h3>
+            <h3>Recent leave requests</h3>
           </div>
           {metrics.recentActivity?.length > 0 ? (
             <div className={styles.activityList}>

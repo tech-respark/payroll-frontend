@@ -21,7 +21,7 @@
 .tabContainer {
   display: flex;
   gap: 24px;
-  padding: 0 20px;
+  padding: 0 24px;
   border-bottom: 1px solid var(--border-color);
   width: 100%;
   margin-bottom: 0;
@@ -53,6 +53,132 @@
 
   &:hover {
     color: var(--primary-color);
+  }
+}
+
+.templatePage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px 24px;
+}
+
+.templateToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.emptyTemplates {
+  margin: 0;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: 16px;
+}
+
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 260px));
+  gap: 12px;
+}
+
+.sidebarHeader {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.shiftCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--primary-font);
+  width: 100%;
+  transition: var(--transition);
+
+  &:hover {
+    border-color: var(--border-color-strong);
+    background: var(--bg-hover);
+  }
+
+  &.active {
+    border-color: var(--primary-color);
+    background: var(--primary-color-alpha);
+  }
+
+  .cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+
+    h4 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+  }
+
+  .cardTime {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+}
+
+.drawerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 12px;
+      box-sizing: border-box;
+      background: var(--input-bg, transparent);
+      border: 1px solid var(--input-border, var(--border-color));
+      border-radius: var(--shape-borderRadius);
+      color: var(--text-dark);
+      font-size: 14px;
+      font-family: var(--primary-font);
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-color-alpha);
+      }
+
+      &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+    }
   }
 }
 
@@ -334,7 +460,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 10px;
+  padding: 20px 24px 24px;
 }
 
 .rosterTopBar {
@@ -770,7 +896,8 @@
 /* Tab 3: Store Settings */
 .settingsLayout {
   display: flex;
-  gap: 30px;
+  gap: 24px;
+  padding: 20px 24px 24px;
 }
 
 .settingsPanel {
@@ -1024,7 +1151,7 @@
 .weeklyContainer {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 20px 24px 24px;
   background: var(--bg-card);
   flex: 1;
 
@@ -1146,6 +1273,20 @@
     > .formGroup {
       min-width: 0;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+    }
+
+    .overnightField {
+      grid-column: 1 / -1;
+      min-width: 0;
     }
   }
 

@@ -6,21 +6,25 @@ import { CommandPalette } from './shell/CommandPalette';
 import { AccountDrawer } from './shell/AccountDrawer';
 import { NotificationsDrawer } from './shell/NotificationsDrawer';
 import styles from './TopHeader.module.scss';
-import { LuBell, LuMenu, LuSearch } from 'react-icons/lu';
+import { LuBell, LuInfo, LuMenu, LuSearch } from 'react-icons/lu';
+import { usePageHelpOverride } from '../context/PageHelpContext';
+import { resolvePageHelp } from './shell/pageHelp';
 
 const PAGE_META = [
+  { match: (p) => p === '/home' || p === '/', title: 'Home', crumbs: ['Dashboard', 'Home'] },
+  { match: (p) => p.startsWith('/activity'), title: 'Activity log', crumbs: ['Dashboard', 'Activity log'] },
   { match: (p) => p.includes('reports/detailed'), title: 'Staff Detailed Report', crumbs: ['Dashboard', 'Reports', 'Detailed'] },
   { match: (p) => p.includes('report'), title: 'Attendance Summary', crumbs: ['Dashboard', 'Reports', 'Summary'] },
   { match: (p) => p.includes('staff'), title: 'Staff', crumbs: ['Dashboard', 'Staff', 'List'] },
   { match: (p) => p.includes('leave-dashboard'), title: 'My Leaves', crumbs: ['Dashboard', 'Leave', 'My Leaves'] },
-  { match: (p) => p.includes('leave-approvals'), title: 'Leave Approvals', crumbs: ['Dashboard', 'Leave', 'Approvals'] },
+  { match: (p) => p.includes('leave-approvals'), title: 'Leave Approvals', crumbs: ['Dashboard', 'Approvals', 'Leave'] },
   { match: (p) => p.includes('leave-configuration'), title: 'Leave Configuration', crumbs: ['Dashboard', 'Leave', 'Config'] },
   { match: (p) => p.includes('holidays'), title: 'Holiday Calendar', crumbs: ['Dashboard', 'Settings', 'Holidays'] },
   { match: (p) => p.includes('hr-dashboard'), title: 'HR Dashboard', crumbs: ['Dashboard', 'Leave', 'HR'] },
   { match: (p) => p.includes('my-work'), title: 'My Work', crumbs: ['Dashboard', 'Attendance', 'My Work'] },
   { match: (p) => p.includes('hospitality'), title: 'Hospitality Payroll', crumbs: ['Dashboard', 'Payroll', 'Hospitality'] },
   { match: (p) => p.includes('attendance'), title: 'Attendance', crumbs: ['Dashboard', 'Attendance', 'Overview'] },
-  { match: (p) => p.includes('approvals'), title: 'Regularization Approvals', crumbs: ['Dashboard', 'Attendance', 'Approvals'] },
+  { match: (p) => p.includes('approvals'), title: 'Regularization Approvals', crumbs: ['Dashboard', 'Approvals', 'Regularization'] },
   { match: (p) => p.includes('shifts'), title: 'Shift Management', crumbs: ['Dashboard', 'Shifts', 'Management'] },
   { match: (p) => p.includes('salary'), title: 'Salary Management', crumbs: ['Dashboard', 'Payroll', 'Salary'] },
   { match: (p) => p.includes('payslip'), title: 'Payslips', crumbs: ['Dashboard', 'Payroll', 'Payslips'] },
@@ -38,18 +42,65 @@ const formatName = (name) => {
 const isMac =
   typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 
+function PageHelpTip({ text }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = React.useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDoc = (event) => {
+      if (!wrapRef.current?.contains(event.target)) setOpen(false);
+    };
+    const onKey = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  if (!text) return null;
+
+  return (
+    <>
+      <span className={styles.crumbSep} aria-hidden>•</span>
+      <span ref={wrapRef} className={`${styles.helpWrap} ${open ? styles.helpOpen : ''}`}>
+        <button
+          type="button"
+          className={styles.helpBtn}
+          aria-label="About this page"
+          aria-expanded={open}
+          aria-describedby="page-help-tip"
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          <LuInfo size={13} strokeWidth={2} aria-hidden />
+        </button>
+        <span id="page-help-tip" role="tooltip" className={styles.helpTip}>
+          {text}
+        </span>
+      </span>
+    </>
+  );
+}
+
 const TopHeader = ({ onMenuClick, isMobile }) => {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, hasAccess } = useAuth();
   const { total: notifCount } = useHeaderNotifications();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const isSelfProfile = !hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF']);
 
-  const meta = PAGE_META.find((item) => item.match(location.pathname)) || {
-    title: 'Dashboard',
-    crumbs: ['Dashboard'],
-  };
+  const found = PAGE_META.find((item) => item.match(location.pathname));
+  const meta = location.pathname.includes('/staff') && isSelfProfile
+    ? { title: 'Profile', crumbs: ['Dashboard', 'Profile'] }
+    : found || { title: 'Dashboard', crumbs: ['Dashboard'] };
+  const helpOverride = usePageHelpOverride();
+  const pageHelp = helpOverride || resolvePageHelp(location.pathname, hasAccess);
 
   const getRawName = () => {
     if (user?.firstName && user?.lastName) {
@@ -99,6 +150,7 @@ const TopHeader = ({ onMenuClick, isMobile }) => {
                   </span>
                 </React.Fragment>
               ))}
+              <PageHelpTip text={pageHelp} />
             </nav>
           </div>
         </div>

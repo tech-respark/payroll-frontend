@@ -30,12 +30,15 @@ This portal follows a docs-as-code model. It separates product promises, user wo
 ## Feature documentation
 
 - [Feature index](features/README.md)
+- [Home](features/home.md)
+- [Activity log](features/activity-log.md)
 - [Staff and roles](features/staff-and-roles.md)
 - [Shifts and attendance](features/shifts-and-attendance.md)
 - [Leave and holidays](features/leave-and-holidays.md)
 - [Payroll and payslips](features/payroll-and-payslips.md)
 - [Hospitality payroll](features/hospitality-payroll.md)
 - [Reports and HR dashboard](features/reports-and-hr-dashboard.md)
+- [User help center](features/user-help-center.md)
 
 ## Architecture and engineering
 
@@ -62,7 +65,7 @@ This portal follows a docs-as-code model. It separates product promises, user wo
 
 ## Maintaining these docs
 
-See [documentation contribution standards](contributing/documentation.md). Run `npm run docs:check` before opening a pull request.
+See [documentation contribution standards](contributing/documentation.md). Code changes that affect product behavior update this portal and the in-app help center (`src/docs/`) in the same change. Run `npm run docs:check` before opening a pull request.
 
 ## Reliability labels
 

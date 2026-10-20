@@ -7,7 +7,7 @@
 
 ## Staff Details (`/staff`)
 
-The authenticated landing page is the Staff Details screen. Users without broader staff access are automatically scoped toward their own record. The directory is searchable. Reporting manager uses the shared staff picker. Removing a document or experience asks for confirmation before it leaves the form.
+The authenticated landing page is [`/home`](home.md). Managers with `VIEW_OTHER_STAFF` or `MANAGE_STAFF` still open **Staff** from the sidebar and see a searchable directory and the large profile header. Staff-only users see the same route as **Profile** at the bottom of the sidebar: compact tabs and fields, no directory, no avatar header, no read-only banner. They do not see raw permission codes. The Account drawer has a collapsible **What you can do** list just above Sign out (plain language: attendance, clock/swaps, leave, salary/payslips when `VIEW_SALARY` is present, and profile). Reporting manager uses the shared staff picker. Removing a document or experience asks for confirmation before it leaves the form.
 
 The editor groups data into:
 
@@ -40,6 +40,8 @@ The frontend sends the staff save before role assignment. A valid role/store lin
 ## Roles & Permissions (`/roles`)
 
 Requires `MANAGE_ROLES` in the UI and backend controller.
+
+The page is a role list. **New role** and row click open a drawer for name, description, and module permissions.
 
 Administrators can:
 

@@ -1,0 +1,249 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.filters {
+  position: sticky;
+  top: -16px;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(170px, 1.2fr) 148px 148px minmax(180px, 1.4fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin: -16px -24px 0;
+  padding: 16px 24px 12px;
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  @media (max-width: 1024px) {
+    top: -8px;
+    margin: -8px -16px 0;
+    padding: 8px 16px 12px;
+  }
+}
+
+.searchField {
+  @media (max-width: 1100px) {
+    grid-column: 1 / -1;
+  }
+}
+
+.selectGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  span {
+    font-size: 12px;
+    color: var(--text-label);
+    font-weight: 600;
+  }
+
+  select {
+    width: 100%;
+    min-height: 42px;
+    background: var(--input-bg, transparent);
+    color: var(--text-dark);
+    border: 1px solid var(--input-border, var(--border-color));
+    padding: 8px 12px;
+    border-radius: var(--shape-borderRadius);
+    font-size: 14px;
+    font-family: var(--primary-font);
+  }
+}
+
+.filterActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 42px;
+
+  @media (max-width: 1100px) {
+    grid-column: 1 / -1;
+  }
+}
+
+.listCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.listHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 0;
+
+  h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+}
+
+.timeline {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 20px;
+  border: 0;
+  border-top: 1px solid var(--border-color);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bg-hover);
+  }
+
+  @media (max-width: 800px) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "body chevron"
+      "when badge";
+  }
+}
+
+.when {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.summary {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.chevron,
+.chevronOpen {
+  color: var(--text-muted);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.details {
+  margin: 0;
+  padding: 0 20px 16px 192px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 16px;
+  border-top: 0;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  dt {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-disabled);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-dark);
+    word-break: break-word;
+  }
+
+  @media (max-width: 800px) {
+    padding-left: 20px;
+  }
+}
+
+.empty,
+.muted {
+  margin: 0;
+  padding: 24px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.muted {
+  padding: 0;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.pagerInfo {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pageSize {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-label);
+
+  select {
+    min-height: 36px;
+    background: var(--input-bg, transparent);
+    color: var(--text-dark);
+    border: 1px solid var(--input-border, var(--border-color));
+    padding: 6px 10px;
+    border-radius: var(--shape-borderRadius);
+    font-size: 13px;
+    font-family: var(--primary-font);
+  }
+}
+
+.pagerBtns {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

@@ -34,13 +34,13 @@ Brand/shell tokens and **light surface defaults** live on `:root` in `src/styles
 | Shell | `--sidebar-width` (248px), `--sidebar-mini-width` (88px), `--header-height` (64px) | Hajiro sidebar width; mini rail stays 88px |
 | Typography | `--primary-font` / `--display-font` (Inter) | Body 16px / 1.5; sentence case; no all-caps headings |
 
-Theme is toggled via `data-theme` on the document root (`ThemeContext`). Dark mode uses Minimal grey steps (`#141A21` page, `#1C252E` paper, `#28323D` inset) with Hajiro blue for actions.
+Theme is toggled via `data-theme` on the document root (`ThemeContext`). Dark mode uses Minimal grey steps (`#141A21` page, `#1C252E` paper, `#28323D` inset) with Hajiro blue for actions. Status fill tokens (`--hj-success-bg`, warning, danger) are remapped to translucent dark tints so callouts and badges stay readable.
 
 ## Application shell
 
 Authenticated layout (`App.jsx` + global classes in `main.scss`):
 
-- Fixed sidebar (248px expanded, **88px** mini icon rail) and 64px top header. Collapse/expand uses `--sidebar-motion` (280ms ease); main content only animates `margin-left` to avoid width+margin jitter. Labels clip/fade in place; open groups close on collapse and reopen after expand. Desktop collapsed preference persists in `localStorage`; mobile drawer uses an overlay under the nav, Escape to dismiss, and no mini rail. `prefers-reduced-motion` disables sidebar motion.
+- Fixed sidebar (248px expanded, **88px** mini icon rail) and 64px top header. The rail is a white (light) or Minimal grey (dark) surface. The current destination is a rounded Hajiro-blue wash — no left accent bar. Collapse/expand uses `--sidebar-motion` (280ms ease); main content only animates `margin-left` to avoid width+margin jitter. Labels clip/fade in place; open groups close on collapse and reopen after expand. Staff-only users get a flat destination list instead of accordion groups, starting with **Home** and **Profile** pinned to the bottom of the list. Manager navigation puts leave and regularization queues in a dedicated **Approvals** group. The sidebar footer is Documentation and logout; theme and store name live only in the account drawer. Desktop collapsed preference persists in `localStorage`; mobile drawer uses an overlay under the nav, Escape to dismiss, and no mini rail. `prefers-reduced-motion` disables sidebar motion. Login and unknown routes land on `/home`.
 - Main scroll region: `.main-content` with **24px** horizontal gutters (16px on small breakpoints).
 - Feature surfaces often use `.dashboard-content` or `.mp-card` (16px radius, `--shadow-card`).
 - **Page title lives in `TopHeader` only** — do not repeat the route name as an in-page `h1`. Keep section titles inside cards/widgets; put primary actions in a slim toolbar when needed.
@@ -51,7 +51,7 @@ Authenticated layout (`App.jsx` + global classes in `main.scss`):
 | --- | --- |
 | Search / ⌘K | Opens `CommandPalette` — permission-filtered page jump (`navCommands.js`). Also **Ctrl+K** on non-Mac. |
 | Bell | Opens `NotificationsDrawer` — pending leave approvals and regularization counts (`useHeaderNotifications`). Badge shows total actionable items. |
-| Avatar | Opens `AccountDrawer` (320px) — name/email/role/store, quick links (Attendance, My Leaves, Payslips, Staff), dark-mode switch, sign out. |
+| Avatar | Opens `AccountDrawer` (320px, no Account heading) — name/email/role/store, quick links, dark-mode switch, then a staff-only collapsible **What you can do** list (plain language, not `VIEW_*` codes) just above sign out. |
 
 Body scroll is locked while `Modal`, `Drawer`, or the command palette is open (`useBodyScrollLock`).
 
@@ -69,7 +69,7 @@ Body scroll is locked while `Modal`, `Drawer`, or the command palette is open (`
 | `StaffPicker` | `StaffPicker.module.scss` | Searchable staff combobox; use instead of a native staff `<select>` |
 | `ConfirmDialog` | wraps `Modal` | Approve, reject, delete, and other irreversible actions |
 
-Page chrome: `.screenIntro` and `.screenHint` in `main.scss` are the one-line explanations under the header title. Do not add a second `h1`. Prefer `formatDisplayDate` / `prettyStatus` from `helpers/displayUtils.js` over raw ISO dates and `PENDING` enums.
+Page chrome: page explanations live on the header breadcrumb **i** control (`TopHeader` + `pageHelp.js`), not as a paragraph under the title. `.screenHint` in `main.scss` remains for in-page empty or lock notes. Do not add a second `h1`. Prefer `formatDisplayDate` / `prettyStatus` from `helpers/displayUtils.js` over raw ISO dates and `PENDING` enums.
 
 Overlays share **16px** radius, `--shadow-md`, **24px** header/body padding, and a sticky footer on `--bg-subtle` with a solid top border.
 
@@ -96,7 +96,7 @@ Defined in `main.scss` for screens that are not yet on CSS modules:
 2. **40–42px controls** — Primary buttons 40px; inputs 42px; radius 10px (`--shape-borderRadius`).
 3. **24px rhythm** — Section gaps, card body padding, and overlay padding use 24px unless density requires tighter tables. Spacing scale is 4px.
 4. **Tokens over hex** — Use `--hj-*` or the mapped `--primary-color` / `--bg-*` variables so dark mode stays readable.
-5. **Shared overlays and forms** — Use `Modal` / `Drawer` and `Checkbox` / `Radio` / `Switch` instead of one-off modals or native controls on touched screens.
+5. **Shared overlays and forms** — Use `Modal` / `Drawer` and `Checkbox` / `Radio` / `Switch` instead of one-off modals or native controls on touched screens. List/overview first; create and apply actions open a modal or drawer from a toolbar button. Do not keep create forms always visible above a list. Master-detail editors (Staff profile, Salary) stay list-plus-editor when more than one person is in scope; hide the directory column for a single-staff view. Put month/year pickers on the calendar or card header instead of their own filter row.
 6. **Icons** — Lucide via `react-icons/lu`; avoid ad-hoc SVG sets for navigation chrome.
 7. **Status** — Never rely on color alone. Pair chips with explicit text (Present, Absent, Draft, Paid).
 

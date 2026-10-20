@@ -70,8 +70,7 @@
   font-weight: 500;
   color: var(--text-muted);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .crumbSep {
@@ -86,6 +85,70 @@
 .crumbCurrent {
   color: var(--text-dark);
   font-weight: 600;
+}
+
+.helpWrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.helpBtn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--primary-color);
+    border-color: var(--primary-color-alpha);
+    background: var(--nav-active-bg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.helpTip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  width: min(360px, 72vw);
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.helpWrap:hover .helpTip,
+.helpWrap:focus-within .helpTip,
+.helpOpen .helpTip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
 }
 
 .headerRight {

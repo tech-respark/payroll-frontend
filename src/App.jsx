@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Redirect, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
@@ -8,6 +8,7 @@ import Toast from './components/Toast';
 import GlobalLoader from './components/GlobalLoader';
 import Navigation from './components/Navigation';
 import TopHeader from './components/TopHeader';
+import { PageHelpProvider } from './context/PageHelpContext';
 import styles from './App.module.scss';
 
 // ─── Eagerly loaded (always needed) ──────────────────────────────────────────
@@ -24,7 +25,6 @@ const PayslipsDashboard    = lazy(() => import('./screens/PayslipsDashboard'));
 const ReportsDashboard     = lazy(() => import('./screens/ReportsDashboard'));
 
 // Leave Management Screens
-const HRDashboard             = lazy(() => import('./screens/HRDashboard'));
 const EmployeeDashboard       = lazy(() => import('./screens/EmployeeDashboard'));
 const ManagerApprovalPortal   = lazy(() => import('./screens/ManagerApprovalPortal'));
 const LeaveConfiguration      = lazy(() => import('./screens/LeaveConfiguration'));
@@ -32,6 +32,9 @@ const HolidayCalendarScreen   = lazy(() => import('./screens/HolidayCalendarScre
 const StaffDetailedReport     = lazy(() => import('./screens/StaffDetailedReport'));
 const HospitalityDashboard    = lazy(() => import('./screens/HospitalityDashboard'));
 const MyWorkDashboard         = lazy(() => import('./screens/MyWorkDashboard'));
+const DocsApp                 = lazy(() => import('./docs/DocsApp'));
+const HomeDashboard           = lazy(() => import('./screens/HomeDashboard'));
+const ActivityLogDashboard    = lazy(() => import('./screens/ActivityLogDashboard'));
 
 // ─── Route-level loading fallback ────────────────────────────────────────────
 const PageLoader = () => (
@@ -53,6 +56,7 @@ const readDesktopSidebarPref = () => {
 
 const AppContent = () => {
   const { isAuthenticated, hasAccess } = useAuth();
+  const location = useLocation();
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT
   );
@@ -88,11 +92,24 @@ const AppContent = () => {
   }, [isMobile, isSidebarCollapsed]);
 
   if (!isAuthenticated) {
+    const next = location.pathname.startsWith('/docs')
+      ? `${location.pathname}${location.search}${location.hash}`
+      : '';
     return (
       <Switch>
         <Route path="/login" component={Login} />
-        <Redirect to="/login" />
+        <Redirect to={next ? `/login?next=${encodeURIComponent(next)}` : '/login'} />
       </Switch>
+    );
+  }
+
+  if (location.pathname === '/docs' || location.pathname.startsWith('/docs/')) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <Switch>
+          <Route path="/docs/:slug?" component={DocsApp} />
+        </Switch>
+      </Suspense>
     );
   }
 
@@ -108,6 +125,7 @@ const AppContent = () => {
   const closeSidebar = () => { if (isMobile) setIsSidebarCollapsed(true); };
 
   return (
+    <PageHelpProvider>
     <div className="app-layout">
       {isMobile && !isSidebarCollapsed && (
         <div className={styles.sidebarOverlay} onClick={closeSidebar} aria-hidden="true" />
@@ -126,12 +144,14 @@ const AppContent = () => {
         <main className="main-content animate-fade-in">
           <Suspense fallback={<PageLoader />}>
             <Switch>
+              <Route path="/home"       component={HomeDashboard} />
+              {hasAccess(['VIEW_ACTIVITY_LOG']) && <Route path="/activity" component={ActivityLogDashboard} />}
               <Route path="/staff"      component={StaffDashboard} />
             <Route path="/attendance" component={AttendanceDashboard} />
             <Route path="/my-work"    component={MyWorkDashboard} />
 
             {/* Leave Management Routes */}
-            {hasAccess(['VIEW_HR_DASHBOARD']) && <Route path="/hr-dashboard" component={HRDashboard} />}
+            <Redirect from="/hr-dashboard" to="/home" />
             <Route path="/leave-dashboard" component={EmployeeDashboard} />
             {hasAccess(['MANAGE_LEAVES']) && <Route path="/leave-approvals" component={ManagerApprovalPortal} />}
             {hasAccess(['MANAGE_LEAVES']) && <Route path="/leave-configuration" component={LeaveConfiguration} />}
@@ -149,14 +169,15 @@ const AppContent = () => {
             {hasAccess(['VIEW_REPORTS'])     && <Route path="/reports"   component={ReportsDashboard} />}
             {hasAccess(['MANAGE_ROLES'])       && <Route path="/roles"     component={RoleManagement} />}
 
-            <Redirect from="/login" to="/staff" />
-            <Redirect from="/"      to="/staff" />
-            <Redirect to="/staff" />
+            <Redirect from="/login" to="/home" />
+            <Redirect from="/"      to="/home" />
+            <Redirect to="/home" />
           </Switch>
         </Suspense>
         </main>
       </div>
     </div>
+    </PageHelpProvider>
   );
 };
 

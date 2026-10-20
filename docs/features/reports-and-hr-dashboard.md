@@ -7,7 +7,7 @@
 
 ## Attendance Summary (`/reports`)
 
-The route requires `VIEW_REPORTS`, but the navigation group is currently shown only to users with `MANAGE_ATTENDANCE` or `MANAGE_SALARY`. A user with only `VIEW_REPORTS` can therefore have route access without a sidebar link.
+The route and sidebar **Attendance Summary** link both require `VIEW_REPORTS`. The Reports group also appears when the user has `MANAGE_ATTENDANCE` or `MANAGE_SALARY` so **Staff Detailed Report** is reachable.
 
 Capabilities:
 
@@ -23,9 +23,9 @@ Requires `MANAGE_ATTENDANCE` or `MANAGE_SALARY`. It selects a staff member and p
 
 Both report screens call endpoints hosted in the shift controller. Those report POSTs allow `VIEW_REPORTS`, `MANAGE_ATTENDANCE`, `MANAGE_SALARY`, or `MANAGE_SHIFTS`. Detailed queries also filter `store_id`.
 
-## HR Dashboard (`/hr-dashboard`)
+## HR snapshot on Home (`/home`, formerly `/hr-dashboard`)
 
-Requires `VIEW_HR_DASHBOARD` in the frontend. It presents metrics and shortcuts related to:
+Requires `VIEW_HR_DASHBOARD`. `/hr-dashboard` redirects to Home. Operations Home loads `GET /home/operations`, which reuses this snapshot when `includeSnapshot` is true, and presents metrics and shortcuts related to:
 
 - staff;
 - attendance;

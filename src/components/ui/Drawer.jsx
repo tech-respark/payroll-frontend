@@ -13,6 +13,7 @@ export function Drawer({
   onClose,
   title,
   subtitle,
+  hideTitle = false,
   children,
   footer,
   width = 480,
@@ -49,18 +50,20 @@ export function Drawer({
         aria-label={typeof title === 'string' ? title : 'Panel'}
         tabIndex={-1}
       >
-        <div className={styles.header}>
-          <div className={styles.headerText}>
-            {title && <h2 className={styles.title}>{title}</h2>}
-            {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
-          </div>
+        <div className={`${styles.header}${hideTitle ? ` ${styles.headerCompact}` : ''}`}>
+          {!hideTitle && (
+            <div className={styles.headerText}>
+              {title && <h2 className={styles.title}>{title}</h2>}
+              {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+            </div>
+          )}
           {onClose && (
             <button type="button" className={styles.iconBtn} onClick={onClose} aria-label="Close">
               <LuX size={18} />
             </button>
           )}
         </div>
-        <div className={styles.drawerBody}>{children}</div>
+        <div className={`${styles.drawerBody}${hideTitle ? ` ${styles.drawerBodyCompact}` : ''}`}>{children}</div>
         {footer && <div className={styles.footer}>{footer}</div>}
       </aside>
     </div>,

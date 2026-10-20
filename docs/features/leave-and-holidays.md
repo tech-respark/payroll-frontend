@@ -7,10 +7,12 @@
 
 ## Employee portal (`/leave-dashboard`)
 
-Available to authenticated users. Employees can:
+Available to authenticated users. The page is a balances row plus a filterable request list. **Request leave** opens a modal (not an always-visible form). Attendance can deep-link with `?startDate=&endDate=` and the modal opens with those dates filled.
 
-- see available balances and application history;
-- apply for full-day or half-day leave;
+Employees can:
+
+- see remaining balances and application history;
+- apply for full-day or half-day leave from the modal;
 - select an optional holiday where the leave type supports it;
 - cancel or request cancellation of an application.
 
@@ -20,13 +22,13 @@ Cancelling a **pending** leave completes immediately (`Leave cancelled successfu
 
 ## Manager approvals (`/leave-approvals`)
 
-Visible with `MANAGE_LEAVES`. Managers review pending applications and cancellation requests, then approve or reject them. The actor written to leave logs is the authenticated `staffId` from the JWT, not a client-supplied manager id.
+Visible with `MANAGE_LEAVES`. The sidebar lists it under **Approvals**, next to Regularization Approvals. Managers review pending applications and cancellation requests, then approve or reject them. The actor written to leave logs is the authenticated `staffId` from the JWT, not a client-supplied manager id.
 
 `GET /leaves/applications/pending` returns store-wide work for `MANAGE_LEAVES`. HR metrics count both `PENDING` and `CANCELLATION_REQUESTED`.
 
 ## Leave configuration (`/leave-configuration`)
 
-Requires `MANAGE_LEAVES` in both frontend and backend. It contains:
+Requires `MANAGE_LEAVES` in both frontend and backend. Each tab is list-first: **New leave type**, **New plan** / **Map rule**, and **Assign plan** open a drawer. It contains:
 
 - leave types;
 - leave plans;

@@ -34,8 +34,9 @@ erDiagram
 | Leave | `leave_types`, `leave_plans`, `leave_plan_rules`, `employee_leave_enrollments`, `leave_applications`, logs, overrides, ledgers |
 | Payroll | `salary_component_definitions`, `salary_component_rules`, `personnel_salary_components`, `personnel_payslip_history`, `payroll_scheduler_info` |
 | Hospitality | `staff_advance`, `commission_plan`, `commission_slab`, `staff_sales_entry`, `tip_pool_run`, `tip_pool_share`, `statutory_config`, `store_daily_sales`, `full_and_final_settlement`, `shift_swap_request`, `staff_availability` |
+| Activity | `activity_log` (append-only; tenant/store, actor, module, action, resource, summary, redacted JSON context) |
 
-The dump has 41 tables: 38 are JPA-mapped and three are legacy Hibernate sequence tables.
+The dump has 41 tables: 38 are JPA-mapped and three are legacy Hibernate sequence tables. `activity_log` is an additional append-only table created by JPA (`ActivityLog`) plus `src/main/resources/sql/activity_log.sql`. It is not in the original dump.
 
 ## Tenant and location scoping
 

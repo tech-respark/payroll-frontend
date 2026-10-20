@@ -173,12 +173,13 @@ Sign in as **staff**, then as **admin**, and confirm both UI and network tab.
 
 **Staff must**
 
-- See only Staff, Attendance, Payroll, Leave in the sidebar.
+- See a flat sidebar (no accordion groups) in this order: Home, Attendance, My Work, then My Leaves, Salary, and Payslips, with Profile at the bottom.
+- Land on `/home` after sign-in and see their own shift, leave balances, and shortcuts.
 - Open `/staff` and see **only their own** profile, including assigned role name, in read-only mode.
 - Open `/attendance` for themselves; month calendar loads.
 - Open `/salary` or `/payslips` only for themselves; another `staffId` in the API returns **403**.
 - Apply leave for themselves; applying with another `staffId` returns **403**.
-- Be redirected from `/reports`, `/roles`, `/hr-dashboard`, `/leave-approvals` to `/staff`.
+- Be redirected from `/reports`, `/roles`, `/leave-approvals` to `/home`. `/hr-dashboard` also opens Home.
 - Receive **403** (not logout) on forbidden APIs. Only **401** clears the session.
 
 **Admin must**

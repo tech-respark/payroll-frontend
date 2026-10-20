@@ -6,6 +6,10 @@ export const formatDisplayDate = (value) => {
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
+export const formatActivitySummary = (value) => String(value || '')
+  .replace(/\b1 days\b/gi, '1 day')
+  .replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (iso) => formatDisplayDate(iso));
+
 export const formatDisplayWeekday = (value) => {
   const date = parseLocalDate(value);
   if (!date) return '';

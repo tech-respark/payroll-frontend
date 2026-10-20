@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useHistory, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useStoreConfig } from '../hooks/queries';
 import styles from './Navigation.module.scss';
 import {
   LuBriefcase,
@@ -11,14 +10,40 @@ import {
   LuUsers,
   LuCalendarDays,
   LuClipboardCheck,
+  LuClock,
   LuWallet,
+  LuReceipt,
   LuCalendarOff,
   LuChartColumn,
-  LuStore,
   LuLogOut,
+  LuUser,
+  LuBookOpen,
+  LuHouse,
+  LuHistory,
+  LuListChecks,
 } from 'react-icons/lu';
+import { isOpsUser } from '../access/homeAccess';
 
 const cx = (...parts) => parts.filter(Boolean).join(' ');
+
+const NavItem = ({ to, icon: Icon, children, exact, onNavigate, isCollapsed }) => (
+  <li className={styles.navGroup}>
+    <NavLink
+      to={to}
+      exact={exact}
+      className={styles.navItem}
+      activeClassName={styles.navItemActive}
+      onClick={onNavigate}
+      title={typeof children === 'string' ? children : undefined}
+      aria-label={isCollapsed && typeof children === 'string' ? children : undefined}
+    >
+      <span className={styles.navGroupHeaderLeft}>
+        <Icon className={styles.navIcon} size={22} strokeWidth={1.75} />
+        <span className={styles.navGroupTitle}>{children}</span>
+      </span>
+    </NavLink>
+  </li>
+);
 
 const NavGroup = ({
   title,
@@ -30,12 +55,28 @@ const NavGroup = ({
   isActive,
   defaultPath,
   onNavigate,
+  forceGroup = false,
 }) => {
   const history = useHistory();
   const childNodes = React.Children.toArray(children).filter(
     (child) => child !== false && child != null
   );
   if (childNodes.length === 0) return null;
+
+  if (childNodes.length === 1 && !forceGroup) {
+    const only = React.Children.toArray(childNodes[0]?.props?.children)[0];
+    const to = only?.props?.to || defaultPath;
+    return (
+      <NavItem
+        to={to}
+        icon={Icon}
+        onNavigate={onNavigate}
+        isCollapsed={isCollapsed}
+      >
+        {title}
+      </NavItem>
+    );
+  }
 
   const handleClick = () => {
     if (isCollapsed) {
@@ -85,9 +126,11 @@ const NavGroup = ({
 };
 
 const groupForPath = (pathname) => {
+  if (pathname === '/home' || pathname === '/' || pathname.startsWith('/activity')) return 'Home';
   if (pathname.startsWith('/staff') || pathname.startsWith('/roles')) return 'Staff';
   if (pathname.startsWith('/shifts')) return 'Shifts';
-  if (pathname.startsWith('/attendance') || pathname.startsWith('/approvals') || pathname.startsWith('/my-work')) return 'Attendance';
+  if (pathname.startsWith('/attendance') || pathname.startsWith('/my-work')) return 'Attendance';
+  if (pathname.startsWith('/approvals') || pathname.startsWith('/leave-approvals')) return 'Approvals';
   if (pathname.startsWith('/salary') || pathname.startsWith('/payslips') || pathname.startsWith('/hospitality')) return 'Payroll';
   if (pathname.startsWith('/reports')) return 'Reports';
   if (
@@ -108,22 +151,53 @@ const defaultPathForGroup = (title, hasAccess) => {
       return '/shifts';
     case 'Attendance':
       return '/attendance';
+    case 'Approvals':
+      return hasAccess(['MANAGE_LEAVES']) ? '/leave-approvals' : '/approvals';
     case 'Payroll':
-      return '/salary';
+      return hasAccess(['VIEW_SALARY', 'MANAGE_SALARY']) ? '/salary' : '/hospitality';
     case 'Reports':
       return hasAccess(['VIEW_REPORTS']) ? '/reports' : '/reports/detailed';
     case 'Leave':
-      if (hasAccess(['VIEW_HR_DASHBOARD'])) return '/hr-dashboard';
-      if (hasAccess(['MANAGE_LEAVES'])) return '/leave-configuration';
       return '/leave-dashboard';
     default:
       return '/staff';
   }
 };
 
+const NavFooter = ({ onNavigate }) => {
+  const { logout } = useAuth();
+
+  return (
+    <div className={styles.navFooter}>
+      <a
+        href="/docs"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.docsButton}
+        title="Documentation (opens in a new tab)"
+        aria-label="Documentation (opens in a new tab)"
+        onClick={onNavigate}
+      >
+        <LuBookOpen size={18} strokeWidth={1.75} />
+        <span className={styles.docsLabel}>Documentation</span>
+      </a>
+
+      <button
+        type="button"
+        onClick={logout}
+        className={styles.logoutButton}
+        title="Logout"
+        aria-label="Logout"
+      >
+        <LuLogOut size={18} strokeWidth={1.75} />
+        <span className={styles.logoutLabel}>Logout</span>
+      </button>
+    </div>
+  );
+};
+
 const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
-  const { logout, hasAccess } = useAuth();
-  const { storeConfig } = useStoreConfig();
+  const { hasAccess } = useAuth();
   const location = useLocation();
   const [openGroup, setOpenGroup] = useState(() =>
     isCollapsed ? null : groupForPath(location.pathname)
@@ -174,6 +248,118 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
   };
 
   const handleNavClick = () => onNavigate?.();
+  const isStaffNav = !isOpsUser(hasAccess);
+
+  if (isStaffNav) {
+    return (
+      <nav
+        className={cx(styles.mainNavigation, isCollapsed && styles.collapsed)}
+        aria-label="Main"
+        data-collapsed={isCollapsed ? 'true' : 'false'}
+      >
+        <div className={styles.navBrand}>
+          {isCollapsed ? (
+            <button
+              type="button"
+              className={cx(styles.brandLogo, styles.brandLogoInteractive)}
+              onClick={handleToggleClick}
+              title="Expand menu"
+              tabIndex={-1}
+              aria-hidden="true"
+            >
+              <LuBriefcase size={22} strokeWidth={1.75} />
+            </button>
+          ) : (
+            <div className={styles.brandLogo} aria-hidden="true">
+              <LuBriefcase size={22} strokeWidth={1.75} />
+            </div>
+          )}
+          <div className={styles.brandText}>
+            <h1>Relfor <span>Payroll</span></h1>
+          </div>
+          {!isCollapsed && (
+            <button
+              ref={collapseRef}
+              type="button"
+              className={styles.collapseBtn}
+              onClick={handleToggleClick}
+              title="Collapse menu"
+              aria-label="Collapse menu"
+            >
+              <LuChevronLeft size={16} />
+            </button>
+          )}
+          {isCollapsed && (
+            <button
+              ref={expandRef}
+              type="button"
+              className={styles.expandRailBtn}
+              onClick={handleToggleClick}
+              title="Expand menu"
+              aria-label="Expand menu"
+            >
+              <LuChevronRight size={14} />
+            </button>
+          )}
+        </div>
+
+        <div className={styles.navScroll}>
+          <p className={styles.sectionLabel} aria-hidden={isCollapsed ? 'true' : undefined}>
+            Overview
+          </p>
+          <div className={styles.miniDivider} aria-hidden="true" />
+          <ul className={styles.navLinks}>
+            <NavItem to="/home" icon={LuHouse} exact onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+              Home
+            </NavItem>
+            {hasAccess(['VIEW_ACTIVITY_LOG']) && (
+              <NavItem to="/activity" icon={LuHistory} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+                Activity log
+              </NavItem>
+            )}
+            <NavItem to="/attendance" icon={LuClipboardCheck} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+              Attendance
+            </NavItem>
+            <NavItem to="/my-work" icon={LuClock} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+              My Work
+            </NavItem>
+          </ul>
+
+          <p
+            className={cx(styles.sectionLabel, styles.sectionLabelSecond)}
+            aria-hidden={isCollapsed ? 'true' : undefined}
+          >
+            Management
+          </p>
+          <div className={cx(styles.miniDivider, styles.miniDividerSecond)} aria-hidden="true" />
+          <ul className={styles.navLinks}>
+            <NavItem to="/leave-dashboard" icon={LuCalendarOff} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+              My Leaves
+            </NavItem>
+            {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY']) && (
+              <>
+                <NavItem to="/salary" icon={LuWallet} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+                  Salary
+                </NavItem>
+                <NavItem to="/payslips" icon={LuReceipt} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+                  Payslips
+                </NavItem>
+              </>
+            )}
+          </ul>
+
+          <div className={styles.navSpacer} aria-hidden="true" />
+          <ul className={styles.navLinks}>
+            <NavItem to="/staff" icon={LuUser} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+              Profile
+            </NavItem>
+          </ul>
+        </div>
+
+        <NavFooter onNavigate={handleNavClick} />
+      </nav>
+    );
+  }
 
   return (
     <nav
@@ -233,6 +419,14 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
         </p>
         <div className={styles.miniDivider} aria-hidden="true" />
         <ul className={styles.navLinks}>
+          <NavItem to="/home" icon={LuHouse} exact onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+            Home
+          </NavItem>
+          {hasAccess(['VIEW_ACTIVITY_LOG']) && (
+            <NavItem to="/activity" icon={LuHistory} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+              Activity log
+            </NavItem>
+          )}
           <NavGroup
             title="Staff"
             icon={LuUsers}
@@ -296,13 +490,6 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
                 My Work
               </NavLink>
             </li>
-            {hasAccess(['MANAGE_ATTENDANCE']) && (
-              <li>
-                <NavLink to="/approvals" activeClassName={styles.activeLink} onClick={handleNavClick}>
-                  Regularization Approvals
-                </NavLink>
-              </li>
-            )}
           </NavGroup>
         </ul>
 
@@ -314,6 +501,66 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
         </p>
         <div className={cx(styles.miniDivider, styles.miniDividerSecond)} aria-hidden="true" />
         <ul className={styles.navLinks}>
+          {(hasAccess(['MANAGE_LEAVES']) || hasAccess(['MANAGE_ATTENDANCE'])) && (
+            <NavGroup
+              title="Approvals"
+              icon={LuListChecks}
+              forceGroup
+              isCollapsed={isCollapsed}
+              isOpen={openGroup === 'Approvals'}
+              isActive={activeGroup === 'Approvals'}
+              defaultPath={defaultPathForGroup('Approvals', hasAccess)}
+              onNavigate={handleNavClick}
+              onToggleGroup={() => handleGroupToggle('Approvals')}
+            >
+              {hasAccess(['MANAGE_LEAVES']) && (
+                <li>
+                  <NavLink to="/leave-approvals" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                    Leave Approvals
+                  </NavLink>
+                </li>
+              )}
+              {hasAccess(['MANAGE_ATTENDANCE']) && (
+                <li>
+                  <NavLink to="/approvals" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                    Regularization Approvals
+                  </NavLink>
+                </li>
+              )}
+            </NavGroup>
+          )}
+
+          <NavGroup
+            title="Leave"
+            icon={LuCalendarOff}
+            isCollapsed={isCollapsed}
+            isOpen={openGroup === 'Leave'}
+            isActive={activeGroup === 'Leave'}
+            defaultPath={defaultPathForGroup('Leave', hasAccess)}
+            onNavigate={handleNavClick}
+            onToggleGroup={() => handleGroupToggle('Leave')}
+          >
+            <li>
+              <NavLink to="/leave-dashboard" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                My Leaves
+              </NavLink>
+            </li>
+            {hasAccess(['MANAGE_LEAVES']) && (
+              <li>
+                <NavLink to="/leave-configuration" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                  Leave Config
+                </NavLink>
+              </li>
+            )}
+            {hasAccess(['MANAGE_LEAVES']) && (
+              <li>
+                <NavLink to="/settings/holidays" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                  Holiday Calendar
+                </NavLink>
+              </li>
+            )}
+          </NavGroup>
+
           {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY', 'VIEW_HOSPITALITY', 'MANAGE_HOSPITALITY']) && (
             <NavGroup
               title="Payroll"
@@ -325,16 +572,20 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
               onNavigate={handleNavClick}
               onToggleGroup={() => handleGroupToggle('Payroll')}
             >
-              <li>
-                <NavLink to="/salary" activeClassName={styles.activeLink} onClick={handleNavClick}>
-                  Salary Management
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/payslips" activeClassName={styles.activeLink} onClick={handleNavClick}>
-                  Payslips
-                </NavLink>
-              </li>
+              {hasAccess(['VIEW_SALARY', 'MANAGE_SALARY']) && (
+                <>
+                  <li>
+                    <NavLink to="/salary" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                      Salary Management
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/payslips" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                      Payslips
+                    </NavLink>
+                  </li>
+                </>
+              )}
               {hasAccess(['MANAGE_SALARY', 'VIEW_HOSPITALITY', 'MANAGE_HOSPITALITY']) && (
                 <li>
                   <NavLink to="/hospitality" activeClassName={styles.activeLink} onClick={handleNavClick}>
@@ -372,80 +623,10 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
               )}
             </NavGroup>
           )}
-
-          <NavGroup
-            title="Leave"
-            icon={LuCalendarOff}
-            isCollapsed={isCollapsed}
-            isOpen={openGroup === 'Leave'}
-            isActive={activeGroup === 'Leave'}
-            defaultPath={defaultPathForGroup('Leave', hasAccess)}
-            onNavigate={handleNavClick}
-            onToggleGroup={() => handleGroupToggle('Leave')}
-          >
-            {hasAccess(['VIEW_HR_DASHBOARD']) && (
-              <li>
-                <NavLink to="/hr-dashboard" activeClassName={styles.activeLink} onClick={handleNavClick}>
-                  HR Dashboard
-                </NavLink>
-              </li>
-            )}
-            {hasAccess(['MANAGE_LEAVES']) && (
-              <li>
-                <NavLink to="/leave-configuration" activeClassName={styles.activeLink} onClick={handleNavClick}>
-                  Leave Config
-                </NavLink>
-              </li>
-            )}
-            {hasAccess(['MANAGE_LEAVES']) && (
-              <li>
-                <NavLink to="/settings/holidays" activeClassName={styles.activeLink} onClick={handleNavClick}>
-                  Holiday Calendar
-                </NavLink>
-              </li>
-            )}
-            <li>
-              <NavLink to="/leave-dashboard" activeClassName={styles.activeLink} onClick={handleNavClick}>
-                My Leaves
-              </NavLink>
-            </li>
-            {hasAccess(['MANAGE_LEAVES']) && (
-              <li>
-                <NavLink to="/leave-approvals" activeClassName={styles.activeLink} onClick={handleNavClick}>
-                  Leave Approvals
-                </NavLink>
-              </li>
-            )}
-          </NavGroup>
         </ul>
       </div>
 
-      <div className={styles.navFooter}>
-        <div
-          className={styles.storeCard}
-          title={storeConfig?.storeName || 'Current store'}
-          aria-label={storeConfig?.storeName || 'Current store'}
-        >
-          <div className={styles.storeIconWrap}>
-            <LuStore size={18} strokeWidth={1.75} />
-          </div>
-          <div className={styles.storeDetails}>
-            <span className={styles.storeName}>{storeConfig?.storeName || 'Main Store'}</span>
-            <span className={styles.storeLabel}>Current store</span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={logout}
-          className={styles.logoutButton}
-          title="Logout"
-          aria-label="Logout"
-        >
-          <LuLogOut size={18} strokeWidth={1.75} />
-          <span className={styles.logoutLabel}>Logout</span>
-        </button>
-      </div>
+      <NavFooter onNavigate={handleNavClick} />
     </nav>
   );
 };

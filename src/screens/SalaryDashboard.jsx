@@ -22,11 +22,12 @@ const SalaryDashboard = () => {
   const { showToast } = useToast();
   const canManage = hasAccess(['MANAGE_SALARY']);
   const [activeTab, setActiveTab] = useState('fixed');
-  const { staffList } = useStaffList();
+  const { staffList, isLoading: staffLoading } = useStaffList();
+  const isSelfView = !hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF']);
+  const hideDirectory = isSelfView || (!staffLoading && staffList.length <= 1);
 
   return (
     <div className={styles.dashboard}>
-      <p className="screenIntro">Set the recurring salary for a person, then add month-only extras such as bonus or incentive.</p>
       <div className={styles.tabList}>
         {[
           { id: 'fixed', label: 'Configure fixed salary' },
@@ -45,9 +46,9 @@ const SalaryDashboard = () => {
 
       <div className={styles.tabContent}>
           {activeTab === 'fixed' ? (
-            <FixedComponentsTab staffList={staffList} tenantId={tenantId} storeId={storeId} canManage={canManage} user={user} />
+            <FixedComponentsTab staffList={staffList} tenantId={tenantId} storeId={storeId} canManage={canManage} user={user} hideDirectory={hideDirectory} />
           ) : (
-            <VariableComponentsTab staffList={staffList} tenantId={tenantId} storeId={storeId} canManage={canManage} user={user} />
+            <VariableComponentsTab staffList={staffList} tenantId={tenantId} storeId={storeId} canManage={canManage} user={user} hideDirectory={hideDirectory} />
           )}
       </div>
     </div>
@@ -57,7 +58,7 @@ const SalaryDashboard = () => {
 // ---------------------------------------------------------------------------------------------------------------------
 // FIXED COMPONENTS TAB
 // ---------------------------------------------------------------------------------------------------------------------
-const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) => {
+const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user, hideDirectory }) => {
   const [selectedStaffId, setSelectedStaffId] = useState('');
   const [staffQuery, setStaffQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -192,6 +193,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
   return (
     <div className={styles.mainContainer}>
       <div className={styles.mainLayout}>
+        {!hideDirectory && (
         <div className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
             <h3 className={styles.sidebarTitle}>Staff</h3>
@@ -234,6 +236,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
             )}
           </div>
         </div>
+        )}
 
         <div className={styles.contentArea}>
           {!selectedStaffId ? (
@@ -381,7 +384,7 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) =
 // ---------------------------------------------------------------------------------------------------------------------
 // VARIABLE COMPONENTS TAB
 // ---------------------------------------------------------------------------------------------------------------------
-const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }) => {
+const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user, hideDirectory }) => {
   const [selectedStaffId, setSelectedStaffId] = useState('');
   const [staffQuery, setStaffQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -574,6 +577,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
 
   return (
     <div className={styles.mainLayout}>
+      {!hideDirectory && (
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <h3 className={styles.sidebarTitle}>Staff</h3>
@@ -616,6 +620,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
           )}
         </div>
       </div>
+      )}
 
       <div className={styles.contentArea}>
         {!selectedStaffId ? (
@@ -628,53 +633,43 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user }
           </div>
         ) : (
           <>
-            <div className={`${styles.card} ${styles.periodCard}`}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitleWrap}>
-                  <h4 className={styles.cardTitleText}>Payroll period</h4>
-                </div>
-              </div>
-              <div className={styles.cardBody}>
-                <div className={styles.formGrid}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.inputLabel}>Month</label>
-                    <div className={styles.inputWrapper}>
-                      <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className={`${styles.amountInput} ${styles.selectInput}`}>
-                        {MONTHS.map((m, idx) => {
-                          const mIndex = idx + 1;
-                          const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
-                          let isDisabled = false;
-                          if (selectedYear < currentYear) isDisabled = true;
-                          else if (selectedYear === currentYear && mIndex <= recentMonth) isDisabled = true;
-                          return <option key={m} value={m} disabled={isDisabled}>{m}</option>;
-                        })}
-                      </select>
-                    </div>
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.inputLabel}>Year</label>
-                    <div className={styles.inputWrapper}>
-                      <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className={`${styles.amountInput} ${styles.selectInput}`}>
-                        {[currentYear - 1, currentYear, currentYear + 1].map(y => (
-                          <option key={y} value={y} disabled={y < currentYear}>{y}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                {isLocked && (
-                  <p className="screenHint">This month is locked because payroll has already been calculated. Open a later month to edit variables.</p>
-                )}
-              </div>
-            </div>
-
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitleWrap}>
                   <h4 className={styles.cardTitleText}>Assign monthly variables</h4>
                 </div>
+                <div className={styles.headerControls}>
+                  <select
+                    value={selectedMonth}
+                    onChange={e => setSelectedMonth(e.target.value)}
+                    className={styles.headerSelect}
+                    aria-label="Month"
+                  >
+                    {MONTHS.map((m, idx) => {
+                      const mIndex = idx + 1;
+                      const lockedMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
+                      let isDisabled = false;
+                      if (selectedYear < currentYear) isDisabled = true;
+                      else if (selectedYear === currentYear && mIndex <= lockedMonth) isDisabled = true;
+                      return <option key={m} value={m} disabled={isDisabled}>{m}</option>;
+                    })}
+                  </select>
+                  <select
+                    value={selectedYear}
+                    onChange={e => setSelectedYear(Number(e.target.value))}
+                    className={styles.headerSelect}
+                    aria-label="Year"
+                  >
+                    {[currentYear - 1, currentYear, currentYear + 1].map(y => (
+                      <option key={y} value={y} disabled={y < currentYear}>{y}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className={styles.cardBody}>
+                {isLocked && (
+                  <p className="screenHint">This month is locked because payroll has already been calculated. Open a later month to edit variables.</p>
+                )}
                 {loading ? (
                   <div className={styles.loadingState}>
                     <span className={styles.inlineSpinner} aria-hidden="true" />

@@ -37,6 +37,7 @@ export default function MyWorkDashboard() {
   });
   const [decision, setDecision] = useState(null);
   const [confirmOut, setConfirmOut] = useState(false);
+  const [swapOpen, setSwapOpen] = useState(false);
 
   const { data = {}, isLoading: meLoading } = useQuery({
     queryKey: ['hospitality-me'],
@@ -87,6 +88,7 @@ export default function MyWorkDashboard() {
       queryClient.invalidateQueries({ queryKey: ['hospitality-swaps'] });
       showToast('Swap requested', 'success');
       setSwap({ targetStaffId: '', shiftDate: '', reason: '' });
+      setSwapOpen(false);
     },
     onError: (err) => showToast(err.message, 'error'),
   });
@@ -136,8 +138,6 @@ export default function MyWorkDashboard() {
 
   return (
     <div className={styles.stack}>
-      <p className={styles.intro}>Clock the shift you are working, set the days you can come in, and ask a teammate for cover.</p>
-
       <Card>
         <CardHeader>
           <div className={styles.headerRow}>
@@ -244,36 +244,14 @@ export default function MyWorkDashboard() {
         <CardHeader>
           <div className={styles.headerRow}>
             <span>Shift swap</span>
-            {pendingSwaps > 0 && <Badge variant="warning">{pendingSwaps} pending</Badge>}
+            <div className={styles.inline}>
+              {pendingSwaps > 0 && <Badge variant="warning">{pendingSwaps} pending</Badge>}
+              <Button onClick={() => setSwapOpen(true)}>Request swap</Button>
+            </div>
           </div>
         </CardHeader>
         <CardBody>
           <p className={styles.hint}>Ask a teammate to take your rostered day. A manager can approve only if one of you is already on the roster that date.</p>
-          <div className={styles.inline}>
-            <StaffPicker
-              staffList={others}
-              value={swap.targetStaffId}
-              onChange={(targetStaffId) => setSwap((prev) => ({ ...prev, targetStaffId }))}
-            />
-            <Input
-              containerClassName={styles.compactField}
-              label="Date"
-              type="date"
-              min={todayLocalKey()}
-              value={swap.shiftDate}
-              onChange={(e) => setSwap((prev) => ({ ...prev, shiftDate: e.target.value }))}
-            />
-            <Input
-              containerClassName={styles.compactField}
-              label="Reason"
-              value={swap.reason}
-              onChange={(e) => setSwap((prev) => ({ ...prev, reason: e.target.value }))}
-              placeholder="Family, late close, etc."
-            />
-            <Button onClick={() => createSwap.mutate()} disabled={createSwap.isPending}>
-              {createSwap.isPending ? 'Sending…' : 'Request swap'}
-            </Button>
-          </div>
           {swapsLoading ? (
             <p className={styles.hint}>Loading swap requests…</p>
           ) : swapList.length === 0 ? (
@@ -325,6 +303,42 @@ export default function MyWorkDashboard() {
           )}
         </CardBody>
       </Card>
+
+      <Modal
+        open={swapOpen}
+        onClose={() => { if (!createSwap.isPending) setSwapOpen(false); }}
+        title="Request swap"
+        subtitle="Ask a teammate to take your rostered day."
+        footer={(
+          <>
+            <Button variant="outline" onClick={() => setSwapOpen(false)} disabled={createSwap.isPending}>Cancel</Button>
+            <Button onClick={() => createSwap.mutate()} disabled={createSwap.isPending}>
+              {createSwap.isPending ? 'Sending…' : 'Send request'}
+            </Button>
+          </>
+        )}
+      >
+        <div className={styles.stack}>
+          <StaffPicker
+            staffList={others}
+            value={swap.targetStaffId}
+            onChange={(targetStaffId) => setSwap((prev) => ({ ...prev, targetStaffId }))}
+          />
+          <Input
+            label="Date"
+            type="date"
+            min={todayLocalKey()}
+            value={swap.shiftDate}
+            onChange={(e) => setSwap((prev) => ({ ...prev, shiftDate: e.target.value }))}
+          />
+          <Input
+            label="Reason"
+            value={swap.reason}
+            onChange={(e) => setSwap((prev) => ({ ...prev, reason: e.target.value }))}
+            placeholder="Family, late close, etc."
+          />
+        </div>
+      </Modal>
 
       <Modal
         open={confirmOut}

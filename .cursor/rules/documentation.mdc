@@ -1,20 +1,38 @@
 ---
-description: Keep payroll documentation synchronized with product and technical changes
+description: Auto-update engineering docs and the user help center whenever product code changes
 alwaysApply: true
 ---
 
-# Documentation maintenance
+# Documentation stays current
 
-The maintained documentation portal is `README.md` plus `docs/`.
+Never finish a code change with stale documentation. Update the matching pages in the same change. Do not defer docs to a later task.
 
-When changing frontend routes, navigation, permissions, workflows, API calls, backend endpoints, authorization, entities, schema, configuration, integrations, schedulers, or operational procedures:
+## Two portals
 
-1. Update the affected documentation in the same change.
-2. Treat current executable code as authoritative; label intended behavior and known gaps explicitly.
-3. Preserve the page metadata: Audience, Purpose, Last verified, Source of truth.
-4. Update `docs/operations/known-limitations.md` when a gap is found or resolved.
-5. Never add credentials, tokens, private keys, personal data, salary data, production endpoints, or raw database rows.
-6. Use synthetic examples and relative links.
-7. Run `npm run docs:check` before completion.
+1. **User help center** (signed-in users): `src/docs/content/*.md`, `src/docs/catalog.js`, `src/docs/content/index.js`
+2. **Engineering portal**: `README.md` and `docs/`
 
-The historical PDF/text documents are research inputs, not maintained sources of truth.
+Shared product, API, permission, data-model, and limitation docs live in this frontend `docs/` portal even when the change is in `payroll-backend`.
+
+## When to update
+
+Update whenever the change affects screens, copy, navigation, routes, permissions, workflows, APIs, entities, schema, configuration, integrations, schedulers, operations, or user-visible UI.
+
+Skip only no-behavior edits (formatting, comments, unused-code cleanup). If you skip, say so in the reply.
+
+## Where to write
+
+| Change | User help | Engineering |
+| --- | --- | --- |
+| Screen or workflow | matching `src/docs/content/*.md` | `docs/features/` |
+| Route, nav, permission | `find-your-way.md` plus the screen article | `docs/reference/routes-and-permissions.md` |
+| New screen | new article + `catalog.js` + `content/index.js` | feature page + routes |
+| API or auth | only if a user step changed | `docs/reference/api-reference.md`, security |
+| Entity or schema | glossary if a term changed | `docs/architecture/data-model.md` |
+| Tokens or shell UI | help chrome only if readers see it | `docs/architecture/design-system.md` |
+| Config, deploy, scheduler | — | operations pages + backend `docs/` |
+| Gap found or fixed | FAQ if users hit it | `docs/operations/known-limitations.md` |
+
+Treat current executable code as truth. Label intended behavior vs implemented. Keep page metadata: Audience, Purpose, Last verified, Source of truth. Never add credentials, tokens, personal data, salary data, or production endpoints.
+
+Run `npm run docs:check` before completion.

@@ -54,7 +54,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5174/login`. The development proxy accepts the backend's self-signed certificate. The UI ships with Inter and a Hajiro light-first theme (`data-theme`); toggle dark mode from the header.
+Open `http://localhost:5174/login`. After sign-in the app lands on `/home`. The development proxy accepts the backend's self-signed certificate. The UI ships with Inter and a Hajiro light-first theme (`data-theme`); toggle dark mode from the account drawer.
 
 ## Verification
 

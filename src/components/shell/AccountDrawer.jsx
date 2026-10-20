@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
   LuCalendarOff,
+  LuChevronDown,
+  LuChevronRight,
   LuClipboardCheck,
+  LuHistory,
+  LuHouse,
   LuLogOut,
   LuStore,
   LuUsers,
@@ -12,6 +16,7 @@ import { Drawer, Switch } from '../ui';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useStoreConfig } from '../../hooks/queries';
+import { isOpsUser } from '../../access/homeAccess';
 import styles from './AccountDrawer.module.scss';
 
 const formatName = (name) => {
@@ -21,6 +26,14 @@ const formatName = (name) => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 };
+
+const staffCapabilities = (hasAccess) => [
+  { id: 'attendance', label: 'View your attendance calendar' },
+  { id: 'my-work', label: 'Clock in and request shift swaps' },
+  { id: 'leaves', label: 'Request leave and check balances' },
+  hasAccess(['VIEW_SALARY', 'MANAGE_SALARY']) && { id: 'salary', label: 'View your salary and payslips' },
+  { id: 'profile', label: 'View your profile' },
+].filter(Boolean);
 
 /**
  * Right account panel — profile, store context, quick links, theme, logout.
@@ -48,6 +61,9 @@ export function AccountDrawer({ open, onClose }) {
     .substring(0, 2)
     .toUpperCase();
   const storeName = storeConfig?.storeName || 'Main Store';
+  const isStaffOnly = !isOpsUser(hasAccess);
+  const capabilities = isStaffOnly ? staffCapabilities(hasAccess) : [];
+  const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
 
   const go = (path) => {
     onClose?.();
@@ -61,6 +77,14 @@ export function AccountDrawer({ open, onClose }) {
   };
 
   const shortcuts = [
+    { id: 'home', label: 'Home', path: '/home', icon: LuHouse, show: true },
+    {
+      id: 'activity',
+      label: 'Activity log',
+      path: '/activity',
+      icon: LuHistory,
+      show: hasAccess(['VIEW_ACTIVITY_LOG']),
+    },
     { id: 'attendance', label: 'Attendance', path: '/attendance', icon: LuClipboardCheck, show: true },
     { id: 'my-work', label: 'My Work', path: '/my-work', icon: LuClipboardCheck, show: true },
     { id: 'leaves', label: 'My Leaves', path: '/leave-dashboard', icon: LuCalendarOff, show: true },
@@ -78,11 +102,17 @@ export function AccountDrawer({ open, onClose }) {
       icon: LuWallet,
       show: hasAccess(['MANAGE_SALARY', 'VIEW_HOSPITALITY', 'MANAGE_HOSPITALITY']),
     },
-    { id: 'staff', label: 'Staff directory', path: '/staff', icon: LuUsers, show: true },
+    {
+      id: 'staff',
+      label: hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF']) ? 'Staff directory' : 'Profile',
+      path: '/staff',
+      icon: LuUsers,
+      show: true,
+    },
   ].filter((s) => s.show);
 
   return (
-    <Drawer open={open} onClose={onClose} title="Account" width={320}>
+    <Drawer open={open} onClose={onClose} title="Account" hideTitle width={320}>
       <div className={styles.profile}>
         <div className={styles.avatar} aria-hidden>
           {initials}
@@ -121,6 +151,29 @@ export function AccountDrawer({ open, onClose }) {
         checked={theme === 'dark'}
         onChange={toggleTheme}
       />
+
+      {capabilities.length > 0 && (
+        <div className={styles.capabilityBlock}>
+          <button
+            type="button"
+            className={styles.capabilityToggle}
+            onClick={() => setCapabilitiesOpen((open) => !open)}
+            aria-expanded={capabilitiesOpen}
+          >
+            <span>What you can do</span>
+            {capabilitiesOpen
+              ? <LuChevronDown size={16} aria-hidden />
+              : <LuChevronRight size={16} aria-hidden />}
+          </button>
+          {capabilitiesOpen && (
+            <ul className={styles.capabilityList}>
+              {capabilities.map((item) => (
+                <li key={item.id}>{item.label}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <p className={styles.sectionLabel}>Session</p>
       <ul className={styles.menu}>

@@ -6,6 +6,7 @@ import { apiService } from '../api/apiService';
 import { addDaysToDateKey, parseLocalDate, todayLocalKey } from '../helpers/dateUtils';
 import { LuChevronLeft, LuChevronRight, LuX } from 'react-icons/lu';
 import { Button, Checkbox, Modal } from './ui';
+import { usePageHelp } from '../context/PageHelpContext';
 import styles from './RegularizationDashboard.module.scss';
 
 const TABS = [
@@ -100,6 +101,7 @@ const RegularizationDashboard = ({ staffList = [], staffLoading = false }) => {
   const requestHeaders = tenantHeaders(tenantId, storeId);
   const currentTab = TABS.find((tab) => tab.id === activeTab);
   const selectedPreset = activePresetId(fromDate, toDate);
+  usePageHelp(currentTab?.hint);
 
   const listPayload = (status, pageNumber, recordsPerPage) => ({
     tenantId,
@@ -204,10 +206,6 @@ const RegularizationDashboard = ({ staffList = [], staffLoading = false }) => {
 
   return (
     <div className={styles.dashboardWrapper}>
-      <p className={styles.intro}>
-        Review late, missing, or corrected punches. Approve what should count toward the day. Rejected punches stay on the attendance calendar but do not mark the person present.
-      </p>
-
       <div className={styles.filterCard}>
         <div className={styles.presets} role="group" aria-label="Date range">
           {PRESETS.map((preset) => (
@@ -270,7 +268,6 @@ const RegularizationDashboard = ({ staffList = [], staffLoading = false }) => {
           </button>
         ))}
       </div>
-      {currentTab && <p className={styles.tabHint}>{currentTab.hint}</p>}
 
       {activeTab === 'PENDING' && selectedRequests.length > 0 && (
         <div className={styles.bulkBar}>

@@ -11,7 +11,7 @@ The route and navigation are visible with `VIEW_SHIFTS` or `MANAGE_SHIFTS`. Back
 
 Implemented tabs:
 
-- **Shift Management:** reusable shift templates and time rules, including an overnight flag when the end time is the next calendar day
+- **Shift Management:** reusable shift templates and time rules, including an overnight flag when the end time is the next calendar day. Create and edit open in a drawer with stacked full-width fields; the page is a template list.
 - **Roster Management:** staff/date assignments (`shiftDate` is sent as `yyyy-MM-dd`). Save roster and remove break ask for confirmation
 - **Weekly Schedule:** store-level weekly view with previous/next week navigation
 - **Store Hours:** open/close times for roster dropdowns (`MANAGE_SHIFTS` only)
@@ -22,11 +22,11 @@ Only users with `MANAGE_SHIFTS` see write controls. Regularization approval list
 
 All authenticated users can reach the route. The screen provides:
 
-- month/year calendar;
+- month/year calendar — month and year sit on the calendar header, not a separate filter row;
 - daily punch and calculated status;
 - own leave summary;
 - regularization and leave shortcuts;
-- staff selector when `VIEW_OTHER_STAFF` is available.
+- staff selector on the same calendar header when `VIEW_OTHER_STAFF` or `MANAGE_STAFF` is available.
 
 Display codes include present, absent, half day, late, weekly off, and public holiday. The calendar posts `staffIds: [selectedStaff]`; the in/out history APIs reject an empty staff list with HTTP 400.
 
@@ -50,7 +50,7 @@ Terminal inserts also invoke a database trigger that updates portions of the dai
 
 Employees submit corrections from the attendance modal. Users with `MANAGE_ATTENDANCE` can create an immediately approved correction in that modal.
 
-Regularization Approvals (`/approvals`) requires `MANAGE_ATTENDANCE` in the UI. Managers filter by date range (last 7 / 30 / 45 days or this month) and staff, then review pending, approved, and rejected punch corrections. Approve and reject ask for confirmation; reject can include a remark. Pending and rejected punches stay visible on the attendance day but do not count as Present. The queue uses the legacy attendance endpoints. A second newer `/regularizations/*` API also exists, so integrations must not assume there is only one contract.
+Regularization Approvals (`/approvals`) requires `MANAGE_ATTENDANCE` in the UI. The sidebar lists it under **Approvals**, next to Leave Approvals. Managers filter by date range (last 7 / 30 / 45 days or this month) and staff, then review pending, approved, and rejected punch corrections. Approve and reject ask for confirmation; reject can include a remark. Pending and rejected punches stay visible on the attendance day but do not count as Present. The queue uses the legacy attendance endpoints. A second newer `/regularizations/*` API also exists, so integrations must not assume there is only one contract.
 
 ## Scheduled retrieval
 

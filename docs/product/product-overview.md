@@ -24,6 +24,8 @@ flowchart TD
 | Module | Verified capabilities |
 | --- | --- |
 | Authentication | Username/email login, JWT session, password-reset OTP flow |
+| Home | Permission-composed landing: staff day (clock, leave, payslip) or operations queues plus HR metrics |
+| Activity log | Append-only store history of sign-in, staff, roles, leave, attendance, roster, payroll, and hospitality mutations |
 | Staff | Store staff directory, employee profile, employment details, bank/documents, work experience |
 | Roles | Custom roles, permission selection, staff role assignment |
 | Shifts | Shift templates, roster assignment, weekly schedule |
