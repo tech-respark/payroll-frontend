@@ -2,15 +2,16 @@
 
 > **Audience:** Product, QA, frontend/backend developers, support
 > **Purpose:** Record current frontend route gates and important backend differences
-> **Last verified:** 2026-10-20
+> **Last verified:** 2026-10-21
 > **Source of truth:** `App.jsx`, `Navigation.jsx`, screen checks, `@PreAuthorize`
 
 ## Navigation groups
 
 Managers and admins (anyone with `VIEW_OTHER_STAFF`, `MANAGE_STAFF`, a `MANAGE_*` permission, `VIEW_REPORTS`, `VIEW_HR_DASHBOARD`, or hospitality access) see accordion groups (labels only; routes unchanged). `VIEW_ACTIVITY_LOG` only adds Activity log; it does not switch the user to operations Home or the admin sidebar.
 
-- **Overview:** Home, Activity log (when `VIEW_ACTIVITY_LOG`), Staff, Shifts, Attendance
+- **Overview:** Home, Staff, Shifts, Attendance
 - **Management:** Approvals, Leave, Payroll, Reports
+- **Activity log** sits at the bottom of the destination list (when `VIEW_ACTIVITY_LOG`), above Documentation and logout
 
 **Approvals** is visible with `MANAGE_LEAVES` or `MANAGE_ATTENDANCE` and stays an accordion so leave and regularization queues sit together. A group with only one destination (for example Shifts) renders as a direct link, not an accordion. Leave children are My Leaves plus setup screens (config and holidays). Shift-swap decisions stay on My Work; there is no dedicated swap-approval route.
 
@@ -20,7 +21,7 @@ Staff-only users see the same sections as a flat list (no accordion):
 
 - **Overview:** Home, Attendance, My Work
 - **Management:** My Leaves, then Salary and Payslips when they have `VIEW_SALARY`
-- **Profile** (`/staff`) sits at the bottom of the staff destination list. Documentation and logout sit in the sidebar footer.
+- **Profile** (`/staff`) sits at the bottom of the staff destination list, then Activity log when `VIEW_ACTIVITY_LOG`. Documentation and logout sit in the sidebar footer.
 
 Icons use Lucide via `react-icons/lu` (for example Leave uses `LuCalendarOff`). The shell is a Hajiro layout (248px sidebar, 64px header, navy/blue/teal tokens). No third-party UI kit is required. Form toggles and choice controls should use shared `Checkbox` / `Switch` / `Radio` from `components/ui`.
 

@@ -126,7 +126,7 @@ const NavGroup = ({
 };
 
 const groupForPath = (pathname) => {
-  if (pathname === '/home' || pathname === '/' || pathname.startsWith('/activity')) return 'Home';
+  if (pathname === '/home' || pathname === '/') return 'Home';
   if (pathname.startsWith('/staff') || pathname.startsWith('/roles')) return 'Staff';
   if (pathname.startsWith('/shifts')) return 'Shifts';
   if (pathname.startsWith('/attendance') || pathname.startsWith('/my-work')) return 'Attendance';
@@ -312,11 +312,6 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
             <NavItem to="/home" icon={LuHouse} exact onNavigate={handleNavClick} isCollapsed={isCollapsed}>
               Home
             </NavItem>
-            {hasAccess(['VIEW_ACTIVITY_LOG']) && (
-              <NavItem to="/activity" icon={LuHistory} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
-                Activity log
-              </NavItem>
-            )}
             <NavItem to="/attendance" icon={LuClipboardCheck} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
               Attendance
             </NavItem>
@@ -353,6 +348,11 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
             <NavItem to="/staff" icon={LuUser} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
               Profile
             </NavItem>
+            {hasAccess(['VIEW_ACTIVITY_LOG']) && (
+              <NavItem to="/activity" icon={LuHistory} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+                Activity log
+              </NavItem>
+            )}
           </ul>
         </div>
 
@@ -422,11 +422,6 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
           <NavItem to="/home" icon={LuHouse} exact onNavigate={handleNavClick} isCollapsed={isCollapsed}>
             Home
           </NavItem>
-          {hasAccess(['VIEW_ACTIVITY_LOG']) && (
-            <NavItem to="/activity" icon={LuHistory} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
-              Activity log
-            </NavItem>
-          )}
           <NavGroup
             title="Staff"
             icon={LuUsers}
@@ -624,6 +619,17 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
             </NavGroup>
           )}
         </ul>
+
+        {hasAccess(['VIEW_ACTIVITY_LOG']) && (
+          <>
+            <div className={styles.navSpacer} aria-hidden="true" />
+            <ul className={styles.navLinks}>
+              <NavItem to="/activity" icon={LuHistory} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+                Activity log
+              </NavItem>
+            </ul>
+          </>
+        )}
       </div>
 
       <NavFooter onNavigate={handleNavClick} />

@@ -2,12 +2,12 @@
 
 > **Audience:** HR, managers, payroll, support, developers  
 > **Purpose:** Explain the store-wide activity history screen and the shared recorder  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-21  
 > **Source of truth:** `ActivityLogDashboard`, `ActivityLogController`, `ActivityRecorder`
 
 ## Route
 
-`/activity` requires `VIEW_ACTIVITY_LOG`. The link sits under Overview in both staff and admin sidebars, in ⌘K, and in the account drawer. Operations Home also shows a five-event preview. This permission does not by itself open operations Home.
+`/activity` requires `VIEW_ACTIVITY_LOG`. The link sits at the bottom of the sidebar (after Profile for staff-only users; after Reports for managers), last in ⌘K Overview, and last in the account drawer. Operations Home also shows a five-event preview. This permission does not by itself open operations Home.
 
 ## What users see
 

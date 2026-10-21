@@ -12,14 +12,6 @@ export const NAV_COMMANDS = [
     perms: null,
   },
   {
-    id: 'activity',
-    title: 'Activity log',
-    path: '/activity',
-    group: 'Overview',
-    keywords: ['audit', 'history', 'who changed', 'events'],
-    perms: ['VIEW_ACTIVITY_LOG'],
-  },
-  {
     id: 'staff',
     title: 'Staff Details',
     path: '/staff',
@@ -138,6 +130,14 @@ export const NAV_COMMANDS = [
     group: 'Reports',
     keywords: ['detailed', 'export'],
     perms: ['MANAGE_ATTENDANCE', 'MANAGE_SALARY'],
+  },
+  {
+    id: 'activity',
+    title: 'Activity log',
+    path: '/activity',
+    group: 'Overview',
+    keywords: ['audit', 'history', 'who changed', 'events'],
+    perms: ['VIEW_ACTIVITY_LOG'],
   },
 ];
 

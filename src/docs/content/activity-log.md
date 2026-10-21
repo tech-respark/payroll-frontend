@@ -1,4 +1,4 @@
-Activity log is a store-wide history of who changed what. It is for managers and administrators who have the activity log permission. Everyday staff do not see this page.
+Activity log is a store-wide history of who changed what. It is for managers and administrators who have the activity log permission. Everyday staff do not see this page. When you can open it, the link sits at the bottom of the sidebar, above Documentation.
 
 The list is newest first. Each row shows the time (India time), a short sentence, the person who did it, and the product area (Leave, Roles, Payroll, and so on). Open a row to see the related record, action name, and extra details such as dates. Passwords, salary amounts, and bank details are never stored here.
 

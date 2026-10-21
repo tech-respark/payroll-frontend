@@ -2,7 +2,7 @@
 
 > **Audience:** Frontend developers, designers, technical reviewers  
 > **Purpose:** Document shared tokens, shell layout, UI primitives, and styling rules  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-21  
 > **Source of truth:** `src/styles/hajiro-theme.css`, `src/styles/main.scss`, `src/components/ui/`, shell components (`Navigation`, `TopHeader`)
 
 Payroll uses the **Hajiro v1** palette and spacing rules on the existing product shell. Product name and logo stay as they are in this repository. CSS variables, Sass modules, and Lucide icons (`react-icons/lu`) remain the implementation layer.
@@ -40,7 +40,7 @@ Theme is toggled via `data-theme` on the document root (`ThemeContext`). Dark mo
 
 Authenticated layout (`App.jsx` + global classes in `main.scss`):
 
-- Fixed sidebar (248px expanded, **88px** mini icon rail) and 64px top header. The rail is a white (light) or Minimal grey (dark) surface. The current destination is a rounded Hajiro-blue wash — no left accent bar. Collapse/expand uses `--sidebar-motion` (280ms ease); main content only animates `margin-left` to avoid width+margin jitter. Labels clip/fade in place; open groups close on collapse and reopen after expand. Staff-only users get a flat destination list instead of accordion groups, starting with **Home** and **Profile** pinned to the bottom of the list. Manager navigation puts leave and regularization queues in a dedicated **Approvals** group. The sidebar footer is Documentation and logout; theme and store name live only in the account drawer. Desktop collapsed preference persists in `localStorage`; mobile drawer uses an overlay under the nav, Escape to dismiss, and no mini rail. `prefers-reduced-motion` disables sidebar motion. Login and unknown routes land on `/home`.
+- Fixed sidebar (248px expanded, **88px** mini icon rail) and 64px top header. The rail is a white (light) or Minimal grey (dark) surface. The current destination is a rounded Hajiro-blue wash — no left accent bar. Collapse/expand uses `--sidebar-motion` (280ms ease); main content only animates `margin-left` to avoid width+margin jitter. Labels clip/fade in place; open groups close on collapse and reopen after expand. Staff-only users get a flat destination list instead of accordion groups, starting with **Home** and **Profile** pinned to the bottom of the list, then Activity log when permitted. Manager navigation puts leave and regularization queues in a dedicated **Approvals** group. The sidebar footer is Documentation and logout; theme and store name live only in the account drawer. Desktop collapsed preference persists in `localStorage`; mobile drawer uses an overlay under the nav, Escape to dismiss, and no mini rail. `prefers-reduced-motion` disables sidebar motion. Login and unknown routes land on `/home`.
 - Main scroll region: `.main-content` with **24px** horizontal gutters (16px on small breakpoints).
 - Feature surfaces often use `.dashboard-content` or `.mp-card` (16px radius, `--shadow-card`).
 - **Page title lives in `TopHeader` only** — do not repeat the route name as an in-page `h1`. Keep section titles inside cards/widgets; put primary actions in a slim toolbar when needed.
@@ -71,7 +71,7 @@ Body scroll is locked while `Modal`, `Drawer`, or the command palette is open (`
 
 Page chrome: page explanations live on the header breadcrumb **i** control (`TopHeader` + `pageHelp.js`), not as a paragraph under the title. `.screenHint` in `main.scss` remains for in-page empty or lock notes. Do not add a second `h1`. Prefer `formatDisplayDate` / `prettyStatus` from `helpers/displayUtils.js` over raw ISO dates and `PENDING` enums.
 
-Overlays share **16px** radius, `--shadow-md`, **24px** header/body padding, and a sticky footer on `--bg-subtle` with a solid top border.
+Overlays share **16px** radius, `--shadow-md`, **24px** header/body padding, and a sticky footer on `--bg-subtle` with a solid top border. The footer uses the same 16px radius on its bottom corners so the gray action bar does not square off the card. Mobile sheets stay flush to the screen edge (`16px 16px 0 0`).
 
 Legacy `SidePanel` remains for older flows; prefer `Drawer` for new work.
 

@@ -78,13 +78,6 @@ export function AccountDrawer({ open, onClose }) {
 
   const shortcuts = [
     { id: 'home', label: 'Home', path: '/home', icon: LuHouse, show: true },
-    {
-      id: 'activity',
-      label: 'Activity log',
-      path: '/activity',
-      icon: LuHistory,
-      show: hasAccess(['VIEW_ACTIVITY_LOG']),
-    },
     { id: 'attendance', label: 'Attendance', path: '/attendance', icon: LuClipboardCheck, show: true },
     { id: 'my-work', label: 'My Work', path: '/my-work', icon: LuClipboardCheck, show: true },
     { id: 'leaves', label: 'My Leaves', path: '/leave-dashboard', icon: LuCalendarOff, show: true },
@@ -108,6 +101,13 @@ export function AccountDrawer({ open, onClose }) {
       path: '/staff',
       icon: LuUsers,
       show: true,
+    },
+    {
+      id: 'activity',
+      label: 'Activity log',
+      path: '/activity',
+      icon: LuHistory,
+      show: hasAccess(['VIEW_ACTIVITY_LOG']),
     },
   ].filter((s) => s.show);
 

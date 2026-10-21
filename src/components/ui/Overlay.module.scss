@@ -156,6 +156,11 @@
   background: var(--bg-subtle);
 }
 
+.modal .footer {
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -176,6 +181,10 @@
     max-height: 94vh;
     border-radius: 16px 16px 0 0;
     align-self: flex-end;
+  }
+
+  .modal .footer {
+    border-radius: 0;
   }
 
   .drawer {

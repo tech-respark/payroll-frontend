@@ -4,10 +4,11 @@ The app uses a left sidebar, a top header, and a main work area. Page titles liv
 
 The sidebar is grouped by work:
 
-- **Overview** — Home, Activity log (when permitted), then Staff, Shifts, and Attendance
+- **Overview** — Home, then Staff, Shifts, and Attendance
 - **Management** — Approvals (leave and regularization queues), Leave, Payroll, and Reports
+- **Activity log** — last destination in the sidebar when you have permission, above Documentation
 
-If you only have everyday access, the sidebar is a simple list (Home, Attendance, My Work, My Leaves, pay screens when they are allowed, then Profile). Managers and administrators see Home plus the same destinations as expandable groups.
+If you only have everyday access, the sidebar is a simple list (Home, Attendance, My Work, My Leaves, pay screens when they are allowed, then Profile). Activity log, when permitted, sits after Profile. Managers and administrators see Home plus the same destinations as expandable groups.
 
 Collapse the sidebar to an icon rail when you need more room. On a phone the menu opens as a drawer; press Escape or tap outside it to close.
 
@@ -23,7 +24,7 @@ Your initials in the header open the account drawer. It shows:
 
 - your name and email
 - your role label and current store
-- shortcuts to Attendance, My Work, My Leaves, Activity log when permitted, and other frequent pages
+- shortcuts to Attendance, My Work, My Leaves, and other frequent pages, with Activity log last when permitted
 - dark mode
 - sign out
 
