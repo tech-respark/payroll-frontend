@@ -35,6 +35,13 @@ const StaffDashboard = () => {
     overtimeMultiplier: 2,
     esiNumber: "",
     panNumber: "",
+    pfNumber: "",
+    pfApplicable: true,
+    esiApplicable: true,
+    ptApplicable: true,
+    lwfApplicable: true,
+    tdsApplicable: true,
+    skipPayroll: false,
   };
   const emptyBankAccountDetailsObj = { bankName: '', bankBranch: '', ifscCode: '', accountNumber: '' };
   
@@ -379,7 +386,7 @@ const StaffDashboard = () => {
                       placeholder="Search manager"
                     />
                     <div className={styles.formGroup}><label className={styles.formLabel}>UAN Number</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.uanNumber" value={formData.personnelJoiningDetails.uanNumber} onChange={handleChange} /></div>
-                    <div className={styles.formGroup}><label className={styles.formLabel}>Standard Working Hours</label><input type="number" className={styles.formInput} name="personnelJoiningDetails.workingHours" value={formData.personnelJoiningDetails.workingHours} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>Standard working hours / day</label><input type="number" min="0" max="24" step="0.5" className={styles.formInput} name="personnelJoiningDetails.workingHours" value={formData.personnelJoiningDetails.workingHours} onChange={handleChange} aria-describedby="working-hours-hint" /><p id="working-hours-hint" className={styles.sectionHint}>Hours in a standard working day. Used for overtime and daily-rate pay, not a weekly total.</p></div>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>Pay cycle</label>
                       <select className={styles.formSelect} name="personnelJoiningDetails.payCycle" value={formData.personnelJoiningDetails.payCycle || 'MONTHLY'} onChange={handleChange}>
@@ -405,7 +412,14 @@ const StaffDashboard = () => {
                     <div className={styles.formGroup}><label className={styles.formLabel}>Overtime multiplier</label><input type="number" step="0.1" className={styles.formInput} name="personnelJoiningDetails.overtimeMultiplier" value={formData.personnelJoiningDetails.overtimeMultiplier || 2} onChange={handleChange} /></div>
                     <div className={styles.formGroup}><label className={styles.formLabel}>ESI number</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.esiNumber" value={formData.personnelJoiningDetails.esiNumber || ''} onChange={handleChange} /></div>
                     <div className={styles.formGroup}><label className={styles.formLabel}>PAN</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.panNumber" value={formData.personnelJoiningDetails.panNumber || ''} onChange={handleChange} /></div>
+                    <div className={styles.formGroup}><label className={styles.formLabel}>PF number</label><input type="text" className={styles.formInput} name="personnelJoiningDetails.pfNumber" value={formData.personnelJoiningDetails.pfNumber || ''} onChange={handleChange} /></div>
                   </div>
+                  <Switch row id="staff-pf" label="PF applicable" hint="Writes PF when store statutory PF is on." checked={formData.personnelJoiningDetails.pfApplicable !== false} onChange={(e) => setFormData((prev) => ({ ...prev, personnelJoiningDetails: { ...prev.personnelJoiningDetails, pfApplicable: e.target.checked } }))} />
+                  <Switch row id="staff-esi" label="ESI applicable" hint="Writes ESI when store statutory ESI is on and wages are under the ceiling." checked={formData.personnelJoiningDetails.esiApplicable !== false} onChange={(e) => setFormData((prev) => ({ ...prev, personnelJoiningDetails: { ...prev.personnelJoiningDetails, esiApplicable: e.target.checked } }))} />
+                  <Switch row id="staff-pt" label="Professional tax applicable" checked={formData.personnelJoiningDetails.ptApplicable !== false} onChange={(e) => setFormData((prev) => ({ ...prev, personnelJoiningDetails: { ...prev.personnelJoiningDetails, ptApplicable: e.target.checked } }))} />
+                  <Switch row id="staff-lwf" label="LWF applicable" checked={formData.personnelJoiningDetails.lwfApplicable !== false} onChange={(e) => setFormData((prev) => ({ ...prev, personnelJoiningDetails: { ...prev.personnelJoiningDetails, lwfApplicable: e.target.checked } }))} />
+                  <Switch row id="staff-tds" label="TDS applicable" checked={formData.personnelJoiningDetails.tdsApplicable !== false} onChange={(e) => setFormData((prev) => ({ ...prev, personnelJoiningDetails: { ...prev.personnelJoiningDetails, tdsApplicable: e.target.checked } }))} />
+                  <Switch row id="staff-skip" label="Skip payroll" hint="This person is left out of the next pay run until you turn this off." checked={Boolean(formData.personnelJoiningDetails.skipPayroll)} onChange={(e) => setFormData((prev) => ({ ...prev, personnelJoiningDetails: { ...prev.personnelJoiningDetails, skipPayroll: e.target.checked } }))} />
 
                   <label className={styles.weeklyOffLabel}>Weekly Off Days</label>
                   <div className={styles.weeklyOffGroup}>

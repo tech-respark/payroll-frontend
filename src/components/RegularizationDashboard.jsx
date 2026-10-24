@@ -299,6 +299,7 @@ const RegularizationDashboard = ({ staffList = [], staffLoading = false }) => {
                 <th className={styles.th}>Staff</th>
                 <th className={styles.th}>Date</th>
                 <th className={styles.th}>Requested punch</th>
+                <th className={styles.th}>Reason</th>
                 <th className={styles.th}>Day&apos;s punches</th>
                 {activeTab === 'PENDING' && <th className={`${styles.th} ${styles.thActions}`}>Decision</th>}
               </tr>
@@ -306,13 +307,13 @@ const RegularizationDashboard = ({ staffList = [], staffLoading = false }) => {
             <tbody>
               {loading && requests.length === 0 ? (
                 <tr>
-                  <td colSpan={activeTab === 'PENDING' ? 6 : 4} className={`${styles.td} ${styles.tableLoading}`}>
+                  <td colSpan={activeTab === 'PENDING' ? 7 : 5} className={`${styles.td} ${styles.tableLoading}`}>
                     Loading punch corrections…
                   </td>
                 </tr>
               ) : requests.length === 0 ? (
                 <tr>
-                  <td colSpan={activeTab === 'PENDING' ? 6 : 4} className={`${styles.td} ${styles.tableEmpty}`}>
+                  <td colSpan={activeTab === 'PENDING' ? 7 : 5} className={`${styles.td} ${styles.tableEmpty}`}>
                     <p className={styles.emptyTitle}>Nothing to review</p>
                     <p>{emptyCopy[activeTab]}</p>
                     <p className={styles.emptyHint}>Try another date range or staff member.</p>
@@ -344,6 +345,9 @@ const RegularizationDashboard = ({ staffList = [], staffLoading = false }) => {
                     </td>
                     <td className={styles.td}>
                       <span className={styles.requestedPunch}>{formatTime(row.punchTime)}</span>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.reasonCell} title={row.remark || ''}>{row.remark || 'No reason given'}</span>
                     </td>
                     <td className={styles.td}>
                       <PunchChips punches={row.individualPunchesList} highlightTime={row.punchTime} />

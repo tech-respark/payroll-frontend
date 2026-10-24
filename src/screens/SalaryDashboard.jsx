@@ -6,6 +6,9 @@ import { useToast } from '../context/ToastContext';
 import { useStaffList } from '../hooks/queries';
 import { useStoreConfig } from '../hooks/queries/useStoreConfig';
 import { prettyStatus, staffName } from '../helpers/displayUtils';
+import { periodState, parseLockDate } from '../helpers/periodState';
+
+const isEmployerCost = (name) => /employer/i.test(name || '');
 import styles from './SalaryDashboard.module.scss';
 import '../styles/main.scss';
 
@@ -79,7 +82,8 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user, hid
   }, [selectedStaffId]);
 
   useEffect(() => {
-    if (staffList.length > 0 && !selectedStaffId) {
+    if (selectedStaffId) return;
+    if (staffList.length > 0) {
       const me = staffList.find(s => {
         if (user?.staffId && String(s.id) === String(user.staffId)) return true;
         if (user?.id && String(s.id) === String(user.id)) return true;
@@ -88,7 +92,9 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user, hid
         return false;
       });
       setSelectedStaffId(me ? String(me.id) : String(staffList[0].id));
+      return;
     }
+    if (user?.staffId) setSelectedStaffId(String(user.staffId));
   }, [staffList, selectedStaffId, user]);
 
   const fetchFixedComponents = async (staffId) => {
@@ -187,7 +193,9 @@ const FixedComponentsTab = ({ staffList, tenantId, storeId, canManage, user, hid
   }, [staffList, staffQuery]);
 
   const totalGross = earnings.reduce((sum, c) => sum + (c.includeInTotal !== false ? (Number(c.monthlyValue) || 0) : 0), 0);
-  const totalDeductions = deductions.reduce((sum, c) => sum + (c.includeInTotal !== false ? (Number(c.monthlyValue) || 0) : 0), 0);
+  const totalDeductions = deductions.reduce((sum, c) => sum + (
+    c.includeInTotal === false || isEmployerCost(c.componentName) ? 0 : (Number(c.monthlyValue) || 0)
+  ), 0);
   const netTakeHome = totalGross - totalDeductions;
 
   return (
@@ -412,15 +420,16 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user, 
       const res = await apiService.get(`/tenantStoreConfig?tenantId=${tenantId}&storeId=${storeId}`);
       if (res.data) {
         setStoreConfig(res.data);
-        const recentMonth = res.data.recentSummaryCalculatedMonth || 0;
-        
-        // In Variables, recentMonth is locked. We should default to recentMonth + 1.
-        let defaultMonthIdx = recentMonth; // index is 0-based, so recentMonth (which is 1-12) corresponds to recentMonth index (recentMonth)
+        const lock = parseLockDate(res.data.payrollLockedUpToDate);
+        let defaultMonthIdx = currentMonthIndex;
         let defaultYr = currentYear;
-        
-        if (defaultMonthIdx >= 12) {
-          defaultMonthIdx = 0;
-          defaultYr += 1;
+        if (lock && (currentYear < lock.year || (currentYear === lock.year && currentMonthIndex + 1 <= lock.monthNumber))) {
+          defaultMonthIdx = lock.monthNumber;
+          defaultYr = lock.year;
+          if (defaultMonthIdx >= 12) {
+            defaultMonthIdx = 0;
+            defaultYr += 1;
+          }
         }
         
         setSelectedMonth(MONTHS[defaultMonthIdx]);
@@ -442,7 +451,8 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user, 
   }, [selectedStaffId, selectedMonth, selectedYear]);
 
   useEffect(() => {
-    if (staffList.length > 0 && !selectedStaffId) {
+    if (selectedStaffId) return;
+    if (staffList.length > 0) {
       const me = staffList.find(s => {
         if (user?.staffId && String(s.id) === String(user.staffId)) return true;
         if (user?.id && String(s.id) === String(user.id)) return true;
@@ -451,7 +461,9 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user, 
         return false;
       });
       setSelectedStaffId(me ? String(me.id) : String(staffList[0].id));
+      return;
     }
+    if (user?.staffId) setSelectedStaffId(String(user.staffId));
   }, [staffList, selectedStaffId, user]);
 
   const fetchVariableComponents = async (staffId) => {
@@ -508,7 +520,7 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user, 
     }, 0);
     const totD = deductions.reduce((sum, item) => {
       const def = defs.find(d => d.componentName === item.componentName);
-      return sum + (def && def.includeInTotal === false ? 0 : monthlyAmount(item));
+      return sum + (def && def.includeInTotal === false ? 0 : isEmployerCost(item.componentName) ? 0 : monthlyAmount(item));
     }, 0);
     setTotals({ earning: Math.round(totE), deduction: Math.round(totD), net: Math.round(totE - totD) });
   };
@@ -571,9 +583,13 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user, 
     return staffList.filter((staff) => staffName(staff).toLowerCase().includes(needle));
   }, [staffList, staffQuery]);
 
-  const selectedMonthIndex = MONTHS.indexOf(selectedMonth) + 1;
-  const recentMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
-  const isLocked = selectedYear < currentYear || (selectedYear === currentYear && selectedMonthIndex <= recentMonth);
+  const variablePeriod = periodState({
+    year: selectedYear,
+    monthNumber: MONTHS.indexOf(selectedMonth) + 1,
+    payrollLockedUpToDate: storeConfig?.payrollLockedUpToDate,
+    recentSummaryCalculatedMonth: storeConfig?.recentSummaryCalculatedMonth,
+  });
+  const isLocked = !variablePeriod.canWriteVariables;
 
   return (
     <div className={styles.mainLayout}>
@@ -646,12 +662,13 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user, 
                     aria-label="Month"
                   >
                     {MONTHS.map((m, idx) => {
-                      const mIndex = idx + 1;
-                      const lockedMonth = storeConfig?.recentSummaryCalculatedMonth || 0;
-                      let isDisabled = false;
-                      if (selectedYear < currentYear) isDisabled = true;
-                      else if (selectedYear === currentYear && mIndex <= lockedMonth) isDisabled = true;
-                      return <option key={m} value={m} disabled={isDisabled}>{m}</option>;
+                      const state = periodState({
+                        year: selectedYear,
+                        monthNumber: idx + 1,
+                        payrollLockedUpToDate: storeConfig?.payrollLockedUpToDate,
+                        recentSummaryCalculatedMonth: storeConfig?.recentSummaryCalculatedMonth,
+                      });
+                      return <option key={m} value={m} disabled={!state.canWriteVariables}>{m}</option>;
                     })}
                   </select>
                   <select
@@ -661,14 +678,14 @@ const VariableComponentsTab = ({ staffList, tenantId, storeId, canManage, user, 
                     aria-label="Year"
                   >
                     {[currentYear - 1, currentYear, currentYear + 1].map(y => (
-                      <option key={y} value={y} disabled={y < currentYear}>{y}</option>
+                      <option key={y} value={y}>{y}</option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className={styles.cardBody}>
                 {isLocked && (
-                  <p className="screenHint">This month is locked because payroll has already been calculated. Open a later month to edit variables.</p>
+                  <p className="screenHint">{variablePeriod.writeReason}</p>
                 )}
                 {loading ? (
                   <div className={styles.loadingState}>

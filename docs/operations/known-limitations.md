@@ -2,7 +2,7 @@
 
 > **Audience:** Engineering, product, sales, implementation, security, operators  
 > **Purpose:** Prevent observed gaps from becoming undocumented promises  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** Static code/schema audit and verified local runtime
 
 Severity is an engineering prioritization aid, not a production certification.
@@ -29,10 +29,18 @@ Severity is an engineering prioritization aid, not a production certification.
 - **Resolved (2026-10-20):** Unknown or permission-denied routes redirect to `/home`.
 - **Resolved (2026-10-20):** HR dashboard “View Approvals” goes to `/leave-approvals` only with `MANAGE_LEAVES`.
 - **Resolved (2026-10-20):** Payroll sidebar children match their routes. Hospitality-only roles no longer see Salary or Payslips links that bounced to `/home`. `VIEW_ACTIVITY_LOG` is an Activity route gate only, not an operations-home gate.
+- Seeded or historical labels such as `VIEW_LEAVES`, `MANAGE_REPORTS`, `MANAGE_HOLIDAYS`, `VIEW_HOLIDAYS`, `APPROVE_LEAVES`, and `APPROVE_ATTENDANCE` are not frontend route gates. Leave setup uses `MANAGE_LEAVES`; reports use `VIEW_REPORTS`.
 
 ## Data and schema
 
 - No versioned migration framework; Hibernate uses `ddl-auto=update`.
+- **Resolved (2026-10-23):** Tenant onboarding is no longer SQL-only. Internal `/ops` creates tenants, stores, licenses, client admin users, salary definitions, and leave packs. Client `/salary` still cannot create definitions.
+- **Resolved (2026-10-24):** Ops clone-from, license editor, store letterhead, live integrations, salary edit/preview, holiday pack, admin reset, and operator password rotation have screens. Clone-from skips salary aliases that already exist on the target and only fills blank letterhead fields. Variable festival holidays still stay a client HR step after the fixed national pack. Successful client `/login` writes `personnel_details.last_login_at`; the client record shows it and readiness **First admin signed in**. Support sessions do not stamp that field.
+- **Resolved (2026-10-24):** Each tenant has a source product on `platform_product`. Superadmin maintains the catalog (first-party or third-party). Existing tenants without a product are assigned the default (Devourin). There is no live connector; payroll is standalone. `integration_mode` can become `CONNECTOR` later without changing the client model.
+- Staff cap is enforced on client staff create and ops admin create. External staff sync skips new rows when the cap is reached.
+- Support sessions last 30 minutes, are audited, and can be revoked. A one-time handoff code opens a new tab in `sessionStorage` so the ops `localStorage` session is not replaced.
+- Shared MySQL has no row-level security. Platform users are a separate table and JWT, not a substitute for RLS.
+- The seeded master platform user must be rotated on any shared host. Its password is not recorded in this portal.
 - JPA `salaryAmount` naming differs from dump `salary_amount`.
 - Historical `staff_id` rows may store `personnel_code` instead of `personnel_details.id`. Roster GET and staff reports now resolve both keys to canonical `personnel_details.id`. New writes should keep using `id`.
 - Leave enrollment uniqueness differs between annotation and table intent.
@@ -49,7 +57,7 @@ Severity is an engineering prioritization aid, not a production certification.
 - Header notifications (`NotificationsDrawer`) are an approval inbox only (pending leave + regularization counts). For `VIEW_HR_DASHBOARD`, leave counts come from `/admin/dashboard/metrics` because `/leaves/applications/pending` can return an empty list while metrics still report pending work. There is no push/realtime channel or personal status feed in the UI.
 
 - Activity log starts empty until new mutations occur; it does not backfill older leave, role, or payroll rows. `leave_application_logs` remains a leave-workflow table, not the store-wide history.
-- Existing roles receive `VIEW_ACTIVITY_LOG` only when they already have `MANAGE_ROLES` or `VIEW_HR_DASHBOARD`. Other roles must be granted it on Roles & Permissions, then the user must sign in again.
+- Existing roles receive `VIEW_ACTIVITY_LOG` only when they already have `MANAGE_ROLES` or `VIEW_HR_DASHBOARD`. Other roles must be granted it on Roles & Permissions. The person should refresh the tab (`GET /session`); sign in again only if the screens still look old.
 - Not every legacy POST is captured (for example report exports, appointment booked-slot writes, and break-time writes). Unknown-username sign-in failures are stored without a store, so they do not appear in the store activity log. New product work should call `ActivityRecorder`.
 
 ## Feature behavior
@@ -66,15 +74,28 @@ Severity is an engineering prioritization aid, not a production certification.
 - Some remaining UI health/broadcast labels are static.
 - **Resolved (2026-10-20):** Leave/attendance actor IDs use `user.staffId` from login/JWT. Fallback `1` was removed.
 - **Resolved (2026-10-20):** Payslip PDF download sends `staffId` as `Userid`. `RoleId` is not a login field; the header is a legacy unused value (`2`).
-- The UI does not expose the backend Excel payslip endpoint.
+- Payslip Excel download is on the Payslips screen for `MANAGE_SALARY`.
+- Statutory filings are CSV/HTML worksheets. They do not submit to EPFO, ESIC, or the income-tax portal. Form 16 HTML is a payroll worksheet, not a TRACES Form 16 / 24Q certificate.
+- Tenant lifecycle is assisted through `/ops`. There is no self-serve signup, billing, or live POS connector. Existing hospitality modules (clock, advances, service charge, NEFT) are the product surface — do not treat them as net-new features.
+- Two-factor authentication is TOTP for client staff only. Ops login is still password-only.
+- **Resolved (2026-10-23):** Pay-run calculate no longer fails when the tenant salary-cycle start day plus offset resolves to day 0. The payslip salary date is clamped to a valid day of the month.
+- **Resolved (2026-10-23):** Loan EMI recovery honors start month as well as start year, so an October loan is not taken from a September run.
+- **Resolved (2026-10-23):** Calculate and skip are rejected after a pay run is approved, published, or locked, so nets cannot change under an approved period.
 - **Resolved (2026-10-20):** Report screens unwrap `{ data: [] }` the same way and never treat a phone number as `staffId`.
 - SMS service is a stub.
-- Hospitality statutory lines are payslip calculations only. They do not generate or submit PF ECR, ESI challan, or Form 16 files.
+- Hospitality no longer writes PF/ESI/PT lines. Core statutory lines (`Core:`) apply store rates and staff eligibility flags. Filing downloads remain worksheets, not government submissions.
 - Hospitality sales import is manual or JSON. There is no live Petpooja, POSist, Invoay, or Salonist connector.
 - Hospitality clock-in stores a geo note only. Selfie images are not captured.
 - WhatsApp payslip send uses the existing RabbitMQ notification path and is skipped when the broker is down.
 - **Resolved (2026-10-20):** Monthly Variables save to month-scoped payslip history through `/monthlyCalculationComponents`. Footer totals use `monthlyValue` (with annual/12 fallback) so month-scoped rows do not render as NaN.
-- The payslip month picker disables months after `store_details.recent_summary_calculated_month`. That field is advanced by the vendor attendance handler, not by on-demand `/trigger/calculateMonthWiseSummary`.
+- **Resolved (2026-10-23):** Saving monthly variables no longer clears name, attendance, or bank fields on an existing payslip. Totals are recalculated after the monthly lines are merged.
+- **Resolved (2026-10-24):** Payslips keep locked months readable. Months after `recent_summary_calculated_month` in the current year stay hidden as not calculated. Monthly Variables write-lock uses `payrollLockedUpToDate` only. `GET /getPayslipData` normalizes month names and distinguishes “no saved payslip” from a load error.
+- **Resolved (2026-10-24):** Reports detail uses the same staff identity keys as the summary, keeps the summary from/to dates, LEFT JOINs store mapping, and no longer swallows SQL failures as an empty table.
+- **Resolved (2026-10-24):** Own-day regularization is always PENDING. A reason is required. Unrostered attendance no longer invents 09:30–18:30.
+- **Resolved (2026-10-24):** `GET /session` plus tab-visibility refresh updates cached UI roles. The API already reloaded authorities per request.
+- **Resolved (2026-10-24):** Staff Salary and Payslips load the signed-in JWT `staffId` when the directory list is empty, so self-view no longer waits on a staff-list row.
+- **Resolved (2026-10-24):** Vendor attendance retrieval no longer advances `recent_summary_calculated_month`. The cursor moves only after month-wise summary rows are saved (scheduled retrieve or on-demand `POST /trigger/calculateMonthWiseSummary`), and only for the current year when the month is at least as recent as the stored value.
+- Payslip PDF rendering skips the logo image when `store_profile_config.logo_path` is empty and shows the company name instead. Clients upload a logo from Pay run → Payslip logo.
 
 ## Operations and reliability
 

@@ -2,7 +2,7 @@
 
 > **Audience:** Employees, managers, HR, support, developers  
 > **Purpose:** Describe roster, punch, summary, and regularization flows  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** Shift/attendance screens, services, entities, and scheduler
 
 ## Shift Management (`/shifts`)
@@ -48,9 +48,9 @@ Terminal inserts also invoke a database trigger that updates portions of the dai
 
 ## Regularization
 
-Employees submit corrections from the attendance modal. Users with `MANAGE_ATTENDANCE` can create an immediately approved correction in that modal.
+Employees submit corrections from the attendance modal. Users with `MANAGE_ATTENDANCE` can save and approve a correction for **someone else** in that dialog. Own-day corrections stay pending. My Work and Home use the same “No rostered shift” copy when nothing is assigned.
 
-Regularization Approvals (`/approvals`) requires `MANAGE_ATTENDANCE` in the UI. The sidebar lists it under **Approvals**, next to Leave Approvals. Managers filter by date range (last 7 / 30 / 45 days or this month) and staff, then review pending, approved, and rejected punch corrections. Approve and reject ask for confirmation; reject can include a remark. Pending and rejected punches stay visible on the attendance day but do not count as Present. The queue uses the legacy attendance endpoints. A second newer `/regularizations/*` API also exists, so integrations must not assume there is only one contract.
+Regularization Approvals (`/approvals`) requires `MANAGE_ATTENDANCE` in the UI. The sidebar lists it under **Approvals**, next to Leave Approvals. Managers filter by date range (last 7 / 30 / 45 days or this month) and staff, then review pending, approved, and rejected punch corrections including the staff reason. Approve and reject ask for confirmation; reject can include a remark. Pending and rejected punches stay visible on the attendance day but do not count as Present. The live write path is `POST /regularizeAttendance`. Anyone correcting their own day is forced to PENDING, even with `MANAGE_ATTENDANCE`. A reason is required. Unrostered days no longer invent 09:30–18:30; Attendance shows “No rostered shift” and the day status can be Unrostered. A second unused `/regularizations/*` API also exists and now requires `MANAGE_ATTENDANCE`. Integrations must use `POST /regularizeAttendance`, not that controller.
 
 ## Scheduled retrieval
 

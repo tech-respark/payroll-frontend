@@ -252,6 +252,7 @@ const ManagerApprovalPortal = () => {
             </div>
           )}
         </div>
+        <div className={styles.tableScroll}>
         <table className={`${styles.approvalsTable} mp-table`}>
           <thead>
             <tr>
@@ -267,6 +268,7 @@ const ManagerApprovalPortal = () => {
               <th>Leave type</th>
               <th>Dates</th>
               <th>Total days</th>
+              <th>Reason</th>
               <th>Status</th>
               <th className={styles.actionCell}>Action</th>
             </tr>
@@ -274,7 +276,7 @@ const ManagerApprovalPortal = () => {
           <tbody>
             {loadingRequests ? (
               <tr>
-                <td colSpan="7" className={styles.emptyCell}>Loading pending requests…</td>
+                <td colSpan="8" className={styles.emptyCell}>Loading pending requests…</td>
               </tr>
             ) : requests.map((req) => {
               const staffName = req.staffName || "Unknown Staff";
@@ -304,6 +306,7 @@ const ManagerApprovalPortal = () => {
                 </td>
                 <td>{formatDateByConfig(req.startDate, storeConfig?.dateFormat)} – {formatDateByConfig(req.endDate, storeConfig?.dateFormat)}</td>
                 <td>{req.requestedDays} {req.requestedDays == 1 ? 'Day' : 'Days'}</td>
+                <td className={styles.reasonCol} title={req.reason || ''}>{req.reason || '—'}</td>
                 <td>
                   <span className={styles.statusBadge}>
                     <LuCircle size={8} className={styles.statusDot} aria-hidden="true" />
@@ -312,6 +315,9 @@ const ManagerApprovalPortal = () => {
                 </td>
                 <td className={styles.actionCell} onClick={e => e.stopPropagation()}>
                   <div className={styles.actionButtons}>
+                    <button className={styles.reviewBtn} onClick={() => openDetails(req)}>
+                      Review
+                    </button>
                     <button className={styles.iconBtn} onClick={() => handleAction('approve', req)} title="Approve" aria-label="Approve">
                       <LuCheck size={16} aria-hidden="true" />
                     </button>
@@ -325,7 +331,7 @@ const ManagerApprovalPortal = () => {
             })}
             {!loadingRequests && requests.length === 0 && (
               <tr>
-                <td colSpan="7" className={styles.emptyCell}>
+                <td colSpan="8" className={styles.emptyCell}>
                   <div className={styles.emptyState}>
                     <LuInbox size={40} strokeWidth={1.5} className={styles.emptyIcon} aria-hidden="true" />
                     <p className={styles.emptyTitle}>No pending requests</p>
@@ -336,6 +342,7 @@ const ManagerApprovalPortal = () => {
             )}
           </tbody>
         </table>
+        </div>
         <div className={styles.tableFooter}>
           <div className={styles.showingText}>
             Showing {requests.length} pending request{requests.length !== 1 ? 's' : ''}

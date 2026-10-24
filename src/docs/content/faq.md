@@ -18,9 +18,13 @@ Pending and rejected corrections are shown for context. They do not count as Pre
 
 Yes. Cancel from My Leaves. The request waits for a manager. Until they confirm, the approved leave still applies.
 
+## Why are my salary fields blank?
+
+The page is loading your own record. Empty amounts mean payroll has not saved a fixed structure for you yet. Ask them to set it on Salary Management.
+
 ## Why is a payslip month missing?
 
-The period may not be calculated yet, or the store payroll lock may exclude it. Payslips also require salary view or manage permission.
+The period may not be calculated yet. Locked months stay readable once a slip exists. Payslips also require salary view or manage permission.
 
 ## Where do I see who approved leave or changed a role?
 
@@ -28,7 +32,7 @@ Open [Activity log](/docs/activity-log) if your role includes that permission. H
 
 ## I changed a role and the person still sees the old screens.
 
-They need a new sign-in. An already-open session keeps the previous permissions.
+Refresh the tab or wait a moment — the app reloads permissions from the server when the tab becomes visible. If the screens still look old, sign out and sign in again.
 
 ## Does hospitality file PF or ESI for us?
 

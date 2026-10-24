@@ -2,7 +2,7 @@
 
 > **Audience:** Employees, managers, HR, support, developers  
 > **Purpose:** Explain leave policy, balances, requests, approvals, and holidays  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** Leave screens/controllers/services/entities and scheduler
 
 ## Employee portal (`/leave-dashboard`)
@@ -11,7 +11,7 @@ Available to authenticated users. The page is a balances row plus a filterable r
 
 Employees can:
 
-- see remaining balances and application history;
+- see remaining balances and application history (GET balance routes do not insert allotment rows; apply or accrual does);
 - apply for full-day or half-day leave from the modal;
 - select an optional holiday where the leave type supports it;
 - cancel or request cancellation of an application.
@@ -22,7 +22,7 @@ Cancelling a **pending** leave completes immediately (`Leave cancelled successfu
 
 ## Manager approvals (`/leave-approvals`)
 
-Visible with `MANAGE_LEAVES`. The sidebar lists it under **Approvals**, next to Regularization Approvals. Managers review pending applications and cancellation requests, then approve or reject them. The actor written to leave logs is the authenticated `staffId` from the JWT, not a client-supplied manager id.
+Visible with `MANAGE_LEAVES`. The sidebar lists it under **Approvals**, next to Regularization Approvals. The pending table shows the employee reason and a **Review** action. The drawer already has reason, remaining balance, and leave history. Managers then approve or reject. The actor written to leave logs is the authenticated `staffId` from the JWT, not a client-supplied manager id.
 
 `GET /leaves/applications/pending` returns store-wide work for `MANAGE_LEAVES`. HR metrics count both `PENDING` and `CANCELLATION_REQUESTED`.
 

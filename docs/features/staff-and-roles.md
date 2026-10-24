@@ -2,7 +2,7 @@
 
 > **Audience:** HR users, managers, support, developers  
 > **Purpose:** Explain staff records and role assignment  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** `StaffDashboard`, `RoleManagement`, staff/role controllers
 
 ## Staff Details (`/staff`)
@@ -60,6 +60,7 @@ See [integrations](../architecture/integrations.md).
 
 ## Known behavior
 
-- `MANAGE_STAFF` can display directory controls while the common staff query still limits results unless `VIEW_OTHER_STAFF` is present.
+- `MANAGE_STAFF` and `VIEW_OTHER_STAFF` both receive the full store directory. Callers without those authorities receive only their own personnel row.
 - Staff ID, employee code, and legacy personnel code are distinct identifiers.
-- The backend has authenticated staff write and password-update endpoints without complete method-level permission enforcement. Do not rely only on hidden UI controls.
+- Password updates require `MANAGE_STAFF`. After a role change, `GET /session` (on load and tab visibility) refreshes cached UI authorities; the API already reloads `UserDetails` per request.
+- Do not rely only on hidden UI controls for security.

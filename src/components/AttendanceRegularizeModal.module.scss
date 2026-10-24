@@ -139,6 +139,35 @@
   cursor: not-allowed;
 }
 
+.reasonField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.reasonInput {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 400;
+  resize: vertical;
+  background: var(--bg-surface);
+  color: var(--text-dark);
+}
+
+.reasonHint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
 .addButton {
   width: 100%;
   min-height: 44px;

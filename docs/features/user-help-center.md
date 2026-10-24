@@ -2,7 +2,7 @@
 
 > **Audience:** End users, support, product, QA, frontend developers  
 > **Purpose:** Describe the in-app documentation portal that signed-in users open from the dashboard  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** `src/docs/`, `App.jsx`, `Navigation.jsx`
 
 ## What it is
@@ -22,7 +22,7 @@ The help center always opens in a new browser tab from the sidebar footer **Docu
 | `/docs` | Introduction / home | Authenticated |
 | `/docs/:slug` | Article | Authenticated |
 
-The help center does not use the payroll sidebar or top header. It has its own chrome: brand, search, theme toggle, article sidebar, and on-this-page outline. **Open app** returns to `/home` in another tab.
+The help center does not use the payroll sidebar or top header. It has its own chrome: brand, search, theme toggle, article sidebar, and on-this-page outline. **Open app** returns to `/home` in another tab. Product screens explain themselves with the header breadcrumb **i** (`pageHelp.js`); that control is not part of this help chrome.
 
 Content lives as Markdown in `src/docs/content/`. Navigation, cards, and search metadata live in `src/docs/catalog.js`.
 
@@ -45,7 +45,7 @@ Implemented in `DocsApp`:
 
 ## Article map
 
-Get started, everyday work, managers, HR and admin, payroll, and reference. Topics follow current screens: sign-in, navigation, home, profile, attendance, regularization, My Work, leave, payslips, approvals, shifts, staff, roles, leave policies, holidays, HR dashboard, salary, hospitality, reports, glossary, and FAQ.
+Get started, everyday work, managers, HR and admin, payroll, and reference. Topics follow current screens: sign-in, navigation, home, profile, attendance, regularization, My Work, leave, payslips, approvals, shifts, staff, roles, leave policies, holidays, HR dashboard, salary, pay run, claims, loans, settlements, hospitality, reports, glossary, and FAQ.
 
 ## Related documentation
 

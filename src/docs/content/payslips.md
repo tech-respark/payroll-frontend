@@ -6,13 +6,13 @@ Payslips lists calculated monthly pay. You can open it when your role includes s
 2. Choose the month and year on the card header.
 3. Choose **Generate** to load that period.
 
-The staff picker appears only if you can see other people. The selectable period follows your store’s payroll configuration — months that are not yet calculated, or that are locked, may be unavailable.
+The staff picker appears only if you can see other people. Months that have not been calculated yet are unavailable. Months already locked stay readable so you can reprint a published slip. If nothing was saved for that person and month, the message says so instead of a generic failure.
 
 ## Print or download
 
-Use the on-screen payslip to print, or download the generated PDF. The PDF is created when you ask for it; the app stores the calculated amounts, not a permanent PDF file.
+The preview is the payslip itself: company letterhead, the pay period, employee and attendance, earnings against deductions, and net payable in words. Download PDF produces that same document. Payroll managers can also download the store Excel file. If the store has not uploaded a logo yet, the company name is shown. Upload a logo from **Pay run → Payslip logo**. Bank, PAN, and UAN appear only when they are on the employee record.
 
-After a hospitality run, extra lines can appear with a `Hosp:` prefix for overtime, commission, service-charge share, advance recovery, and statutory deductions. See [Hospitality payroll](/docs/hospitality).
+After a pay run, extra lines can appear with a `Core:` prefix for reimbursements, loan EMI, PF, ESI, PT, TDS, and LWF. Hospitality lines still use a `Hosp:` prefix for overtime, commission, service-charge share, and advance recovery. See [Pay run](/docs/pay-run) and [Hospitality payroll](/docs/hospitality).
 
 ## If a payslip looks wrong
 

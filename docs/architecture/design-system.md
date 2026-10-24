@@ -2,8 +2,8 @@
 
 > **Audience:** Frontend developers, designers, technical reviewers  
 > **Purpose:** Document shared tokens, shell layout, UI primitives, and styling rules  
-> **Last verified:** 2026-10-21  
-> **Source of truth:** `src/styles/hajiro-theme.css`, `src/styles/main.scss`, `src/components/ui/`, shell components (`Navigation`, `TopHeader`)
+> **Last verified:** 2026-10-24  
+> **Source of truth:** `src/styles/hajiro-theme.css`, `src/styles/main.scss`, `src/components/ui/`, shell components (`Navigation`, `TopHeader`, `OpsLayout`)
 
 Payroll uses the **Hajiro v1** palette and spacing rules on the existing product shell. Product name and logo stay as they are in this repository. CSS variables, Sass modules, and Lucide icons (`react-icons/lu`) remain the implementation layer.
 
@@ -44,6 +44,7 @@ Authenticated layout (`App.jsx` + global classes in `main.scss`):
 - Main scroll region: `.main-content` with **24px** horizontal gutters (16px on small breakpoints).
 - Feature surfaces often use `.dashboard-content` or `.mp-card` (16px radius, `--shadow-card`).
 - **Page title lives in `TopHeader` only** — do not repeat the route name as an in-page `h1`. Keep section titles inside cards/widgets; put primary actions in a slim toolbar when needed.
+- The internal `/ops` console uses the same shell: 248px Hajiro sidebar (`OpsNav` reuses `Navigation.module.scss`), 64px header (`OpsHeader` reuses `TopHeader.module.scss`), `.app-layout` / `.content-wrapper` / `.main-content`, and the same `Card` / `Button` / `Badge` / `Input` primitives. Ops destinations stay Clients / New client / Operators. Platform users get the account drawer (theme + sign out) without client shortcuts or store chips.
 
 ### Header actions (`TopHeader` + `src/components/shell/`)
 

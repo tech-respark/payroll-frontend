@@ -132,7 +132,6 @@
   gap: 10px;
   transition: var(--transition);
   background: transparent;
-  box-shadow: inset 3px 0 0 transparent;
 
   > div:last-child {
     min-width: 0;
@@ -155,7 +154,6 @@
   gap: 10px;
   transition: var(--transition);
   background: var(--nav-active-bg);
-  box-shadow: inset 3px 0 0 var(--primary-color);
 
   > div:last-child {
     min-width: 0;

@@ -45,6 +45,13 @@ export const prettyStatus = (status) => {
     APPROVED: 'Approved',
     REJECTED: 'Rejected',
     CANCELLATION_REQUESTED: 'Cancel requested',
+    DRAFT: 'Draft',
+    CALCULATED: 'Calculated',
+    PENDING_APPROVAL: 'Pending approval',
+    PUBLISHED: 'Published',
+    LOCKED: 'Locked',
+    SETTLED: 'Settled',
+    CLOSED: 'Closed',
     ACTIVE: 'Active',
     INACTIVE: 'Inactive',
     UNASSIGNED: 'Unassigned',
@@ -60,4 +67,43 @@ export const staffName = (staff) => {
   if (!staff) return '—';
   const full = `${staff.firstName || ''} ${staff.lastName || ''}`.trim();
   return full || staff.name || staff.username || `Staff ${staff.id}`;
+};
+
+export const staffNameById = (staffList, id) => {
+  if (id == null || id === '') return '—';
+  const staff = (staffList || []).find((item) => String(item.id || item.staffId) === String(id));
+  return staff ? staffName(staff) : `Staff ${id}`;
+};
+
+export const formatMoney = (value) => Number(value || 0).toLocaleString('en-IN', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+export const formatCount = (value) => {
+  const n = Number(value || 0);
+  return Number.isInteger(n) ? String(n) : n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+};
+
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+export const formatSlipDate = (value) => {
+  const date = parseLocalDate(value);
+  if (!date) return value || '—';
+  return `${date.getDate()} ${SHORT_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+};
+
+export const formatPayPeriod = (value) => {
+  const parts = String(value || '').split(/\s+to\s+/i);
+  if (parts.length === 2) {
+    return `${formatSlipDate(parts[0])} – ${formatSlipDate(parts[1])}`;
+  }
+  return value || '—';
+};
+
+export const maskAccountNumber = (value) => {
+  const digits = String(value || '').replace(/\s+/g, '');
+  if (!digits) return '';
+  if (digits.length <= 4) return digits;
+  return `${'•'.repeat(Math.min(digits.length - 4, 8))}${digits.slice(-4)}`;
 };

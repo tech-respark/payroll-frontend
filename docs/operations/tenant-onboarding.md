@@ -1,85 +1,88 @@
 # Tenant onboarding
 
 > **Audience:** Implementation engineers, operators, support  
-> **Purpose:** Safely provision a tenant without copying stale hardcoded SQL  
-> **Last verified:** 2026-10-19  
-> **Source of truth:** Current entities, services, startup seeder, and schema
+> **Purpose:** Provision a tenant through the internal ops console without copying SQL  
+> **Last verified:** 2026-10-24  
+> **Source of truth:** `/ops` wizard, `OpsOnboardingService`, `OpsSalaryPackService`
 
 ## Principles
 
-- Perform onboarding in a controlled environment with a backup and change record.
-- Use generated IDs and parameterized, idempotent scripts; never copy IDs from another tenant.
-- Never place vendor, database, or user passwords in documentation.
-- Validate every relationship before enabling user access.
-- Prefer a versioned onboarding tool/migration over manual SQL. The current application does not yet provide one.
+- Use `/ops`, not laptop SQL, for a new client.
+- Never copy IDs from another tenant. The wizard generates `tenantId` and `storeId`.
+- Never place vendor, database, or user passwords in this portal.
+- Client HR still finishes staff, roster, leave enrollment, and salary amounts after the admin can sign in.
+- Platform users (`superadmin`, `sales`) never receive a client JWT except a 30-minute superadmin support session. That session opens through a one-time handoff in a new tab and is written to the activity log.
 
 ## Provisioning order
 
 ```mermaid
 flowchart TD
-    Tenant[1. Tenant] --> Store[2. Store]
-    Store --> Role[3. Admin role]
-    Role --> User[4. Root staff user]
-    User --> Assignment[5. Store-role assignment]
-    Assignment --> Salary[6. Salary definitions and rules]
-    Salary --> Leave[7. Leave policies and enrollment]
-    Leave --> Integration[8. Integration and scheduler config]
-    Integration --> Acceptance[9. Acceptance checks]
+    OpsLogin[Ops login] --> Company[1. Company]
+    Company --> Store[2. Store and profile]
+    Store --> License[3. License]
+    License --> Admin[4. Client admin roles]
+    Admin --> Salary[5. Salary definitions]
+    Salary --> Leave[6. Leave pack]
+    Leave --> Holiday[7. Holiday pack]
+    Holiday --> Shift[8. Optional default shift]
+    Shift --> Integration[9. Optional integrations]
+    Integration --> Activate[10. Activate license]
 ```
 
-## 1. Tenant
+## 1. Company
 
-Create a `tenant_company_mapping` record with unique tenant identity, application name, salary-cycle settings, and leave behavior. Configure integration fields only when approved endpoints and secrets are available.
+Create `tenant_company_mapping`: name, source product (`tenant_company_mapping.product_id` from the `platform_product` catalog, default unless the operator picks another), salary-cycle start day, summary/salary offsets, paid-leave flag. Superadmin can add more suites later. Payroll stays standalone. Do not treat the product as a live connector.
 
-## 2. Store
+## 2. Store and profile
 
-Create at least one `store_details` record linked to the tenant. Confirm:
+Create `store_details` (timezone, hours, FY start, lock date, currency, attendance mode) and `store_profile_config` (company/address, working days/hours).
 
-- business timezone;
-- open/close time;
-- financial-year start;
-- payroll lock;
-- currency and date display;
-- external branch ID where staff sync is used.
+## 3. License
 
-## 3. Administrative role
+Write `tenant_subscription`: `DRAFT`, `TRIAL`, `ACTIVE`, `SUSPENDED`, or `EXPIRED`; dates; plan `STANDARD` or `HOSPITALITY`; store/staff caps; module flags; `sales_owner_id` (defaults to the operator who created the tenant). Draft tenants cannot use client `/login`.
 
-Create a tenant-scoped active role. Select the minimum permissions needed for onboarding and administration. Do not treat an old comma-separated “all permissions” example as canonical; compare with the current [permission matrix](../reference/routes-and-permissions.md).
+## 4. Client admin
 
-## 4. Root staff user
+Create tenant-scoped Admin, Manager, and Staff roles in `s_role` (not the hidden platform roles). Create the root `personnel_details` user and `s_store_staff_role`. Show the temp password once. Ops marks **First admin signed in** after that user completes client `/login`. Support sessions do not count.
 
-Create a staff record with a unique username/email, BCrypt password, tenant/store relationship, employee code, and active state. Require password rotation through a secure channel.
+## 5. Salary definitions
 
-## 5. Store-role assignment
+The client Salary screen cannot create definitions. Ops applies a system pack, or a superadmin adds, edits, or deletes `salary_component_definitions` and MVEL `salary_component_rules`. The wizard and client record can clone salary, leave, letterhead, and holidays from another tenant the operator can see. Clone-from skips aliases that already exist on the target and only fills blank letterhead fields. Formula preview uses sample inputs. Aliases such as `basic` and `hra` are what `SalaryCalculation` evaluates. Use `store_id = 0` for tenant-global rows. Do not duplicate the same alias on store `0` and a store-specific row. FORMULA rows are marked computable so monthly payroll can evaluate them.
 
-Create `s_store_staff_role` linking the staff primary key, role, tenant, and store. Verify authorities by logging in and inspecting expected navigation and API access.
+## 6. Leave pack
 
-## 6. Salary setup
+Creates CL, SL, EL, OH and one default plan with annual rules. HR enrolls staff later on `/leave-configuration`.
 
-Create component definitions and formula rules for the tenant/store. Validate alias uniqueness, priority order, earning/deduction category, fixed/formula type, and global (`store_id = 0`) intent. Run a worked salary example before assigning live values.
+## 7. Holiday pack
 
-## 7. Leave setup
+Writes fixed national holidays for the selected year (New Year, Republic Day, Labour Day, Independence Day, Gandhi Jayanti, Christmas). Variable festival dates stay a client HR step on `/settings/holidays`. Clone-from also copies existing `store_holiday` rows.
 
-Create leave types, plans, rules, staff enrollment, and opening allocations. Verify accrual frequency, carry-forward, half-day, proof, and cancellation behavior.
+## 8. Optional default shift
 
-## 8. Integrations and scheduler
+Creates one General `shift_slots` row from store hours.
 
-- Biometric: tenant vendor configuration plus `payroll_scheduler_info` event `ATTENDANCEDATAREMINDER`
-- Staff import: tenant external URL/app name plus store external branch ID
-- Notifications: environment-specific RabbitMQ and SMTP configuration
+## 9. Optional integrations
 
-Test integrations with synthetic users before production data.
+Team Office vendor fields, terminals, `ATTENDANCEDATAREMINDER`, and external staff-sync URLs. Hospitality plans persist `statutory_config`. The live client record can change these after go-live.
 
-## 9. Acceptance checklist
+## 10. Activate
 
+Set the subscription to `TRIAL` or `ACTIVE`. Then sign in at `/login` as the client admin and complete the [acceptance checklist](#acceptance-checklist).
+
+## Acceptance checklist
+
+- Platform user cannot open `/home`
+- Client admin cannot open `/ops`
 - Login produces correct tenant/store claims and role authorities
 - User cannot see another tenant/store
-- Staff self/manager visibility matches policy
-- Shift and attendance calculations match a sample week
-- Leave balance and approval produce expected ledger entries
-- Monthly attendance summary reconciles to source days
-- Salary components and formulas match approved examples
-- Payslip totals and exports reconcile
+- Salary definitions appear on `/salary` so HR can type amounts
+- Leave configuration shows the default plan
+- Shift Management shows the General slot when created
+- Expired or suspended license blocks client login
 - Scheduler, logs, retries, backups, and monitoring are owned
 
-Record tenant ID, store IDs, implementation version, approvers, and acceptance evidence in the deployment system—not in this public repository.
+## Assisted lifecycle (not self-serve)
+
+Onboarding is operator-assisted. RelFor does not sell itself: there is no public signup, in-app billing, or live POS connector. Ops provisions the tenant, the client admin signs in, and HR finishes staff, roster, leave, and salary amounts. Treat hospitality clock, advances, service charge, and NEFT as existing modules, not expansion work. Statutory worksheets stay in-product; government filing stays outside.
+
+Record tenant ID, store IDs, implementation version, and acceptance evidence in the deployment system—not in this public repository.

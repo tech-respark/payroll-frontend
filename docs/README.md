@@ -2,7 +2,7 @@
 
 > **Audience:** Everyone working with or evaluating Relfor Payroll  
 > **Purpose:** Central navigation and documentation ownership  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** Current `payroll-frontend` and `payroll-backend` code
 
 This portal follows a docs-as-code model. It separates product promises, user workflows, technical design, operational procedures, and known limitations so each audience can find reliable information quickly.
@@ -19,7 +19,8 @@ This portal follows a docs-as-code model. It separates product promises, user wo
 | API consumer | [API reference](reference/api-reference.md) | Methods, paths, authorization, response styles |
 | DevOps or support | [Operations](operations/local-development.md) | Setup, configuration, runbooks, troubleshooting |
 | QA or release operator | [QA and production deployment](operations/qa-and-production-deployment.md) | Secrets, reverse proxy, QA checks, production controls |
-| Tenant implementation team | [Tenant onboarding](operations/tenant-onboarding.md) | Safe sequencing and acceptance checks |
+| Tenant implementation team | [Tenant onboarding](operations/tenant-onboarding.md) | `/ops` wizard and acceptance checks |
+| Internal operator | [Internal ops console](features/ops-console.md) | Clients, licenses, platform users |
 
 ## Product and client documentation
 
@@ -39,6 +40,7 @@ This portal follows a docs-as-code model. It separates product promises, user wo
 - [Hospitality payroll](features/hospitality-payroll.md)
 - [Reports and HR dashboard](features/reports-and-hr-dashboard.md)
 - [User help center](features/user-help-center.md)
+- [Internal ops console](features/ops-console.md)
 
 ## Architecture and engineering
 

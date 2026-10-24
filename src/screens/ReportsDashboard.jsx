@@ -79,7 +79,7 @@ const ReportsDashboard = () => {
         const name = info.getValue() || '—';
         const staffId = row.staff_id ?? row.staffId;
         if (!staffId) return name;
-        return <Link to={`/reports/detailed?staffId=${staffId}`}>{name}</Link>;
+        return <Link to={`/reports/detailed?staffId=${staffId}&from=${fromDate}&to=${toDate}`}>{name}</Link>;
       },
     },
     {
@@ -104,7 +104,7 @@ const ReportsDashboard = () => {
         );
       }
     }
-  ], []);
+  ], [fromDate, toDate]);
 
   const table = useReactTable({
     data: filteredData,

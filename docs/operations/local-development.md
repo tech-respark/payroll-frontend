@@ -2,7 +2,7 @@
 
 > **Audience:** Developers and QA  
 > **Purpose:** Run the frontend, backend, and database locally  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-23  
 > **Source of truth:** Build files and verified local runtime
 
 ## Prerequisites
@@ -64,6 +64,7 @@ Open `http://localhost:5174/login`. After sign-in the app lands on `/home`. The 
 4. Confirm one GET and one mutation pass through the proxy.
 5. Confirm browser requests use `/payroll-management/v1`.
 6. Check backend logs for database or integration failures.
+7. Open `/ops/login` with the seeded platform user (local-only values, not recorded here) and confirm the client shell is not shown.
 
 ## Useful checks
 

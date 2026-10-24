@@ -136,8 +136,8 @@ const AttendanceDashboard = () => {
         if (isFuture) status = '';
         
         let punches = dayRecord ? (dayRecord.individualPunchesList || []) : [];
-        let shiftStart = dayRecord ? (dayRecord.shiftStartTime || "09:30") : "09:30";
-        let shiftEnd = dayRecord ? (dayRecord.shiftEndTime || "18:30") : "18:30";
+        let shiftStart = dayRecord?.shiftStartTime || '';
+        let shiftEnd = dayRecord?.shiftEndTime || '';
         
         let lateIn = "00:00";
         let earlyOut = "00:00";
@@ -340,7 +340,11 @@ const AttendanceDashboard = () => {
           <div className={styles.metricsGrid}>
             <div className={styles.metricCell}>
               <div className={styles.metricLabel}>Shift Timing</div>
-              <div className={styles.metricValue}>{selectedDateObj.shiftStart} - {selectedDateObj.shiftEnd}</div>
+              <div className={styles.metricValue}>
+                {selectedDateObj.shiftStart && selectedDateObj.shiftEnd
+                  ? `${selectedDateObj.shiftStart} - ${selectedDateObj.shiftEnd}`
+                  : 'No rostered shift'}
+              </div>
             </div>
             
             <div className={styles.metricCell}>

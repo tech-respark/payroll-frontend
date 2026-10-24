@@ -16,5 +16,3 @@ export const OPS_GATES = [
 ];
 
 export const isOpsUser = (hasAccess) => Boolean(hasAccess?.(OPS_GATES));
-
-export const defaultAuthenticatedPath = () => HOME_PATH;

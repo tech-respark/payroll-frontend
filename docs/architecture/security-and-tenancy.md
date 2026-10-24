@@ -2,16 +2,20 @@
 
 > **Audience:** Developers, architects, security reviewers, operators  
 > **Purpose:** Document implemented controls and verified gaps  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** Security configuration, JWT classes, role loading, frontend auth context
 
 ## Authentication
 
+Client `/login` accepts username or email plus password for `personnel_details` only. A successful client login writes `last_login_at`; a support-session handoff does not. Platform `/ops/login` authenticates `platform_user` only. A platform username on client login fails with the same generic 401. Client login also fails when `tenant_subscription` is missing a usable `TRIAL`/`ACTIVE` window that has already started and has not ended (existing tenants without a row still pass until ops writes one). Superadmin can mint a 30-minute client support session for one staff member; a one-time handoff code opens it in a new tab and the session can be revoked. Sales users only see tenants they own. Superadmin maintains an open source-product catalog (`platform_product`); sales can assign an active product on a tenant they own but cannot add or deactivate catalog rows. The catalog is a label only. Payroll does not sync to those products yet.
+
+If the staff record has `totpEnabled`, `/login` returns `requires2fa` and a 5-minute `challengeToken` instead of a JWT. `POST /login/verify-2fa` then issues the session. Authenticator setup is self-service at `/payroll/me/totp/*`.
+
 Login accepts username or email plus password. Passwords are matched with BCrypt. Inactive accounts are rejected with the same 401 message as invalid credentials. On success the API issues an HS256 JWT containing username, `tenantId`, and `storeId`. Token lifetime is `jwt.expiration-ms` (default ten hours). The signing secret is `jwt.secret` / `JWT_SECRET` and must be at least 32 bytes; the process fails to start if it is missing or too short.
 
-The frontend stores `jwtToken` and the login response in `localStorage`, sends `Authorization: Bearer <token>`, and clears the session on non-login **401** responses. A **403** stays signed in and surfaces a permission error. Missing, expired, or invalid JWTs are unauthenticated and return **401**. Denied authorities on an authenticated request return **403**. Inactive users cannot keep using an old token; the JWT filter requires `UserDetails.isEnabled()`.
+The frontend stores `jwtToken` and the login response in `localStorage`, sends `Authorization: Bearer <token>`, and clears the session on non-login **401** responses. A **403** stays signed in and surfaces a permission error. Missing, expired, or invalid JWTs are unauthenticated and return **401**. Denied authorities on an authenticated request return **403**. Inactive users cannot keep using an old token; the JWT filter requires `UserDetails.isEnabled()`. `JwtAuthFilter` reloads `UserDetails` from the database on every request, so revoked roles take effect immediately on the API. The UI also calls `GET /session` on load and when the tab becomes visible to refresh `user.roles` without waiting for a new sign-in.
 
-Public backend paths are login, forgot-password routes, CORS preflight, and `/actuator/health`. All other paths, including remaining actuator routes, require an authenticated request.
+Public backend paths are client login, `/ops/login`, `/ops/support-handoff/{code}`, forgot-password routes, CORS preflight, and `/actuator/health`. All other paths, including remaining actuator routes, require an authenticated request. Platform JWTs include `principalType=PLATFORM` and `opsRole`. They cannot call client APIs. Client JWTs cannot call `/ops/**` except the public handoff. Support JWTs carry `supportSessionId` and fail closed after revoke or expiry.
 
 ## Authorities
 

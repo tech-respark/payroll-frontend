@@ -2,7 +2,7 @@ Profile holds the employment record the rest of the product uses — name, acces
 
 ## What you see
 
-If you only have access to your own record, the directory column is hidden and the editor shows you. Managers and HR who can view other staff see a searchable list on the left.
+If you only have access to your own record, the sidebar calls this **Profile** and pins it at the bottom. The directory column is hidden and the editor shows you. Managers and HR who can view other staff see **Staff** with a searchable list on the left.
 
 The record is grouped into four sections:
 
@@ -15,7 +15,7 @@ Employment can also store pay cycle, employment type, job codes, overtime multip
 
 ## Edit your details
 
-1. Open **Staff**.
+1. Open **Profile** (or **Staff** if you can see other people).
 2. Select the person if a directory is visible.
 3. Change the fields you are allowed to edit.
 4. Save.

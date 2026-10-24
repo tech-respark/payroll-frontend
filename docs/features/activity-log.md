@@ -2,7 +2,7 @@
 
 > **Audience:** HR, managers, payroll, support, developers  
 > **Purpose:** Explain the store-wide activity history screen and the shared recorder  
-> **Last verified:** 2026-10-21  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** `ActivityLogDashboard`, `ActivityLogController`, `ActivityRecorder`
 
 ## Route
@@ -11,7 +11,7 @@
 
 ## What users see
 
-A filtered, newest-first list of business events for the signed-in tenant and store. The filter bar is sticky under the header. Module, action, dates, search, page, and size live in the page URL and as query parameters on `GET /activity`; the UI never slices a full list in the browser. Default page size is 20 (10 or 50 from the footer). The response includes `items`, `total`, `page`, `size`, and `totalPages`. Each row is a human summary plus actor, module, and optional context. Expanding a row shows action, username, resource, IP, and redacted context. Failed sign-ins are labelled Failed. Search matches summary, display name, username, and related record. Salary amounts, passwords, OTPs, bank details, and geolocation are stripped before storage.
+A filtered, newest-first list of business events for the signed-in tenant and store. The filter bar is sticky under the header. Module, action, dates, search, page, and size live in the page URL and as query parameters on `GET /activity`; the UI never slices a full list in the browser. Default page size is 20 (10 or 50 from the footer). The response includes `items`, `total`, `page`, `size`, and `totalPages`. Each row is a human summary plus actor, module, and optional context. Expanding a row shows action, username, resource, IP, and redacted context. Failed sign-ins are labelled Failed. Search matches summary, display name, username, and related record. Salary amounts, passwords, OTPs, bank details, and geolocation are stripped before storage and again when a row is read, so a later blocklist still hides older context.
 
 The log is append-only. There is no edit or delete path in the API. Events exist only from the time the table was introduced; history is not reconstructed from older tables.
 

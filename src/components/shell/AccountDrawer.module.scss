@@ -40,6 +40,16 @@
   word-break: break-all;
 }
 
+.totpQr {
+  display: block;
+  width: 168px;
+  height: 168px;
+  margin: 10px 0 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: #fff;
+}
+
 .metaRow {
   display: flex;
   flex-wrap: wrap;

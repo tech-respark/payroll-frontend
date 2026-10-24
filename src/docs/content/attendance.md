@@ -4,7 +4,7 @@ Attendance is a monthly calendar of the days you worked, were away, or were on l
 
 Month and year sit on the calendar header. Each day shows a status such as Present, Absent, Half day, Late, Weekly off, or Public holiday.
 
-Select a day to see punch times and the calculated status. Pending or rejected corrections still appear on the day, but they do not count as Present.
+Select a day to see punch times and the calculated status. If there is no roster for that date, the shift line says **No rostered shift** instead of invented hours. Pending or rejected corrections still appear on the day, but they do not count as Present.
 
 If your role includes viewing other staff, a person picker appears on the same calendar header.
 
@@ -20,6 +20,7 @@ If your role includes viewing other staff, a person picker appears on the same c
 | Public holiday | A store holiday |
 | On leave | An approved leave day |
 | Split | Four or more punches on the same date |
+| Unrostered | No shift assigned that day |
 
 An overnight shift that ends after midnight is treated as one continuous interval.
 

@@ -131,7 +131,15 @@ const groupForPath = (pathname) => {
   if (pathname.startsWith('/shifts')) return 'Shifts';
   if (pathname.startsWith('/attendance') || pathname.startsWith('/my-work')) return 'Attendance';
   if (pathname.startsWith('/approvals') || pathname.startsWith('/leave-approvals')) return 'Approvals';
-  if (pathname.startsWith('/salary') || pathname.startsWith('/payslips') || pathname.startsWith('/hospitality')) return 'Payroll';
+  if (
+    pathname.startsWith('/salary')
+    || pathname.startsWith('/payslips')
+    || pathname.startsWith('/hospitality')
+    || pathname.startsWith('/pay-run')
+    || pathname.startsWith('/claims')
+    || pathname.startsWith('/loans')
+    || pathname.startsWith('/settlements')
+  ) return 'Payroll';
   if (pathname.startsWith('/reports')) return 'Reports';
   if (
     pathname.startsWith('/leave') ||
@@ -341,6 +349,12 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
                 </NavItem>
               </>
             )}
+            <NavItem to="/claims" icon={LuWallet} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+              Claims
+            </NavItem>
+            <NavItem to="/loans" icon={LuWallet} onNavigate={handleNavClick} isCollapsed={isCollapsed}>
+              Loans
+            </NavItem>
           </ul>
 
           <div className={styles.navSpacer} aria-hidden="true" />
@@ -579,6 +593,26 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
                       Payslips
                     </NavLink>
                   </li>
+                  <li>
+                    <NavLink to="/pay-run" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                      Pay run
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/claims" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                      Claims
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/loans" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                      Loans
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/settlements" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                      Settlements
+                    </NavLink>
+                  </li>
                 </>
               )}
               {hasAccess(['MANAGE_SALARY', 'VIEW_HOSPITALITY', 'MANAGE_HOSPITALITY']) && (
@@ -613,6 +647,13 @@ const Navigation = ({ isCollapsed, onToggle, onNavigate }) => {
                 <li>
                   <NavLink to="/reports/detailed" activeClassName={styles.activeLink} onClick={handleNavClick}>
                     Staff Detailed Report
+                  </NavLink>
+                </li>
+              )}
+              {hasAccess(['VIEW_SALARY', 'VIEW_REPORTS', 'MANAGE_SALARY']) && (
+                <li>
+                  <NavLink to="/reports/payroll" activeClassName={styles.activeLink} onClick={handleNavClick}>
+                    Payroll cost
                   </NavLink>
                 </li>
               )}

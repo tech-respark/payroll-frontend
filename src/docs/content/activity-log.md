@@ -24,4 +24,4 @@ Home also shows a short recent-activity list for people who can open this page.
 
 ## If a page is missing
 
-You need the **View activity log** permission on your store role. Ask HR to add it on [Roles and permissions](/docs/roles). After they save, sign in again.
+You need the **View activity log** permission on your store role. Ask HR to add it on [Roles and permissions](/docs/roles). After they save, refresh the tab — or sign in again if the link still does not appear.

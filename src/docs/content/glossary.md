@@ -20,7 +20,8 @@ Shared words used in the product and in this guide.
 - **Roster** — templates assigned to people on dates.
 - **Punch** — a single in or out event.
 - **Regularization** — a requested correction to a punch.
-- **Daily summary** — the classified day (Present, Absent, and similar).
+- **Daily summary** — the classified day (Present, Absent, Unrostered, and similar).
+- **Unrostered** — no shift assigned that day. Attendance and My Work say **No rostered shift** instead of inventing hours.
 - **Monthly summary** — the month totals payroll reads.
 
 ## Leave
@@ -33,5 +34,9 @@ Shared words used in the product and in this guide.
 
 - **Salary component** — an earning or deduction, fixed or formula-based.
 - **Payslip** — the stored monthly result, which you can print or download as a PDF.
-- **Payroll lock** — a store date that blocks earlier periods from being changed.
+- **Payroll lock** — `payrollLockedUpToDate`, the store date through which monthly variables cannot be edited. Locked months stay readable on Payslips.
+- **Attendance cursor** — `recentSummaryCalculatedMonth`, the latest month whose attendance summary exists. Payslips hide later months as not calculated yet.
+- **Pay run** — the existing monthly workspace that calculates, submits, approves, publishes, and locks a period. It is not a second calculator.
+- **Payroll cost** — operational earnings, deductions, net, and headcount for a month. Not a statutory filing.
+- **Employer cost** — a statutory amount such as employer PF. It is not take-home pay.
 - **Hospitality line** — an extra `Hosp:` row for commission, service charge, advance recovery, or a statutory amount.

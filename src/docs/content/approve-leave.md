@@ -3,8 +3,8 @@ Leave Approvals is the queue of pending applications and cancellation requests. 
 ## Review a request
 
 1. Open **Approvals**, then **Leave Approvals**.
-2. Open a pending application or a cancellation request.
-3. Check the type, dates, and remaining balance.
+2. Open **Review** or a pending row. The list also shows the employee reason.
+3. Check the type, dates, remaining balance, and leave history in the drawer.
 4. Approve or reject.
 
 The decision is recorded as you — the signed-in manager — not as a name typed in the form.

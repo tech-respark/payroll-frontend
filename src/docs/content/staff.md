@@ -1,5 +1,7 @@
 The staff directory is the same Staff screen employees use for their profile, with a list on the left when you can see other people.
 
+If you can only see yourself, the sidebar calls this **Profile** and pins it at the bottom. There is no directory column.
+
 You need view-other-staff or manage-staff permission for the directory. Manage permission enables create and edit.
 
 ## Add a person
@@ -17,6 +19,7 @@ A valid role at the store is required for expected access. Saving the profile wi
 - Use the shared staff picker when you set a reporting manager.
 - Confirm before removing a document or experience row.
 - Hospitality stores should keep pay cycle, employment type, job codes, overtime multiplier, ESI number, and PAN up to date.
+- **Standard working hours / day** is hours in a normal working day (not a weekly total). It feeds overtime and daily-rate pay.
 
 ## Identifiers
 

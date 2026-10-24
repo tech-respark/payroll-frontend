@@ -5,6 +5,64 @@
   gap: 16px;
 }
 
+.checklist {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stepMark {
+  display: inline-flex;
+  min-width: 52px;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+}
+
+.stepDone .stepMark {
+  background: var(--badge-success-bg);
+  color: var(--badge-success-fg);
+}
+
+.stepDone {
+  color: var(--text-dark);
+}
+
+.skipRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.skipRow > * {
+  min-width: 0;
+}
+
+.skipRow + .hint {
+  margin-top: 12px;
+}
+
+@media (max-width: 960px) {
+  .skipRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 .intro,
 .tabHint,
 .hint,
@@ -28,6 +86,13 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
 }
 
@@ -244,9 +309,13 @@
 
 .weekGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
   margin: 4px 0 12px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
 }
 
 .weekChip,
@@ -260,7 +329,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
   min-height: 56px;
+  overflow: hidden;
   color: var(--text-dark);
 
   strong {
@@ -270,6 +341,9 @@
   span {
     font-size: 11px;
     color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 

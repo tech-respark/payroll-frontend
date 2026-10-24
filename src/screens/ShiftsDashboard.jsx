@@ -67,7 +67,7 @@ const ShiftsDashboard = () => {
 
   const { staffList } = useStaffList();
   const { storeSettings: storeSettingsData } = useStoreSettings();
-  const { shiftSlots } = useShiftSlots();
+  const { shiftSlots, isLoading: slotsLoading } = useShiftSlots();
   
   const [weeklyStartDate, setWeeklyStartDate] = useState(todayLocalKey());
   const { weeklyShifts } = useWeeklyShifts(weeklyStartDate);
@@ -112,7 +112,20 @@ const ShiftsDashboard = () => {
       times.push(`${hh}:${mm}`);
       current.setMinutes(current.getMinutes() + 30);
     }
-    return times;
+    const extras = [
+      slotStartTime,
+      slotEndTime,
+      ...Object.values(dayWiseTimings).flatMap((day) => [day.startTime, day.closureTime]),
+      ...(shiftSlots || []).flatMap((slot) => [
+        slot.startTime,
+        slot.endTime,
+        ...((slot.dayWiseTimings || []).flatMap((day) => [day.startTime, day.closureTime])),
+      ]),
+    ];
+    extras.forEach((time) => {
+      if (time) times.push(String(time).slice(0, 5));
+    });
+    return Array.from(new Set(times)).sort();
   };
 
   const timeOptions = generateTimeOptions();
@@ -536,7 +549,9 @@ const ShiftsDashboard = () => {
               </Button>
             )}
           </div>
-          {shiftSlots.length === 0 ? (
+          {slotsLoading ? (
+            <p className={styles.emptyTemplates}>Loading shift templates…</p>
+          ) : shiftSlots.length === 0 ? (
             <p className={styles.emptyTemplates}>No shifts configured yet. Create a template, then assign it on the roster.</p>
           ) : (
             <div className={styles.templateGrid}>

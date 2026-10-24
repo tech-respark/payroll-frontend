@@ -1,5 +1,7 @@
 Open the login page for your organization. Enter the username or email your administrator gave you, then your password, and choose **Sign in**.
 
+If your account has two-factor authentication, enter the 6-digit code from your authenticator app. You turn that on from the account menu after a normal sign-in: choose **Set up authenticator**, scan the QR code (or type the secret), then enter a confirmation code to turn it on. The secret is not saved until that confirmation succeeds.
+
 After a successful sign-in the app opens [Home](/docs/home). From there you can move to Attendance, My Work, Leave, or any other screen your role includes.
 
 ## If you cannot sign in

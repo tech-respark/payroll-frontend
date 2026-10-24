@@ -4,7 +4,7 @@ Regularization Approvals is the queue of punch corrections. You need attendance 
 
 1. Open **Approvals**, then **Regularization Approvals**. The header **i** explains the tab you are on (pending, approved, or rejected).
 2. Filter by date range (last 7, 30, or 45 days, or this month) and by staff if needed.
-3. Open a pending row.
+3. Open a pending row and read the staff reason.
 4. Approve or reject. Reject can include a remark.
 5. Confirm the decision.
 

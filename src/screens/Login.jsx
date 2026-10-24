@@ -32,10 +32,44 @@ const Login = () => {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loginStep, setLoginStep] = useState('credentials');
+  const [challengeToken, setChallengeToken] = useState('');
+  const [totpCode, setTotpCode] = useState('');
+
+  const finishLogin = (response) => {
+    if (response && response.success && response.principalType === 'PLATFORM') {
+      showToast('Use the ops console to sign in with that account.', 'error');
+      return;
+    }
+    login(response);
+    showToast('Login successful!', 'success');
+    history.push(nextPath);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     
+    if (loginStep === 'totp') {
+      if (!totpCode || totpCode.length !== 6) {
+        showToast('Enter the 6-digit authenticator code.', 'error');
+        return;
+      }
+      setLoading(true);
+      try {
+        const response = await apiService.post('/login/verify-2fa', { challengeToken, otp: totpCode });
+        if (response && response.success) {
+          finishLogin(response);
+        } else {
+          showToast(response?.message || 'That code did not match.', 'error');
+        }
+      } catch (err) {
+        showToast(err?.message || 'That code did not match.', 'error');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!username || !password) {
       showToast('Please enter both username and password.', 'error');
       return;
@@ -45,10 +79,14 @@ const Login = () => {
     try {
       const response = await apiService.post('/login', { username, password });
 
+      if (response && response.success && response.requires2fa) {
+        setChallengeToken(response.challengeToken);
+        setLoginStep('totp');
+        showToast(response.message || 'Enter your authenticator code.', 'success');
+        return;
+      }
       if (response && response.success) {
-        login(response);
-        showToast('Login successful!', 'success');
-        history.push(nextPath);
+        finishLogin(response);
       } else {
         showToast(response?.message || 'Invalid credentials. Please try again.', 'error');
       }
@@ -159,26 +197,48 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className={styles.form}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Username or Email</label>
+            <label className={styles.label} htmlFor="login-username">Username or Email</label>
             <input
+              id="login-username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className={styles.input}
               placeholder="e.g. admin@respark.in"
+              autoComplete="username"
               autoFocus
             />
           </div>
 
+          {loginStep === 'totp' && (
           <div className={styles.formGroup}>
-            <label className={styles.label}>Password</label>
+            <label className={styles.label} htmlFor="login-totp">Authenticator code</label>
+            <input
+              id="login-totp"
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value)}
+              className={styles.input}
+              placeholder="000000"
+              autoComplete="one-time-code"
+            />
+          </div>
+          )}
+
+          {loginStep === 'credentials' && (
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="login-password">Password</label>
             <div className={styles.passwordWrap}>
               <input
+                id="login-password"
                 type={showLoginPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={styles.input}
                 placeholder="••••••••"
+                autoComplete="current-password"
               />
               <button
                 type="button"
@@ -190,9 +250,10 @@ const Login = () => {
               </button>
             </div>
           </div>
+          )}
 
           <button type="submit" className={styles.button} disabled={loading}>
-            {loading ? 'Authenticating...' : 'Sign In'}
+            {loading ? (loginStep === 'totp' ? 'Verifying…' : 'Authenticating...') : (loginStep === 'totp' ? 'Verify code' : 'Sign In')}
           </button>
         </form>
 
@@ -236,40 +297,46 @@ const Login = () => {
       >
         {forgotStep === 1 && (
           <div className={styles.formGroup}>
-            <label className={styles.label}>Username / Email / Mobile</label>
+            <label className={styles.label} htmlFor="forgot-username">Username / Email / Mobile</label>
             <input
+              id="forgot-username"
               type="text"
               value={forgotUsername}
               onChange={(e) => setForgotUsername(e.target.value)}
               className={styles.input}
               placeholder="Enter username, email, or mobile"
+              autoComplete="username"
             />
           </div>
         )}
         {forgotStep === 2 && (
           <div className={styles.formGroup}>
-            <label className={styles.label}>Enter OTP</label>
+            <label className={styles.label} htmlFor="forgot-otp">Enter OTP</label>
             <input
+              id="forgot-otp"
               type="text"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               className={styles.input}
               placeholder="123456"
               maxLength={6}
+              autoComplete="one-time-code"
             />
           </div>
         )}
         {forgotStep === 3 && (
           <>
             <div className={styles.formGroup}>
-              <label className={styles.label}>New Password</label>
+              <label className={styles.label} htmlFor="forgot-new-password">New Password</label>
               <div className={styles.passwordWrap}>
                 <input
+                  id="forgot-new-password"
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className={styles.input}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -282,14 +349,16 @@ const Login = () => {
               </div>
             </div>
             <div className={styles.formGroup} style={{ marginTop: 16 }}>
-              <label className={styles.label}>Confirm Password</label>
+              <label className={styles.label} htmlFor="forgot-confirm-password">Confirm Password</label>
               <div className={styles.passwordWrap}>
                 <input
+                  id="forgot-confirm-password"
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className={styles.input}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"

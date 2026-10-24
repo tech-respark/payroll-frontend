@@ -1,11 +1,25 @@
+import { clearSupportSession, currentAuthToken, isSupportAuth } from '../helpers/supportSession';
+
 export const BASE_URL = '/payroll-management/v1';
 
 
 const handleResponse = async (response, endpoint) => {
-  if (response.status === 401 && !endpoint.includes('/login')) {
+  if (response.status === 401 && !endpoint.includes('/login') && !endpoint.includes('/support-handoff')) {
+    if (isSupportAuth()) {
+      clearSupportSession();
+      window.location.href = '/ops/support-ended';
+      throw new Error('Support session ended.');
+    }
+    let platform = false;
+    try {
+      const stored = JSON.parse(localStorage.getItem('user') || 'null');
+      platform = stored?.principalType === 'PLATFORM';
+    } catch {
+      platform = false;
+    }
     localStorage.removeItem('jwtToken');
     localStorage.removeItem('user');
-    window.location.href = '/login';
+    window.location.href = platform ? '/ops/login' : '/login';
     throw new Error('Session expired. Please log in again.');
   }
   if (!response.ok) {
@@ -14,7 +28,7 @@ const handleResponse = async (response, endpoint) => {
       : 'Network response was not ok';
     try {
       const errorData = await response.json();
-      errorMessage = errorData.error || errorData.message || errorMessage;
+      errorMessage = errorData.message || errorData.error || errorMessage;
     } catch (e) {
       // Ignored
     }
@@ -26,7 +40,7 @@ const handleResponse = async (response, endpoint) => {
 export const apiService = {
   async get(endpoint, headers = {}) {
     try {
-      const token = localStorage.getItem('jwtToken');
+      const token = currentAuthToken();
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'GET',
         headers: {
@@ -45,7 +59,7 @@ export const apiService = {
   async post(endpoint, body, headers = {}) {
     window.dispatchEvent(new Event('api_call_start'));
     try {
-      const token = localStorage.getItem('jwtToken');
+      const token = currentAuthToken();
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
@@ -67,7 +81,7 @@ export const apiService = {
   async put(endpoint, body, headers = {}) {
     window.dispatchEvent(new Event('api_call_start'));
     try {
-      const token = localStorage.getItem('jwtToken');
+      const token = currentAuthToken();
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'PUT',
         headers: {
@@ -89,7 +103,7 @@ export const apiService = {
   async delete(endpoint, headers = {}) {
     window.dispatchEvent(new Event('api_call_start'));
     try {
-      const token = localStorage.getItem('jwtToken');
+      const token = currentAuthToken();
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'DELETE',
         headers: {

@@ -1,6 +1,6 @@
 Salary Management holds the pay structure used to calculate a month. You can open it with salary view or manage permission. Saving changes requires manage permission.
 
-If you can only see yourself, the directory column is hidden. Managers who can pick among several people keep the list beside the editor.
+If you can only see yourself, the directory column is hidden and the page loads your own record from the signed-in account. Managers who can pick among several people keep the list beside the editor. Blank earnings mean no structure has been saved yet — ask payroll to set fixed salary.
 
 ## Fixed salary
 
@@ -8,7 +8,7 @@ If you can only see yourself, the directory column is hidden. Managers who can p
 
 ## Monthly variables
 
-**Monthly Variables** are additions or deductions for one month only. Month and year sit on the card header. Load the period, edit the values, and save.
+**Monthly Variables** are additions or deductions for one month only. Month and year sit on the card header. Load the period, edit the values, and save. Months locked through the store payroll lock date cannot be edited. Projected net excludes employer-cost lines such as Employer PF.
 
 Fixed save does not wipe monthly-calculated rows.
 

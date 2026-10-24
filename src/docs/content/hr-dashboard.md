@@ -15,6 +15,6 @@ Use it to see what needs attention today, then jump into the queue or the direct
 
 ## How to read the numbers
 
-Metrics are taken from the signed-in tenant and store. Some labels such as a “Healthy” tag are presentation only — they are not a threshold you configure.
+Metrics are taken from the signed-in tenant and store. Today’s attendance is the share of rostered staff who punched, not a health score.
 
 For a date-range hours report, use [Reports](/docs/reports) instead of this dashboard.

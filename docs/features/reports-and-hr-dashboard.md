@@ -2,7 +2,7 @@
 
 > **Audience:** Managers, HR, payroll, sales demos, support, developers  
 > **Purpose:** Explain current reporting and executive metrics  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** Report/HR screens and shift/report services
 
 ## Attendance Summary (`/reports`)
@@ -13,15 +13,19 @@ Capabilities:
 
 - date-range attendance summary of hours planned vs hours punched;
 - sortable/filterable table;
-- staff name links to `/reports/detailed?staffId=`;
+- staff name links to `/reports/detailed?staffId=&from=&to=` so the detail range matches the summary;
 - CSV export;
 - automatic initial query plus manual refresh.
 
 ## Staff Detailed Report (`/reports/detailed`)
 
-Requires `MANAGE_ATTENDANCE` or `MANAGE_SALARY`. It selects a staff member and period, then retrieves detailed shift/attendance report data.
+Requires `MANAGE_ATTENDANCE` or `MANAGE_SALARY`. From/to initialize from the summary URL. Empty copy is “No rostered shifts…”. SQL failures surface instead of an empty table.
 
-Both report screens call endpoints hosted in the shift controller. Those report POSTs allow `VIEW_REPORTS`, `MANAGE_ATTENDANCE`, `MANAGE_SALARY`, or `MANAGE_SHIFTS`. Detailed queries also filter `store_id`.
+Both report screens call endpoints hosted in the shift controller. Those report POSTs allow `VIEW_REPORTS`, `MANAGE_ATTENDANCE`, `MANAGE_SALARY`, or `MANAGE_SHIFTS`. Detailed queries resolve staff through `StaffIdentityService.rosterKeysForStaffId` (`ss.staff_id IN (:staffIds)`), LEFT JOIN store mapping (no `application_name='RESPARK'` inner join), and rethrow SQL errors.
+
+## Payroll cost (`/reports/payroll`)
+
+Visible with `VIEW_SALARY`, `VIEW_REPORTS`, or `MANAGE_SALARY`. Month and year load `GET /payroll/cost` (headcount, earnings, deductions, net). Operational total only — not a statutory filing.
 
 ## HR snapshot on Home (`/home`, formerly `/hr-dashboard`)
 
@@ -32,7 +36,7 @@ Requires `VIEW_HR_DASHBOARD`. `/hr-dashboard` redirects to Home. Operations Home
 - leave approvals;
 - high-level workforce status.
 
-The metrics endpoint uses JWT tenant/store (`SecurityUtils`) and counts both `PENDING` and `CANCELLATION_REQUESTED`. “View Approvals” opens `/leave-approvals` only when the user has `MANAGE_LEAVES`. Some labels such as “Healthy” are static presentation, not a configured threshold.
+The metrics endpoint uses JWT tenant/store (`SecurityUtils`) and counts both `PENDING` and `CANCELLATION_REQUESTED`. “View Approvals” opens `/leave-approvals` only when the user has `MANAGE_LEAVES`. Attendance today is shown as “% of rostered staff punched today”, not a decorative Healthy tag.
 
 ## Reporting boundaries
 

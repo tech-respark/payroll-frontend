@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { LuX } from 'react-icons/lu';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import styles from './Overlay.module.scss';
 
 /**
@@ -20,6 +21,7 @@ export function Modal({
 }) {
   const panelRef = useRef(null);
   useBodyScrollLock(open);
+  useFocusTrap(open, panelRef);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -27,7 +29,6 @@ export function Modal({
       if (e.key === 'Escape') onClose?.();
     };
     window.addEventListener('keydown', onKey);
-    panelRef.current?.focus?.();
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 

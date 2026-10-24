@@ -10,7 +10,7 @@ A role is a named bundle of permissions at a store. Access is permission-driven,
 4. Select permissions by module.
 5. Save.
 
-Then assign the role to a staff member at a store. At the next sign-in the person receives both the role name and each permission.
+Then assign the role to a staff member at a store. The person receives the role name and each permission. A refresh (or the next time they bring the tab forward) updates the screens; they do not have to sign in again unless the old session still looks stale.
 
 ## Permission groups you will see
 
@@ -18,6 +18,6 @@ Typical modules include staff, shifts, attendance, salary, roles, leave, reports
 
 ## After you change a role
 
-The person must sign in again (or refresh a new session) before new permissions appear. Existing open tabs keep the previous session until they do.
+Ask them to refresh the tab or bring it forward. The app reloads permissions from the server. If the screens still look old, they should sign out and sign in again.
 
 > **Warning:** Imported roles start empty. Review them before people sign in, or they will only see the baseline employee screens.

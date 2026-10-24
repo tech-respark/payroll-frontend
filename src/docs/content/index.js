@@ -17,6 +17,10 @@ import leavePolicies from './leave-policies.md?raw';
 import holidays from './holidays.md?raw';
 import hrDashboard from './hr-dashboard.md?raw';
 import salary from './salary.md?raw';
+import payRun from './pay-run.md?raw';
+import claims from './claims.md?raw';
+import loans from './loans.md?raw';
+import settlements from './settlements.md?raw';
 import hospitality from './hospitality.md?raw';
 import reports from './reports.md?raw';
 import activityLog from './activity-log.md?raw';
@@ -43,6 +47,10 @@ export const PAGE_CONTENT = {
   holidays,
   'hr-dashboard': hrDashboard,
   salary,
+  'pay-run': payRun,
+  claims,
+  loans,
+  settlements,
   hospitality,
   reports,
   'activity-log': activityLog,

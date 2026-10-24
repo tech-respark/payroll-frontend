@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  height: calc(100vh - var(--header-height) - 48px);
   min-height: 0;
 }
 
@@ -114,7 +113,6 @@
   cursor: pointer;
   transition: var(--transition);
   border: 1px solid transparent;
-  box-shadow: inset 3px 0 0 transparent;
 
   &:hover:not(.activeItem) {
     background: var(--bg-hover);
@@ -123,7 +121,6 @@
   &.activeItem {
     background: var(--nav-active-bg);
     border-color: transparent;
-    box-shadow: inset 3px 0 0 var(--primary-color);
   }
 
   .avatar {
@@ -692,4 +689,9 @@
     text-decoration: underline;
   }
 }
-@media (max-width: 1024px) { .dashboardLayout { flex-direction: column; height: auto; overflow: visible; } .directoryPanel { width: 100%; border-right: none; padding-right: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; height: 300px; } .employeeList { max-height: 200px; } }
+@media (max-width: 1024px) {
+  .page { height: auto; }
+  .dashboardLayout { flex-direction: column; height: auto; overflow: visible; }
+  .directoryPanel { width: 100%; border-right: none; padding-right: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; height: auto; max-height: 360px; }
+  .employeeList { max-height: 240px; }
+}

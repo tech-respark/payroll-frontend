@@ -14,7 +14,12 @@ const PAGE_META = [
   { match: (p) => p === '/home' || p === '/', title: 'Home', crumbs: ['Dashboard', 'Home'] },
   { match: (p) => p.startsWith('/activity'), title: 'Activity log', crumbs: ['Dashboard', 'Activity log'] },
   { match: (p) => p.includes('reports/detailed'), title: 'Staff Detailed Report', crumbs: ['Dashboard', 'Reports', 'Detailed'] },
+  { match: (p) => p.includes('reports/payroll'), title: 'Payroll cost', crumbs: ['Dashboard', 'Reports', 'Payroll cost'] },
   { match: (p) => p.includes('report'), title: 'Attendance Summary', crumbs: ['Dashboard', 'Reports', 'Summary'] },
+  { match: (p) => p.startsWith('/pay-run'), title: 'Pay run', crumbs: ['Dashboard', 'Payroll', 'Pay run'] },
+  { match: (p) => p.startsWith('/claims'), title: 'Claims', crumbs: ['Dashboard', 'Payroll', 'Claims'] },
+  { match: (p) => p.startsWith('/loans'), title: 'Loans', crumbs: ['Dashboard', 'Payroll', 'Loans'] },
+  { match: (p) => p.startsWith('/settlements'), title: 'Settlements', crumbs: ['Dashboard', 'Payroll', 'Settlements'] },
   { match: (p) => p.includes('staff'), title: 'Staff', crumbs: ['Dashboard', 'Staff', 'List'] },
   { match: (p) => p.includes('leave-dashboard'), title: 'My Leaves', crumbs: ['Dashboard', 'Leave', 'My Leaves'] },
   { match: (p) => p.includes('leave-approvals'), title: 'Leave Approvals', crumbs: ['Dashboard', 'Approvals', 'Leave'] },
@@ -142,14 +147,18 @@ const TopHeader = ({ onMenuClick, isMobile }) => {
           <div className={styles.titleBlock}>
             <h2 className={styles.pageTitle}>{meta.title}</h2>
             <nav className={styles.breadcrumbs} aria-label="Breadcrumb">
-              {meta.crumbs.map((crumb, index) => (
+              {meta.crumbs.map((crumb, index) => {
+                const last = index === meta.crumbs.length - 1;
+                const mid = index > 0 && !last;
+                return (
                 <React.Fragment key={`${crumb}-${index}`}>
-                  {index > 0 && <span className={styles.crumbSep}>•</span>}
-                  <span className={index === meta.crumbs.length - 1 ? styles.crumbCurrent : styles.crumb}>
+                  {index > 0 && <span className={`${styles.crumbSep}${mid ? ` ${styles.crumbMid}` : ''}`}>•</span>}
+                  <span className={`${last ? styles.crumbCurrent : styles.crumb}${mid ? ` ${styles.crumbMid}` : ''}`}>
                     {crumb}
                   </span>
                 </React.Fragment>
-              ))}
+                );
+              })}
               <PageHelpTip text={pageHelp} />
             </nav>
           </div>

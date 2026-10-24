@@ -35,9 +35,10 @@ export default function StaffDetailedReport() {
   const firstDay = toLocalDateKey(new Date(today.getFullYear(), today.getMonth(), 1));
   const lastDay = toLocalDateKey(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
-  const queryStaffId = new URLSearchParams(window.location.search).get('staffId');
-  const [fromDate, setFromDate] = useState(firstDay);
-  const [toDate, setToDate] = useState(lastDay);
+  const searchParams = new URLSearchParams(window.location.search);
+  const queryStaffId = searchParams.get('staffId');
+  const [fromDate, setFromDate] = useState(searchParams.get('from') || firstDay);
+  const [toDate, setToDate] = useState(searchParams.get('to') || lastDay);
   const [selectedStaffId, setSelectedStaffId] = useState(queryStaffId || user?.staffId?.toString() || '');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -224,8 +225,8 @@ export default function StaffDetailedReport() {
                 <tr>
                   <td colSpan={columns.length} className={styles.emptyCell}>
                     <LuChartColumn />
-                    <h3>No days in this range</h3>
-                    <p>No punches or shifts for this person in the selected dates.</p>
+                    <h3>No rostered shifts in this range</h3>
+                    <p>No rostered shifts for this person in the selected dates. Punches without a roster day are not listed here.</p>
                   </td>
                 </tr>
               )}

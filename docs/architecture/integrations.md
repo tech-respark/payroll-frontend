@@ -2,7 +2,7 @@
 
 > **Audience:** Integration developers, architects, operators, client implementation teams  
 > **Purpose:** Define current integration directions, prerequisites, and schedules  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** Integration services, handlers, schedulers, and configuration
 
 ## Team Office biometric attendance
@@ -77,6 +77,10 @@ This sync is on demand; no periodic staff-sync scheduler is implemented.
 | Annual expiry/grant | 00:01, first of January | Expire carry-forward and apply annual rules |
 
 Schedulers run inside the API JVM. Each job takes a `scheduler_lock` row for its TTL so a second instance skips an in-flight run. Prefer one API process per environment. Leave accrual skips a period that already has an `ACCRUAL` ledger row.
+
+## Source products (future connectors)
+
+Each tenant has a `platform_product` label (Devourin, Respark, or any suite superadmin adds). That is a catalog assignment only. Payroll does not call those products today. `integration_mode=CONNECTOR` is reserved so a later connector can attach without changing the client model. Attendance vendor URL and staff sync stay on the tenant row and are separate from this catalog.
 
 ## Integration readiness checklist
 

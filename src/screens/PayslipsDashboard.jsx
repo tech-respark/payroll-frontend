@@ -5,7 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { useStaffList, useStoreConfig } from '../hooks/queries';
 import PayslipBill from '../components/PayslipBill';
 import { Button, StaffPicker } from '../components/ui';
-import { formatDisplayDate } from '../helpers/displayUtils';
+import { periodState } from '../helpers/periodState';
 import { LuFileText } from 'react-icons/lu';
 import styles from './PayslipsDashboard.module.scss';
 import '../styles/main.scss';
@@ -38,7 +38,8 @@ const PayslipsDashboard = () => {
   const { staffList, isLoading: staffLoading } = useStaffList();
 
   useEffect(() => {
-    if (staffList.length > 0 && !selectedStaffId) {
+    if (selectedStaffId) return;
+    if (staffList.length > 0) {
       const me = staffList.find(s => {
         if (user?.staffId && String(s.id) === String(user.staffId)) return true;
         if (user?.id && String(s.id) === String(user.id)) return true;
@@ -47,7 +48,9 @@ const PayslipsDashboard = () => {
         return false;
       });
       setSelectedStaffId(me ? String(me.id) : String(staffList[0].id));
+      return;
     }
+    if (user?.staffId) setSelectedStaffId(String(user.staffId));
   }, [staffList, selectedStaffId, user]);
 
   const handleGenerate = async () => {
@@ -59,17 +62,22 @@ const PayslipsDashboard = () => {
       if (res.data) {
         setPayslipData(res.data);
       } else {
-        showToast('Failed to generate payslip or no data found.', 'error');
+        showToast(res.message || 'No payslip has been saved for this person and month.', 'error');
       }
     } catch (err) {
       console.error(err);
-      showToast('Error generating payslip.', 'error');
+      showToast(err.message || 'Could not load the payslip. Try again or ask payroll for help.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const getRecentMonth = () => storeConfig?.recentSummaryCalculatedMonth || currentMonthIndex + 1;
+  const monthState = (mName, selYear) => periodState({
+    year: selYear,
+    monthNumber: MONTHS.indexOf(mName) + 1,
+    payrollLockedUpToDate: storeConfig?.payrollLockedUpToDate,
+    recentSummaryCalculatedMonth: storeConfig?.recentSummaryCalculatedMonth,
+  });
 
   const getFinancialYearMonths = () => {
     const startMonth = storeConfig?.financialYearStartMonth || 4; // Default April
@@ -81,34 +89,12 @@ const PayslipsDashboard = () => {
     return months;
   };
 
-  const isYearDisabled = (y) => {
-    if (storeConfig && storeConfig.payrollLockedUpToDate) {
-      const lockDate = new Date(storeConfig.payrollLockedUpToDate);
-      return y > lockDate.getFullYear();
-    }
-    return y > currentYear; // Cannot generate for future years
-  };
+  const isYearDisabled = (y) => y > currentYear;
 
-  const isMonthDisabled = (mName, selYear) => {
-    const mIndex = MONTHS.indexOf(mName);
-    if (storeConfig && storeConfig.payrollLockedUpToDate) {
-      const lockDate = new Date(storeConfig.payrollLockedUpToDate);
-      if (selYear > lockDate.getFullYear()) return true;
-      if (selYear === lockDate.getFullYear()) {
-        return mIndex > lockDate.getMonth();
-      }
-      return false;
-    }
-    if (selYear > currentYear) return true;
-    if (selYear < currentYear) return false;
-    return mIndex + 1 > getRecentMonth();
-  };
+  const isMonthDisabled = (mName, selYear) => !monthState(mName, selYear).canRead;
 
-  const isSelectionLocked = () => {
-    return isMonthDisabled(selectedMonth, selectedYear);
-  };
-
-  const generateDisabled = loading || !selectedStaffId || isSelectionLocked();
+  const selectionState = monthState(selectedMonth, selectedYear);
+  const generateDisabled = loading || !selectedStaffId || !selectionState.canRead;
   const canPickStaff = hasAccess(['VIEW_OTHER_STAFF', 'MANAGE_STAFF']);
   const canViewOthers = canPickStaff && (staffLoading || staffList.length > 1);
 
@@ -159,12 +145,8 @@ const PayslipsDashboard = () => {
           </div>
         </div>
 
-        {isSelectionLocked() && (
-          <p className="screenHint">
-            {storeConfig?.payrollLockedUpToDate
-              ? `Payroll is locked through ${formatDisplayDate(storeConfig.payrollLockedUpToDate)}. Choose an earlier month to generate.`
-              : `${selectedMonth} ${selectedYear} has not been calculated yet, so a payslip cannot be generated.`}
-          </p>
+        {!selectionState.canRead && selectionState.readReason && (
+          <p className="screenHint">{selectionState.readReason}</p>
         )}
 
         {payslipData ? (

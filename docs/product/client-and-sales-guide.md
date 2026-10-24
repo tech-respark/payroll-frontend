@@ -2,7 +2,7 @@
 
 > **Audience:** Sales, pre-sales, client success, implementation leads  
 > **Purpose:** Position and qualify the product without making unsupported promises  
-> **Last verified:** 2026-10-19  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** [Product overview](product-overview.md) and current code
 
 ## Positioning
@@ -25,14 +25,14 @@ Relfor Payroll connects workforce records, time data, leave policy, and payroll 
 
 Use a non-production tenant with synthetic data.
 
-1. Sign in and explain tenant/store context.
+1. Sign in and land on Home (staff day or operations queues).
 2. Show Staff Details and Roles & Permissions.
 3. Define a shift and show the weekly roster.
-4. Review an attendance calendar and regularization.
-5. Apply and approve leave; show the balance ledger outcome.
+4. Review an attendance calendar and regularization (own-day stays pending).
+5. Apply and approve leave from the Approvals group; show the balance ledger outcome.
 6. Configure salary components and monthly variables.
-7. Generate a payslip and attendance report.
-8. Show HR metrics last; explain that permissions control visibility.
+7. Walk Pay run (calculate → submit → approve → publish → lock), then a payslip and attendance report.
+8. Show Home HR snapshot last; explain that Attendance Today is the share of rostered staff who punched.
 
 Do not demonstrate production credentials, vendor credentials, personal bank data, or real salary data.
 
@@ -51,7 +51,7 @@ Do not demonstrate production credentials, vendor credentials, personal bank dat
 | Relfor/team responsibility | Client responsibility |
 | --- | --- |
 | Deploy and configure application services | Supply approved organization/store structure |
-| Configure tenant, roles, salary components, schedules | Confirm policy, salary, holiday, and access rules |
+| Configure tenant, license, roles, salary definitions, and schedules in `/ops` | Confirm policy, salary amounts, holiday, and access rules |
 | Map supported integrations | Provide test endpoints and credentials securely |
 | Validate acceptance scenarios | Provide authorized test users and sign-off |
 | Document production runbook | Own data accuracy and regulatory review |

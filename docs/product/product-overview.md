@@ -2,7 +2,7 @@
 
 > **Audience:** Clients, stakeholders, product, sales, implementation teams  
 > **Purpose:** Describe the verified product scope without implementation detail  
-> **Last verified:** 2026-10-20  
+> **Last verified:** 2026-10-24  
 > **Source of truth:** Frontend screens/routes and backend controllers/services
 
 ## What Relfor Payroll does
@@ -31,9 +31,9 @@ flowchart TD
 | Shifts | Shift templates, roster assignment, weekly schedule |
 | Attendance | Monthly calendar, punch details, manual regularization, approval queue |
 | Leave | Leave types/plans/rules, enrollment, balance ledger, requests, approvals, cancellation, holidays |
-| Payroll | Fixed and monthly components, formula-based components, attendance-aware monthly calculation |
-| Payslips | Historical payslip data, printable view, PDF generation; backend also exposes managed Excel export |
-| Reporting | Attendance summary, CSV export, staff detail, executive HR metrics |
+| Payroll | Fixed and monthly components, formula-based components, attendance-aware monthly calculation, pay-run workflow, first-class statutory lines, reimbursements, IT declarations, loans, settlements |
+| Payslips | Historical payslip data, printable view, PDF and Excel download, store logo upload |
+| Reporting | Attendance summary, CSV export, staff detail, payroll cost, executive HR metrics |
 | Hospitality | Advances, commission slabs, staff sales import, service-charge pool, statutory payslip lines, labor vs sales, F&F, muster/NEFT, employee clock and shift swap |
 | Integrations | Team Office biometric retrieval, external role/staff import, RabbitMQ notifications, SMTP email |
 
@@ -43,13 +43,13 @@ flowchart TD
 - **Manager:** reviews attendance regularization and leave requests when granted management permissions.
 - **HR administrator:** maintains staff, roles, shifts, policies, holidays, and HR dashboard data.
 - **Payroll administrator:** configures salary components, runs payroll operations, and accesses payroll reports.
-- **Tenant implementation/operator:** provisions tenant/store data and configures integrations and schedules.
+- **Tenant implementation/operator:** signs in at `/ops` as a platform `superadmin` or `sales` user, assigns a source product from the catalog, provisions tenant/store data, licenses, letterhead, holiday and salary packs, and (superadmin) maintains the product catalog and a 30-minute support session. Payroll stays standalone until a connector exists.
 
 Access is permission-driven, not persona-driven: a role is a named bundle of authority strings. See [routes and permissions](../reference/routes-and-permissions.md).
 
 ## Product boundaries
 
-The current application is not a complete accounting, benefits, recruiting, performance-management, or statutory filing suite. Compliance badges visible in parts of the UI are static labels; they are not evidence of automated legal validation.
+The current application is not a complete accounting, benefits, recruiting, performance-management, billing, or statutory filing suite. India PF/ESI/PT/TDS/LWF/NEFT lines are product cues, not proof of statutory certification. Form 16 HTML is a payroll worksheet, not a TRACES certificate. Compliance badges visible in parts of the UI are static labels; they are not evidence of automated legal validation. Customer lifecycle is assisted through `/ops` — no self-serve signup or live POS connector.
 
 Multi-tenancy exists at the data and JWT-claim level, but some endpoints still need stronger ownership enforcement. Client commitments must account for the [known limitations](../operations/known-limitations.md).
 

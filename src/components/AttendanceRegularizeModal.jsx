@@ -11,7 +11,10 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
   const { hasAccess, user } = useAuth();
   const { showToast } = useToast();
   const canManage = hasAccess(['MANAGE_ATTENDANCE']);
+  const isOwnDay = Boolean(user?.staffId && String(user.staffId) === String(staffData?.staffCode || staffData?.staffId));
+  const pendingOnly = isOwnDay || !canManage;
   const [punches, setPunches] = useState([]);
+  const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const { storeConfig } = useStoreConfig();
 
@@ -26,6 +29,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
     } else {
       setPunches([]);
     }
+    setReason('');
   }, [staffData]);
 
   if (!show || !staffData) return null;
@@ -43,7 +47,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
       punchDate: staffData.attendanceDate,
       punchTime: defaultTime,
       uploadSource: 'SYSTEM',
-      currentStatus: canManage ? 'APPROVED' : 'PENDING',
+      currentStatus: pendingOnly ? 'PENDING' : 'APPROVED',
       isNew: true,
     }]);
   };
@@ -72,6 +76,11 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
   };
 
   const handleSave = async () => {
+    const note = reason.trim();
+    if (!note) {
+      showToast('Add a reason so the reviewer knows what to check.', 'error');
+      return;
+    }
     setLoading(true);
 
     const formattedPunches = punches.map((p, index) => ({
@@ -79,7 +88,8 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
       punchTime: p.punchTime.length === 5 ? `${p.punchTime}` : p.punchTime.substring(0, 5),
       punchEvent: index % 2 === 0 ? 'CHECKIN' : 'CHECKOUT',
       uploadSource: p.uploadSource || 'SYSTEM',
-      currentStatus: p.isNew ? (canManage ? 'APPROVED' : 'PENDING') : (p.currentStatus || 'APPROVED'),
+      currentStatus: p.isNew ? (pendingOnly ? 'PENDING' : 'APPROVED') : (p.currentStatus || 'APPROVED'),
+      remark: note,
       punchDate: p.punchDate || staffData.attendanceDate,
       attendanceDate: p.attendanceDate || staffData.attendanceDate,
       createdBy: p.createdBy || user?.staffId,
@@ -126,7 +136,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSave} disabled={loading}>
-            {loading ? 'Submitting…' : (canManage ? 'Save & approve' : 'Submit request')}
+            {loading ? 'Submitting…' : (pendingOnly ? 'Submit request' : 'Save & approve')}
           </Button>
         </>
       )}
@@ -156,6 +166,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
                       onChange={(e) => handleTimeChange(idx, `${e.target.value}:${punch.punchTime.substring(3, 5) || '00'}`)}
                       disabled={!punch.isNew && !canManage}
                       className={styles.timeSelect}
+                      aria-label={`${isCheckIn ? 'Check-in' : 'Check-out'} hour`}
                     >
                       {hours.map((h) => <option key={`h-${h}`} value={h}>{h}</option>)}
                     </select>
@@ -165,6 +176,7 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
                       onChange={(e) => handleTimeChange(idx, `${punch.punchTime.substring(0, 2) || '09'}:${e.target.value}`)}
                       disabled={!punch.isNew && !canManage}
                       className={styles.timeSelect}
+                      aria-label={`${isCheckIn ? 'Check-in' : 'Check-out'} minute`}
                     >
                       {minutes.map((m) => <option key={`m-${m}`} value={m}>{m}</option>)}
                     </select>
@@ -195,6 +207,22 @@ const AttendanceRegularizeModal = ({ show, onClose, staffData, tenantId, storeId
         <LuPlus size={18} />
         Add missing punch
       </button>
+
+      <label className={styles.reasonField}>
+        Reason
+        <textarea
+          className={styles.reasonInput}
+          rows={3}
+          required
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Why this punch needs to change"
+          aria-label="Reason for correction"
+        />
+      </label>
+      {pendingOnly && (
+        <p className={styles.reasonHint}>Your own day stays pending until someone else approves it.</p>
+      )}
     </Modal>
   );
 };

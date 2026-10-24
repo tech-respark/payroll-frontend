@@ -20,8 +20,8 @@ You only see navigation for work you are allowed to do. If a page in this guide 
 | Shifts | Define templates and assign people to dates |
 | Attendance | Read punches, request corrections, clock in from My Work |
 | Leave | Apply, approve, configure policies, and publish holidays |
-| Payroll | Set pay, review payslips, and run hospitality extras |
-| Reports | Summarize hours and open a person-level detail view |
+| Payroll | Set pay, run a period (calculate → lock), claims, loans, settlements, and hospitality extras |
+| Reports | Summarize hours, open a person-level detail view, and read payroll cost |
 | Activity log | See who changed staff, leave, payroll, and other store records |
 
 The product is not a full accounting, recruiting, or government filing suite. Compliance labels you may see in the interface are reminders, not proof that a filing was submitted.
@@ -32,7 +32,7 @@ The product is not a full accounting, recruiting, or government filing suite. Co
 2. Managers publish shift templates and the roster.
 3. People punch in — from a biometric device, from My Work, or through a correction.
 4. Leave and holidays adjust the attendance month.
-5. Payroll reviews salary setup and publishes the payslip.
+5. Payroll reviews salary setup, runs Pay run, then publishes the payslip.
 
 ## How to use this help center
 

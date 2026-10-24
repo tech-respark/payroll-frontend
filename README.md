@@ -14,7 +14,8 @@ Start at the [documentation portal](docs/README.md).
 - [API reference](docs/reference/api-reference.md) — verified HTTP surface
 - [Local development](docs/operations/local-development.md) — run the complete stack
 - [QA and production deployment](docs/operations/qa-and-production-deployment.md) — secrets, proxy, QA checks, production controls
-- [Tenant onboarding](docs/operations/tenant-onboarding.md) — controlled setup checklist
+- [Tenant onboarding](docs/operations/tenant-onboarding.md) — `/ops` wizard
+- [Internal ops console](docs/features/ops-console.md) — clients, licenses, platform users
 - [Known limitations](docs/operations/known-limitations.md) — verified gaps and risks
 
 Backend-only setup, package layout, and request flow live in the sibling `payroll-backend` repository under `docs/README.md`.

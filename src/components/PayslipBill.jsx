@@ -4,52 +4,73 @@ import { ToWords } from 'to-words';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { BASE_URL } from '../api/apiService';
+import { Button } from './ui';
+import {
+  formatCount,
+  formatMoney,
+  formatPayPeriod,
+  maskAccountNumber,
+  titleCase,
+} from '../helpers/displayUtils';
 import styles from './PayslipBill.module.scss';
+
+const toWords = new ToWords({
+  localeCode: 'en-IN',
+  converterOptions: {
+    currency: true,
+    ignoreDecimal: false,
+    ignoreZeroCurrency: false,
+  },
+});
+
+const detail = (label, value) => (
+  <div className={styles.detailRow} key={label}>
+    <span className={styles.detailLabel}>{label}</span>
+    <span className={styles.detailValue}>{value}</span>
+  </div>
+);
 
 const PayslipBill = ({ payslipData, payslipMonth, storeConfig }) => {
   if (!payslipData) return null;
   const data = payslipData.data || payslipData;
 
-  const toWords = new ToWords({
-    localeCode: 'en-IN',
-    converterOptions: {
-      currency: true,
-      ignoreDecimal: false,
-      ignoreZeroCurrency: false,
-    }
-  });
-
-  const { tenantId, storeId, user } = useAuth();
+  const { tenantId, storeId, user, hasAccess } = useAuth();
   const { showToast } = useToast();
   const [downloading, setDownloading] = useState(false);
+  const canExcel = hasAccess(['MANAGE_SALARY']);
 
-  // Removed hardcoded fallbacks
-  const companyName = storeConfig?.companyName || "";
-  const address = storeConfig?.address || "";
-  
+  const companyName = storeConfig?.companyName || data.storeName || '';
+  const address = storeConfig?.address || '';
+  const logoPath = storeConfig?.logoPath || '';
+  const monthTitle = `${titleCase(payslipMonth || data.salaryMonth)} ${data.salaryYear || ''}`.trim();
+  const period = formatPayPeriod(data.salaryPeriod);
+  const earnings = Object.entries(data.earnings || {});
+  const deductions = Object.entries(data.deductions || {});
+  const account = maskAccountNumber(data.accountNumber);
+  const hasBank = Boolean(data.bankName || account);
+  const hasIfsc = Boolean(data.ifscCode);
+  const hasPan = Boolean(data.panNo);
+  const hasUan = Boolean(data.uanNumber);
+
   const handleDownloadPdf = async () => {
     try {
       setDownloading(true);
       const token = localStorage.getItem('jwtToken');
-      // Constructing URL using the payroll service API
       const url = `${BASE_URL}/downloadBillPdf?staffId=${data.staffId || data.employeeCode}&month=${payslipMonth}&year=${data.salaryYear}`;
-      
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
-          'Tenantid': String(tenantId),
-          'Storeid': String(storeId),
-          'Userid': String(user?.staffId || ''),
-          'Username': String(user?.username || ''),
-          'RoleId': '2',
+          Accept: 'application/pdf',
+          Tenantid: String(tenantId),
+          Storeid: String(storeId),
+          Userid: String(user?.staffId || ''),
+          Username: String(user?.username || ''),
+          RoleId: '2',
           'x-allowed-store-ids': `[${storeId}]`,
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        }
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
-
       if (!response.ok) throw new Error('Failed to download PDF');
-
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -59,7 +80,6 @@ const PayslipBill = ({ payslipData, payslipMonth, storeConfig }) => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
-      
       showToast('PDF downloaded successfully!', 'success');
     } catch (err) {
       console.error(err);
@@ -69,111 +89,130 @@ const PayslipBill = ({ payslipData, payslipMonth, storeConfig }) => {
     }
   };
 
+  const handleDownloadExcel = async () => {
+    try {
+      setDownloading(true);
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(`${BASE_URL}/excelOfPayslip?tenantId=${tenantId}&storeId=${storeId}&month=${payslipMonth}&year=${data.salaryYear}`, {
+        headers: { Authorization: token ? `Bearer ${token}` : '' },
+      });
+      if (!response.ok) throw new Error('Failed to download Excel');
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `payslip-data-${payslipMonth}-${data.salaryYear}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      showToast('Excel downloaded.', 'success');
+    } catch (err) {
+      showToast('Error downloading Excel', 'error');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
-    <div className={`payslip-container no-print ${styles.payslipContainer}`}>
-      <div className={styles.downloadButtonContainer}>
-        <button 
-          onClick={handleDownloadPdf}
-          disabled={downloading}
-          className={`${styles.downloadBtn} ${downloading ? styles.downloadBtnDisabled : ''}`}
-        >
+    <div className={styles.payslipContainer}>
+      <div className={`no-print ${styles.downloadButtonContainer}`}>
+        <Button onClick={handleDownloadPdf} disabled={downloading}>
           <LuDownload size={16} aria-hidden="true" />
-          {downloading ? 'Downloading...' : 'Download PDF'}
-        </button>
+          {downloading ? 'Downloading…' : 'Download PDF'}
+        </Button>
+        {canExcel && (
+          <Button variant="outline" onClick={handleDownloadExcel} disabled={downloading}>
+            Download Excel
+          </Button>
+        )}
       </div>
 
-      <div className={styles.wrapper} id="print-area">
-        {/* Header */}
-        <div className={styles.headerGradient}>
-          <div className={styles.brandBox}>
-            <h2 className={styles.brandName}>{companyName}</h2>
-            <p className={styles.brandAddress}>{address}</p>
-          </div>
-          <div className={styles.payslipMeta}>
-            <h3 className={styles.metaTitle}>Payslip</h3>
-            <p className={styles.metaSubtitle}>{payslipMonth} {data.salaryYear}</p>
-          </div>
-        </div>
-
-        <div className={styles.contentBox}>
-          {/* Employee & Attendance Details */}
-          <div className={styles.detailsGrid}>
-            <div className={styles.detailBlock}>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Employee Name</span> <span className={styles.detailValue}>{data.personnelName || '-'}</span></div>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Employee ID</span> <span className={styles.detailValue}>{data.employeeCode || data.staffId || '-'}</span></div>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Designation</span> <span className={styles.detailValue}>{data.designation || '-'}</span></div>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Department</span> <span className={styles.detailValue}>{data.storeName || '-'}</span></div>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Bank Name</span> <span className={styles.detailValue}>{data.bankName || '-'}</span></div>
-              <div className={styles.detailRowNoBorder}><span className={styles.detailLabel}>Account Number</span> <span className={styles.detailValue}>{data.accountNumber || '-'}</span></div>
-            </div>
-
-            <div className={styles.detailBlock}>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Total Days</span> <span className={styles.detailValue}>{data.totalDays || 0}</span></div>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Working Days</span> <span className={styles.detailValue}>{data.totalWorkingDays || 0}</span></div>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Paid Leaves</span> <span className={styles.detailValue}>{data.totalHolidays || 0}</span></div>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Absent Days</span> <span className={styles.detailValue}>{data.absentDays || 0}</span></div>
-              <div className={styles.detailRow}><span className={styles.detailLabel}>Penalty Days</span> <span className={styles.detailValue}>{data.penaltyAbsentDays || 0}</span></div>
-              <div className={styles.detailRowNoBorder}><span className={styles.detailLabel}>Total Paid Days</span> <span className={styles.detailValueSuccess}>{data.totalPaidDays || 0}</span></div>
-            </div>
-          </div>
-
-          {/* Earnings & Deductions Tables */}
-          <div className={styles.salaryGrid}>
-            <div className={styles.tableContainer}>
-              <div className={styles.tableHeader}>Earnings</div>
-              <div>
-                {data.earnings && Object.entries(data.earnings).map(([key, value], idx) => (
-                  <div className={styles.tableRow} key={idx}>
-                    <span className={styles.tableLabel}>{key}</span>
-                    <span className={styles.tableValue}>₹{Number(value).toLocaleString()}</span>
-                  </div>
-                ))}
-                {(!data.earnings || Object.keys(data.earnings).length === 0) && (
-                  <div className={styles.tableRow}><span className={styles.emptyStateText}>No Earnings</span><span /></div>
-                )}
-              </div>
-              <div className={styles.tableFooter}>
-                <span>Gross Earnings</span>
-                <span>₹{Number(data.totalEarning || 0).toLocaleString()}</span>
-              </div>
-            </div>
-
-            <div className={styles.tableContainer}>
-              <div className={styles.tableHeader}>Deductions</div>
-              <div>
-                {data.deductions && Object.entries(data.deductions).map(([key, value], idx) => (
-                  <div className={styles.tableRow} key={idx}>
-                    <span className={styles.tableLabel}>{key}</span>
-                    <span className={styles.tableValue}>₹{Number(value).toLocaleString()}</span>
-                  </div>
-                ))}
-                {(!data.deductions || Object.keys(data.deductions).length === 0) && (
-                  <div className={styles.tableRow}><span className={styles.emptyStateText}>No Deductions</span><span /></div>
-                )}
-              </div>
-              <div className={styles.tableFooter}>
-                <span>Total Deductions</span>
-                <span>₹{Number(data.totalDeduction || 0).toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Net Salary Highlight */}
-          <div className={styles.netBox}>
+      <article className={styles.paper} id="print-area">
+        <header className={styles.letterhead}>
+          <div className={styles.brand}>
+            {logoPath ? (
+              <img className={styles.logo} src={logoPath} alt="" />
+            ) : null}
             <div>
-              <div className={styles.netTitle}>Net Salary Payable</div>
-              <div className={styles.netAmount}>₹{Number(data.salaryAmount || 0).toLocaleString()}</div>
-            </div>
-            <div className={styles.wordsText}>
-              {toWords.convert(data.salaryAmount || 0)}
+              <h2 className={styles.company}>{companyName || 'Payslip'}</h2>
+              {address ? <p className={styles.address}>{address}</p> : null}
             </div>
           </div>
+        </header>
 
-          <div className={styles.footerNote}>
-            This is a computer-generated payslip and does not require a signature.
-          </div>
+        <div className={styles.titleBlock}>
+          <h3 className={styles.title}>Payslip for {monthTitle}</h3>
+          <p className={styles.period}>{period}</p>
         </div>
-      </div>
+
+        <div className={styles.detailsGrid}>
+          <section>
+            <h4 className={styles.sectionLabel}>Employee</h4>
+            {detail('Name', data.personnelName || '—')}
+            {detail('Employee code', data.employeeCode || data.staffId || '—')}
+            {detail('Designation', data.designation || '—')}
+            {detail('Location', data.storeName || '—')}
+            {hasBank ? detail('Bank', data.bankName || '—') : null}
+            {account ? detail('Account', account) : null}
+            {hasIfsc ? detail('IFSC', data.ifscCode) : null}
+            {hasPan ? detail('PAN', data.panNo) : null}
+            {hasUan ? detail('UAN', data.uanNumber) : null}
+          </section>
+          <section>
+            <h4 className={styles.sectionLabel}>Attendance</h4>
+            {detail('Calendar days', formatCount(data.totalDays))}
+            {detail('Working days', formatCount(data.totalWorkingDays))}
+            {detail('Weekly offs', formatCount(data.totalweeklyOff))}
+            {detail('Holidays', formatCount(data.totalHolidays))}
+            {detail('Paid leave', formatCount(data.totalPaidLeaves))}
+            {detail('Absent', formatCount(data.absentDays))}
+            {detail('Penalty days', formatCount(data.penaltyAbsentDays))}
+            {detail('Paid days', formatCount(data.totalPaidDays))}
+          </section>
+        </div>
+
+        <table className={styles.lines}>
+          <thead>
+            <tr>
+              <th>Earnings</th>
+              <th className={styles.amount}>Amount</th>
+              <th>Deductions</th>
+              <th className={styles.amount}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: Math.max(earnings.length, deductions.length, 1) }).map((_, index) => {
+              const earning = earnings[index];
+              const deduction = deductions[index];
+              return (
+                <tr key={index}>
+                  <td>{earning ? earning[0] : ''}</td>
+                  <td className={styles.amount}>{earning ? `₹${formatMoney(earning[1])}` : ''}</td>
+                  <td>{deduction ? deduction[0] : ''}</td>
+                  <td className={styles.amount}>{deduction ? `₹${formatMoney(deduction[1])}` : ''}</td>
+                </tr>
+              );
+            })}
+            <tr className={styles.totals}>
+              <td>Gross earnings</td>
+              <td className={styles.amount}>₹{formatMoney(data.totalEarning)}</td>
+              <td>Total deductions</td>
+              <td className={styles.amount}>₹{formatMoney(data.totalDeduction)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div className={styles.net}>
+          <div className={styles.netText}>
+            <p className={styles.netLabel}>Net payable</p>
+            <p className={styles.words}>{toWords.convert(Number(data.salaryAmount || 0))}</p>
+          </div>
+          <p className={styles.netAmount}>₹{formatMoney(data.salaryAmount)}</p>
+        </div>
+
+        <p className={styles.footerNote}>This is a computer-generated payslip and does not require a signature.</p>
+      </article>
     </div>
   );
 };

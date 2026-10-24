@@ -2,7 +2,7 @@
 
 > **Audience:** Product, QA, frontend/backend developers, support
 > **Purpose:** Record current frontend route gates and important backend differences
-> **Last verified:** 2026-10-21
+> **Last verified:** 2026-10-24
 > **Source of truth:** `App.jsx`, `Navigation.jsx`, screen checks, `@PreAuthorize`
 
 ## Navigation groups
@@ -20,7 +20,7 @@ Both navigations include a **Documentation** link in the sidebar footer (with lo
 Staff-only users see the same sections as a flat list (no accordion):
 
 - **Overview:** Home, Attendance, My Work
-- **Management:** My Leaves, then Salary and Payslips when they have `VIEW_SALARY`
+- **Management:** My Leaves, then Salary and Payslips when they have `VIEW_SALARY` or `MANAGE_SALARY`, then Claims and Loans (any signed-in user)
 - **Profile** (`/staff`) sits at the bottom of the staff destination list, then Activity log when `VIEW_ACTIVITY_LOG`. Documentation and logout sit in the sidebar footer.
 
 Icons use Lucide via `react-icons/lu` (for example Leave uses `LuCalendarOff`). The shell is a Hajiro layout (248px sidebar, 64px header, navy/blue/teal tokens). No third-party UI kit is required. Form toggles and choice controls should use shared `Checkbox` / `Switch` / `Radio` from `components/ui`.
@@ -29,7 +29,15 @@ Icons use Lucide via `react-icons/lu` (for example Leave uses `LuCalendarOff`). 
 
 | Route                  | Screen                   | Frontend requirement                   |
 | ---------------------- | ------------------------ | -------------------------------------- |
-| `/login`               | Login                    | Public/unauthenticated                 |
+| `/login`               | Login                    | Public/unauthenticated client staff    |
+| `/ops/login`           | Ops login                | Public/unauthenticated platform users  |
+| `/ops`                 | Ops clients              | Platform `superadmin` or `sales`       |
+| `/ops/clients/new`     | Onboarding wizard        | Platform `superadmin` or `sales`       |
+| `/ops/clients/:tenantId` | Client detail          | Platform `superadmin` or `sales`       |
+| `/ops/products`        | Source product catalog   | Platform `superadmin` only             |
+| `/ops/operators`       | Platform users           | Platform `superadmin` only             |
+| `/ops/support-launch`  | Support handoff          | Public one-time code                   |
+| `/ops/support-ended`   | Support ended            | Public                               |
 | `/home`                | Home                     | Authenticated. Staff home or operations home. Data from `GET /home/staff` or `GET /home/operations` |
 | `/activity`            | Activity log             | `VIEW_ACTIVITY_LOG` |
 | `/docs`                | User help center home    | Authenticated; standalone docs chrome  |
@@ -41,7 +49,12 @@ Icons use Lucide via `react-icons/lu` (for example Leave uses `LuCalendarOff`). 
 | `/approvals`           | Regularization Approvals | `MANAGE_ATTENDANCE`                    |
 | `/salary`              | Salary Management        | `VIEW_SALARY` or `MANAGE_SALARY`       |
 | `/payslips`            | Payslips                 | `VIEW_SALARY` or `MANAGE_SALARY`       |
+| `/pay-run`             | Pay run                  | `VIEW_SALARY` or `MANAGE_SALARY`       |
+| `/claims`              | Claims                   | Authenticated                          |
+| `/loans`               | Loans                    | Authenticated. Create/close need `MANAGE_SALARY` |
+| `/settlements`         | Settlements              | `VIEW_SALARY` or `MANAGE_SALARY`       |
 | `/hospitality`         | Hospitality Payroll      | `MANAGE_SALARY`, `VIEW_HOSPITALITY`, or `MANAGE_HOSPITALITY` |
+| `/reports/payroll`     | Payroll cost             | `VIEW_SALARY`, `VIEW_REPORTS`, or `MANAGE_SALARY` |
 | `/my-work`             | My Work                  | Authenticated                          |
 | `/reports`             | Attendance Summary       | `VIEW_REPORTS`                         |
 | `/reports/detailed`    | Staff Detailed Report    | `MANAGE_ATTENDANCE` or `MANAGE_SALARY` |
@@ -53,19 +66,22 @@ Icons use Lucide via `react-icons/lu` (for example Leave uses `LuCalendarOff`). 
 
 ## Permission catalog used by the UI
 
-- Staff: `VIEW_STAFF`, `VIEW_OTHER_STAFF`, `MANAGE_STAFF`
+Frontend `hasAccess` gates use these strings (they match `Permissions.java` unless noted):
+
+- Staff directory: `VIEW_OTHER_STAFF`, `MANAGE_STAFF`
 - Shifts: `VIEW_SHIFTS`, `MANAGE_SHIFTS`
-- Attendance: `VIEW_ATTENDANCE`, `MANAGE_ATTENDANCE`
-- Salary: `VIEW_SALARY`, `MANAGE_SALARY`
-- Roles: `VIEW_ROLES`, `MANAGE_ROLES`
-- Leave: `VIEW_LEAVES`, `MANAGE_LEAVES`
-- Reports: `VIEW_REPORTS`, `MANAGE_REPORTS`
-- Executive: `VIEW_HR_DASHBOARD`
+- Attendance approvals: `MANAGE_ATTENDANCE`
+- Salary / pay run / settlements: `VIEW_SALARY`, `MANAGE_SALARY`
+- Roles: `MANAGE_ROLES`
+- Leave setup and approvals: `MANAGE_LEAVES`
+- Reports: `VIEW_REPORTS`
+- Executive snapshot: `VIEW_HR_DASHBOARD`
 - Hospitality: `VIEW_HOSPITALITY`, `MANAGE_HOSPITALITY`
 - Activity: `VIEW_ACTIVITY_LOG`
-- Backend constant also defines `MANAGE_STORE_SETTINGS`
 
-Additional permission strings appear in historical seed data but are not consistently implemented as controller checks. Do not infer enforcement from a seeded label.
+`Permissions.java` also defines `VIEW_STAFF`, `VIEW_ATTENDANCE`, `VIEW_ROLES`, and `MANAGE_STORE_SETTINGS`. The UI does not gate routes on those four. Historical seed / `InsertData` labels such as `VIEW_LEAVES`, `MANAGE_REPORTS`, `MANAGE_HOLIDAYS`, `VIEW_HOLIDAYS`, `APPROVE_LEAVES`, and `APPROVE_ATTENDANCE` are not frontend gates. Do not infer enforcement from a seeded label.
+
+Operations Home and the admin sidebar use the same gate list as `SecurityUtils.isOperationsUser()` / `homeAccess.OPS_GATES` (`VIEW_OTHER_STAFF`, `MANAGE_STAFF`, `MANAGE_*` listed above, `VIEW_REPORTS`, `VIEW_HR_DASHBOARD`, hospitality). `VIEW_ACTIVITY_LOG` is not in that list.
 
 ## Backend method enforcement
 

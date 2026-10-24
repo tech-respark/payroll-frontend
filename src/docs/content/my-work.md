@@ -2,7 +2,7 @@ My Work is the self-service clock and roster page. Any signed-in person can open
 
 ## Clock in and out
 
-The clock card shows today’s date, your rostered slot when one exists, and today’s punches as In and Out chips.
+The clock card shows today’s date, your rostered slot when one exists, and today’s punches as In and Out chips. If nothing is rostered, it says **No rostered shift** — you can still clock if you are covering.
 
 1. Open **My Work**.
 2. Choose **Clock in** when you start.

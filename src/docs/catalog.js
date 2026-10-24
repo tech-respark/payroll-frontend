@@ -69,6 +69,12 @@ export const DOCS_NAV = [
         description: 'Open a month, print, or download your payslip PDF.',
         keywords: ['salary slip', 'pdf', 'pay'],
       },
+      {
+        slug: 'claims',
+        title: 'Claims',
+        description: 'Submit reimbursements and IT declarations.',
+        keywords: ['reimbursement', 'declaration', '80c', 'hra'],
+      },
     ],
   },
   {
@@ -148,6 +154,24 @@ export const DOCS_NAV = [
         keywords: ['compensation', 'components', 'formula'],
       },
       {
+        slug: 'pay-run',
+        title: 'Pay run',
+        description: 'Calculate, skip people, approve, publish, and lock a payroll period.',
+        keywords: ['calculate', 'approve', 'publish', 'statutory', 'form 16'],
+      },
+      {
+        slug: 'loans',
+        title: 'Loans',
+        description: 'Record a loan and recover the EMI on the pay run.',
+        keywords: ['emi', 'loan', 'advance'],
+      },
+      {
+        slug: 'settlements',
+        title: 'Settlements',
+        description: 'Draft and close a full and final settlement.',
+        keywords: ['fnf', 'exit', 'full and final'],
+      },
+      {
         slug: 'hospitality',
         title: 'Hospitality payroll',
         description: 'Advances, commissions, service charge, statutory lines, and exports.',
@@ -156,7 +180,7 @@ export const DOCS_NAV = [
       {
         slug: 'reports',
         title: 'Reports',
-        description: 'Attendance summary, staff detail, and CSV export.',
+        description: 'Attendance summary, staff detail, payroll cost, and CSV export.',
         keywords: ['analytics', 'csv', 'hours'],
       },
     ],

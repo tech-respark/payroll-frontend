@@ -304,10 +304,21 @@
   font-variant-numeric: tabular-nums;
 }
 
+.reasonCell {
+  display: inline-block;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
 .punchBlocksContainer {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  max-width: 280px;
 }
 
 .punchBlock {
@@ -417,6 +428,11 @@
 .thActions,
 .tdActions {
   text-align: right;
+  position: sticky;
+  right: 0;
+  background: var(--bg-card);
+  box-shadow: -8px 0 12px -8px rgba(16, 38, 77, 0.12);
+  white-space: nowrap;
 }
 
 .remarkField {

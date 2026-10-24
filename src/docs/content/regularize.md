@@ -8,11 +8,11 @@ Use a regularization when a punch is missing, duplicated, or recorded at the wro
 4. Enter the correct in or out time and a short reason.
 5. Submit.
 
-The request stays **Pending** until someone with attendance approval rights reviews it. The day shows the pending punch, but the status does not become Present until it is approved.
+A reason is required. The request stays **Pending** until someone else with attendance approval rights reviews it — including when you manage attendance and correct your own day. The day shows the pending punch, but the status does not become Present until it is approved.
 
 ## Who can approve immediately
 
-Users who manage attendance can enter an already-approved correction in the same day dialog. That is for HR or a store manager fixing a known device gap, not for changing your own history without review.
+Users who manage attendance can save and approve a correction for **someone else** in the same day dialog. That is for HR or a store manager fixing a known device gap, not for changing your own history without review.
 
 ## After you submit
 

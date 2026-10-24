@@ -2,7 +2,7 @@ My Leaves shows your balances and the requests you have already submitted. Anyon
 
 ## Read your balances
 
-The top of the page lists remaining balances for the leave types you are enrolled in. Balances come from a ledger of grants, accruals, usage, expiry, and adjustments — not from a single editable number.
+The top of the page lists remaining balances for the leave types you are enrolled in. Balances come from a ledger of grants, accruals, usage, expiry, and adjustments — not from a single editable number. Opening the page does not create a yearly grant; that happens when you apply or when accrual runs.
 
 ## Apply for leave
 

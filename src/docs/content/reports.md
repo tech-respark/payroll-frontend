@@ -1,4 +1,4 @@
-Reports are operational summaries of hours and attendance. They are not statutory payroll filings.
+Reports are operational summaries of hours, attendance, and payroll cost. They are not statutory filings.
 
 ## Attendance summary
 
@@ -12,9 +12,13 @@ Open **Attendance Summary** when your role includes report view permission.
 
 The page loads an initial query and has a manual refresh.
 
+## Payroll cost
+
+Open **Payroll cost** from Reports when your role includes salary or report view. Choose a month and year to see headcount, earnings, deductions, and net for that pay period. This is an operational total, not a statutory filing.
+
 ## Staff detailed report
 
-Open **Staff Detailed Report** with attendance or salary manage permission. Pick a person and period to see the shift and attendance detail behind the summary.
+Open **Staff Detailed Report** with attendance or salary manage permission, or follow a name from the summary — the same from and to dates come with the link. Pick a person and period to see rostered shift and attendance detail. Days without a roster are not listed.
 
 ## When a report and the calendar disagree
 

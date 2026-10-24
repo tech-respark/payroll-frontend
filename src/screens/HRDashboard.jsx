@@ -119,7 +119,14 @@ const HRDashboard = ({ embedded = false, metrics: metricsProp }) => {
           <div className={styles.metricContent}>
             <div className={styles.metricLabel}>Attendance Today</div>
             <div className={styles.metricValue}>
-              {metrics.attendancePercentageToday}% <span>Healthy</span>
+              {metrics.attendancePercentageToday == null
+                ? 'No data'
+                : (
+                  <>
+                    {metrics.attendancePercentageToday}%
+                    <span>of rostered staff punched today</span>
+                  </>
+                )}
             </div>
           </div>
           <div className={styles.cardFooter} onClick={() => history.push('/attendance')} role="button" tabIndex={0}>
